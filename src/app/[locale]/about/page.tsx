@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     openGraph: {
       title: `${ogSet.brand} — ${title}`,
       description: desc,
-      images: [{ url: ogImageUrl({ title, type: "page", brand: ogSet.brand, url: ogSet.siteUrl }), width: 1200, height: 630 }],
+      images: [{ url: ogImageUrl({ title, type: "page", brand: ogSet.brand, url: ogSet.siteUrl, logo: ogSet.logoUrl || undefined }), width: 1200, height: 630 }],
     },
   };
 }
