@@ -30,7 +30,7 @@ export async function generateMetadata() {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   let defaultTheme = "dark";
   let faviconUrl = "/favicon.svg";
-  let logoUrl = process.env.NEXT_PUBLIC_LOGO_URL || "";
+  let logoUrl = "";
   try {
     const supabase = await createServerSupabaseClient();
     if (supabase) {
