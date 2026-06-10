@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title,
     openGraph: {
       title: `${ogSet.brand} — ${title}`,
-      images: [{ url: ogImageUrl({ title, subtitle: "Wine Cooling Cabinets", type: "page", brand: ogSet.brand, url: ogSet.siteUrl, logo: ogSet.logoUrl || undefined }), width: 1200, height: 630 }],
+      images: [{ url: ogImageUrl({ title, subtitle: "Wine Cooling Cabinets", type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],
     },
   };
 }
