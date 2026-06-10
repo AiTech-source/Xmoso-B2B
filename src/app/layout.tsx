@@ -8,23 +8,29 @@ const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata() {
   let siteTitle = "DeepCool";
+  let faviconUrl = "/favicon.svg";
   try {
     const supabase = await createServerSupabaseClient();
     if (supabase) {
-      const { data } = await supabase.from("site_settings").select("value").eq("key", "site_title").single();
-      if (data?.value) siteTitle = data.value;
+      const [titleRes, favRes] = await Promise.all([
+        supabase.from("site_settings").select("value").eq("key", "site_title").single(),
+        supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
+      ]);
+      if (titleRes.data?.value) siteTitle = titleRes.data.value;
+      if (favRes.data?.value) faviconUrl = favRes.data.value;
     }
   } catch (_) {}
   return {
     title: { template: `%s — ${siteTitle}`, default: siteTitle },
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://deepcool.com"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://xmoso.com"),
+    icons: { icon: faviconUrl },
   };
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   let defaultTheme = "dark";
   let faviconUrl = "/favicon.svg";
-  let logoUrl = "";
+  let logoUrl = process.env.NEXT_PUBLIC_LOGO_URL || "";
   try {
     const supabase = await createServerSupabaseClient();
     if (supabase) {
@@ -39,20 +45,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     }
   } catch (_) {}
 
+  const escapedLogo = logoUrl ? logoUrl.replace(/"/g, '\\"').replace(/'/g, "\\'") : "";
+
   return (
     <html lang="en" className={inter.className} data-theme={defaultTheme === "light" ? "light" : undefined}>
       <head>
-        <link rel="icon" href={faviconUrl} sizes="any" />
+        {faviconUrl && <link rel="icon" href={faviconUrl} sizes="any" />}
         {logoUrl && <link rel="preload" as="image" href={logoUrl} />}
         <link rel="stylesheet" href="/light-theme.css" />
-        {/* Preload logo to localStorage so Header reads it without flash */}
         <script dangerouslySetInnerHTML={{
-          __html: logoUrl
-            ? `(function(){try{localStorage.setItem("logo_url","${logoUrl.replace(/"/g, '\\"')}")}catch(e){}})();`
+          __html: escapedLogo
+            ? `(function(){try{localStorage.setItem("logo_url","${escapedLogo}")}catch(e){}})();`
             : `(function(){try{localStorage.removeItem("logo_url")}catch(e){}})();`
         }} />
-        {/* Admin session override */}
-        {/* Admin session override: if admin has a localStorage preference, use it */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){

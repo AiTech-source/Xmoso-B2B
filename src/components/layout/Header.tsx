@@ -9,7 +9,7 @@ export default function Header() {
   const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState(
-    typeof window !== "undefined" ? localStorage.getItem("logo_url") || "" : ""
+    (typeof window !== "undefined" ? localStorage.getItem("logo_url") : "") || ""
   );
   const isZh = locale === "zh";
 
