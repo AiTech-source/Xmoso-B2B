@@ -5,12 +5,16 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 
+// Read logo directly from localStorage — runs synchronously before first render
+function getInitialLogo(): string {
+  if (typeof window === "undefined") return "";
+  try { return localStorage.getItem("logo_url") || ""; } catch { return ""; }
+}
+
 export default function Header() {
   const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState(
-    (typeof window !== "undefined" ? localStorage.getItem("logo_url") : "") || ""
-  );
+  const [logoUrl, setLogoUrl] = useState(getInitialLogo);
   const isZh = locale === "zh";
 
   useEffect(() => {
@@ -43,10 +47,8 @@ export default function Header() {
         <nav className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
           <Link href={`/${locale}`} style={{ textDecoration: "none", display: "flex", alignItems: "center" }} className="text-xl font-bold tracking-widest text-white">
             {logoUrl ? (
-              <img src={logoUrl} alt="DeepCool" style={{ height: "32px", maxWidth: "160px" }} className="object-contain" />
-            ) : (
-              <>DEEP<span className="text-forest">COOL</span></>
-            )}
+              <img src={logoUrl} alt="Logo" style={{ height: "32px", maxWidth: "160px" }} className="object-contain" />
+            ) : null}
           </Link>
 
           {/* Desktop nav */}

@@ -31,7 +31,7 @@ const PLATFORMS = [
 
 export default function ShareButton({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
-  const fullUrl = `https://deepcool.com${url.startsWith("/") ? "" : "/"}${url}`;
+  const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}` : url;
 
   function copyLink() {
     navigator.clipboard.writeText(fullUrl);
