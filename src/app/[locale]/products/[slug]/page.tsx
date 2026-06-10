@@ -28,12 +28,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   const product = translation.product;
   const ogSettings = await getOgSettings(supabase);
+  const firstImage = product?.image_gallery?.[0]?.url || "";
   const ogUrl = ogImageUrl({
     title: translation.meta_title || translation.name,
-    model: product?.model_number || "",
+    subtitle: product?.model_number || "",
     type: "product",
     brand: ogSettings.brand,
     url: ogSettings.siteUrl,
+    logo: ogSettings.logoUrl || undefined,
+    image: firstImage || undefined,
   });
 
   return {
