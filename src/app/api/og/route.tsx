@@ -8,6 +8,7 @@ export async function GET(req: Request) {
   const subtitle = searchParams.get("subtitle") || "";
   const type = searchParams.get("type") || "product";
   const brand = searchParams.get("brand") || "Xmoso";
+  const logo = searchParams.get("logo") || "";
 
   const isPage = type === "page" || type === "faq";
   const initials = brand.substring(0, 1).toUpperCase();
@@ -27,16 +28,19 @@ export async function GET(req: Request) {
           overflow: "hidden",
         }}
       >
-        {/* Decorative background */}
+        {/* Decorative elements */}
         <div style={{ position: "absolute", top: -100, right: -100, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,200,160,0.08) 0%, transparent 70%)" }} />
         <div style={{ position: "absolute", bottom: -50, left: -50, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(126,200,227,0.06) 0%, transparent 70%)" }} />
 
-        {/* Brand */}
+        {/* Brand — with logo image if available */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: "#8BC8A0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 700, color: "#0A0A0F" }}>
-            {initials}
-          </div>
-          <span style={{ fontSize: 28, color: "#8BC8A0", fontWeight: 300, letterSpacing: "0.1em" }}>{brand}</span>
+          {logo ? (
+            <img src={logo} alt="" width={160} height={40} style={{ objectFit: "contain" }} />
+          ) : (
+            <div style={{ width: 44, height: 44, borderRadius: 10, background: "#8BC8A0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 700, color: "#0A0A0F" }}>
+              {initials}
+            </div>
+          )}
         </div>
 
         {/* Title */}
@@ -44,7 +48,7 @@ export async function GET(req: Request) {
           {title}
         </div>
 
-        {/* Subtitle */}
+        {/* Subtitle (model number for products) */}
         {subtitle && (
           <div style={{ fontSize: 24, color: "rgba(192,192,192,0.5)", fontWeight: 300, marginTop: 16, letterSpacing: "0.05em" }}>
             {subtitle}
