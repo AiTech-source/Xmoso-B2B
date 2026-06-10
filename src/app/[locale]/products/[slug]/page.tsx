@@ -33,7 +33,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     subtitle: product?.model_number || "",
     type: "product",
     brand: ogSettings.brand,
-    logo: ogSettings.logoUrl || undefined,
   });
 
   return {

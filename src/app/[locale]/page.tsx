@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     openGraph: {
       title: `${ogSet.brand} — ${title}`,
       description: desc,
-      images: [{ url: ogImageUrl({ title: "Less Appliances, Natural More", subtitle: "Precision Wine Cooling Cabinets", type: "page", brand: ogSet.brand, logo: ogSet.logoUrl || undefined }), width: 1200, height: 630 }],
+      images: [{ url: ogImageUrl({ title: "Less Appliances, Natural More", subtitle: "Precision Wine Cooling Cabinets", type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],
     },
   };
 }
