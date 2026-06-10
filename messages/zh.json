@@ -1,0 +1,29 @@
+{
+  "nav": { "home": "首页", "products": "产品中心", "about": "关于我们", "contact": "联系我们" },
+  "home": {
+    "hero_title": "精工制冷。",
+    "hero_subtitle": "自然永续。",
+    "precision": "德国精密",
+    "eco": "生态创新",
+    "global": "全球布局",
+    "inquiry": "立即咨询"
+  },
+  "product": {
+    "energy_rating": "能效等级",
+    "certifications": "环保认证",
+    "co2_saved": "CO₂ 减排",
+    "specifications": "技术规格",
+    "faq": "常见问题",
+    "inquiry_form": "发送询盘"
+  },
+  "about": { "title": "关于我们", "eco_commitment": "我们的环保承诺" },
+  "contact": {
+    "title": "联系我们", "name": "姓名", "email": "邮箱", "company": "公司",
+    "phone": "电话", "message": "留言", "submit": "提交",
+    "thanks": "感谢您的留言！我们会尽快与您联系。"
+  },
+  "admin": {
+    "dashboard": "仪表盘", "products": "产品管理", "translations": "翻译管理",
+    "inquiries": "询盘管理", "analytics": "数据分析", "settings": "账号设置"
+  }
+}

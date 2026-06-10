@@ -1,0 +1,203 @@
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import Breadcrumbs from "@/components/layout/Breadcrumbs";
+import PageBannerCarousel from "@/components/layout/PageBannerCarousel";
+import ImageGallery from "@/components/products/ImageGallery";
+import SpecTable from "@/components/products/SpecTable";
+import InstallationMedia from "@/components/products/InstallationMedia";
+import RichContent from "@/components/products/RichContent";
+import ParamCounter from "@/components/products/ParamCounter";
+import SpecTabs from "@/components/products/SpecTabs";
+import FloatingInquiry from "@/components/products/FloatingInquiry";
+import ShareButton from "@/components/social/ShareButton";
+import { notFound } from "next/navigation";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { productSchema, breadcrumbListSchema, renderJsonLd } from "@/lib/seo/json-ld";
+import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const supabase = await createServerSupabaseClient();
+  const { data: translation } = await supabase
+    .from("product_translations")
+    .select("name, description, meta_title, meta_description, og_image, product:products(image_gallery, model_number)")
+    .eq("locale", locale).eq("slug", slug).single();
+
+  if (!translation) return { title: "Product" };
+
+  const product = translation.product;
+  const ogSettings = await getOgSettings(supabase);
+  const ogUrl = ogImageUrl({
+    title: translation.meta_title || translation.name,
+    model: product?.model_number || "",
+    type: "product",
+    brand: ogSettings.brand,
+    url: ogSettings.siteUrl,
+  });
+
+  return {
+    title: translation.meta_title || translation.name,
+    description: translation.meta_description || translation.description || undefined,
+    openGraph: {
+      title: translation.meta_title || translation.name,
+      description: translation.meta_description || translation.description || undefined,
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
+    },
+  };
+}
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale, slug } = await params;
+  const supabase = await createServerSupabaseClient();
+  const { data: translation } = await supabase
+    .from("product_translations").select("*, product:products(*)").eq("locale", locale).eq("slug", slug).eq("product.is_active", true).single();
+
+  if (!translation || !translation.product) notFound();
+  const product = translation.product;
+
+  // Fetch category name + product_type separately
+  let category: { name: string; product_type: string } | null = null;
+  if (product.category_id) {
+    const { data: cat } = await supabase
+      .from("product_categories").select("name, product_type").eq("id", product.category_id).single();
+    category = cat;
+  }
+  const images = product.image_gallery?.length ? product.image_gallery : (product.images || []).map((u: string) => ({ url: u }));
+  // Load specs from normalized table
+  const { data: specRows } = await supabase
+    .from("product_specs").select("*").eq("product_id", product.id).order("sort_order", { ascending: true });
+  const specs = (specRows || []).map((s: any) => ({
+    no: s.sort_order,
+    label: s.label,
+    value: s.value,
+    bgColor: s.bg_color || undefined,
+    fontSize: s.font_size || undefined,
+    color: s.color || undefined,
+  }));
+  const counters = product.param_counters || [];
+  const tabs = product.spec_tabs || [];
+  const eco = product.eco_features || [];
+
+  // Fetch page banner toggle
+  let showBanner = true;
+  let vignetteEnabled = true;
+  if (supabase) {
+    const { data: pg } = await supabase.from("page_contents")
+      .select("show_banner, vignette_enabled")
+      .eq("page_key", "product-detail").eq("locale", locale).maybeSingle();
+    if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
+  }
+
+  return (
+    <>
+      <Header />
+      <main style={{ paddingTop: "64px" }}>
+        {showBanner && <PageBannerCarousel pageKey="product-detail" vignette={vignetteEnabled} />}
+        <Breadcrumbs items={[
+          { label: "Products", href: `/${locale}/products` },
+          ...(category?.product_type ? [{ label: category.product_type, href: `/${locale}/products?type=${encodeURIComponent(category.product_type)}` }] : []),
+          ...(category?.name ? [{ label: category.name, href: `/${locale}/products?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
+          { label: product.model_number },
+        ]} />
+
+        {/* JSON-LD Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: renderJsonLd(productSchema({
+              name: translation.name,
+              description: translation.description,
+              image: images?.[0]?.url || undefined,
+              brand: "DeepCool",
+              sku: product.model_number,
+            }))
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: renderJsonLd(breadcrumbListSchema([
+              { name: locale === "zh" ? "产品中心" : "Products", url: `https://deepcool.com/${locale}/products` },
+              ...(category?.name ? [{ name: category.name }] : []),
+              { name: product.model_number },
+            ]))
+          }}
+        />
+
+        <div className="max-w-7xl mx-auto px-4">
+
+          {/* Image + Info + SPEC */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+            <ImageGallery images={images} />
+            <div>
+              <h1 className="text-3xl md:text-4xl font-light tracking-wider text-white">{translation.name}</h1>
+              <div className="mt-3">
+                <ShareButton url={`/${locale}/products/${slug}`} title={translation.name} />
+              </div>
+              <p className="text-silver/50 text-sm mt-3">{product.model_number}</p>
+              <p className="text-silver/60 mt-6 leading-relaxed">{translation.description}</p>
+              {/* SPEC right below description */}
+              {specs.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-lg text-white tracking-wide mb-4">📋 Technical Specifications</h3>
+                  <SpecTable specs={specs} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Installation Media — below SPEC, above Counters */}
+          {product.installation_media?.length > 0 && (
+            <InstallationMedia media={product.installation_media} />
+          )}
+
+          {/* Param Counters */}
+          {counters.length > 0 && (
+            <div className="grid grid-cols-3 gap-4 mb-16">
+              {counters.map((pc: any, i: number) => (
+                <ParamCounter key={i} label={pc.label} value={pc.value} unit={pc.unit} icon={pc.icon} />
+              ))}
+            </div>
+          )}
+
+          {/* Rich Content */}
+          {product.content && (
+            <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
+              <h3 className="text-xl text-white tracking-wide mb-6">📖 Details</h3>
+              <RichContent content={product.content} />
+            </div>
+          )}
+
+          {/* Interactive Tabs */}
+          {tabs.length > 0 && (
+            <div className="mb-16">
+              <SpecTabs tabs={tabs} />
+            </div>
+          )}
+
+          {/* Eco Panel */}
+          {eco.length > 0 && (
+            <div className="bg-deep-blue/20 border border-forest/20 rounded-xl p-8 mb-16">
+              <h3 className="text-xl text-forest tracking-wide mb-4">🌱 Sustainability</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                {eco.map((f: any, i: number) => (
+                  <div key={i}>
+                    <span className={`text-2xl font-light ${f.color === "forest" ? "text-forest" : "text-ice"}`}>{f.value}</span>
+                    <p className="text-xs text-silver/50 mt-1">{f.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Inquiry — scrolls naturally with content */}
+          <div className="max-w-xs mx-auto pb-8">
+            <FloatingInquiry locale={locale} />
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}

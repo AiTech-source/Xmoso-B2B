@@ -1,0 +1,65 @@
+/* Light theme — loaded as a separate CSS file, not processed by Tailwind v4 */
+html[data-theme="light"] body,
+html[data-theme="light"] main {
+  background-color: #F2F0EB !important;
+  color: #2A2A2A !important;
+}
+html[data-theme="light"] .bg-deep-blue,
+html[data-theme="light"] .bg-deep-blue\/20,
+html[data-theme="light"] .bg-deep-blue\/30,
+html[data-theme="light"] .bg-deep-blue\/40 { background-color: #FFF !important; }
+html[data-theme="light"] .bg-deep-dark,
+html[data-theme="light"] .bg-deep-dark\/30,
+html[data-theme="light"] .bg-deep-dark\/40,
+html[data-theme="light"] .bg-deep-dark\/50,
+html[data-theme="light"] .bg-deep-dark\/60,
+html[data-theme="light"] .bg-deep-dark\/80 { background-color: #FFF !important; }
+html[data-theme="light"] .text-white { color: #1A1A1A !important; }
+html[data-theme="light"] .text-silver,
+html[data-theme="light"] .text-silver\/30,
+html[data-theme="light"] .text-silver\/40,
+html[data-theme="light"] .text-silver\/50,
+html[data-theme="light"] .text-silver\/60,
+html[data-theme="light"] .text-silver\/70,
+html[data-theme="light"] .text-silver\/80 { color: #333 !important; }
+html[data-theme="light"] nav .text-silver\/50 { color: #444 !important; }
+html[data-theme="light"] nav .text-silver\/80,
+html[data-theme="light"] nav .text-silver\/70 { color: #111 !important; }
+html[data-theme="light"] nav .text-silver\/20 { color: rgba(0,0,0,0.3) !important; }
+html[data-theme="light"] .border-silver\/5,
+html[data-theme="light"] .border-silver\/10,
+html[data-theme="light"] .border-silver\/20 { border-color: rgba(0,0,0,0.1) !important; }
+html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,html[data-theme="light"] h4,
+html[data-theme="light"] p,html[data-theme="light"] .rich-text-display,
+html[data-theme="light"] .leading-relaxed,html[data-theme="light"] .tracking-wide { color: #2A2A2A !important; }
+html[data-theme="light"] .rounded-full { color: #333 !important; border-color: rgba(0,0,0,0.15) !important; }
+html[data-theme="light"] .hover\:text-white:hover,
+html[data-theme="light"] .hover\:text-silver:hover { color: #333 !important; }
+html[data-theme="light"] .text-ice { color: #3a8ba8 !important; }
+html[data-theme="light"] .text-forest { color: #2a7d4e !important; }
+html[data-theme="light"] .bg-forest\/20 { background-color: rgba(42,125,78,0.15) !important; }
+html[data-theme="light"] main [class*="aspect-square"] { background-color: #FFF !important; }
+html[data-theme="light"] table thead .bg-deep-blue\/40 { background-color: #e8e6e0 !important; }
+html[data-theme="light"] table tbody .text-white { color: #111 !important; }
+html[data-theme="light"] table .text-silver\/40 { color: #555 !important; }
+html[data-theme="light"] table .text-silver\/80 { color: #333 !important; }
+html[data-theme="light"] .text-center p,
+html[data-theme="light"] .uppercase { color: #555 !important; }
+html[data-theme="light"] header.bg-deep-dark,
+html[data-theme="light"] header.bg-deep-dark\/80,
+html[data-theme="light"] footer { background-color: #0A0A0F !important; color: rgba(255,255,255,0.85) !important; }
+html[data-theme="light"] header .text-white,
+html[data-theme="light"] footer .text-white,
+html[data-theme="light"] header .text-silver,
+html[data-theme="light"] header .text-silver\/50,
+html[data-theme="light"] header .text-silver\/60 { color: rgba(255,255,255,0.85) !important; }
+html[data-theme="light"] header .text-forest { color: #8BC8A0 !important; }
+html[data-theme="light"] footer .bg-deep-dark { background-color: #0A0A0F !important; }
+html[data-theme="light"] header .border-silver\/10,
+html[data-theme="light"] footer .border-silver\/10 { border-color: rgba(192,192,192,0.1) !important; }
+html[data-theme="light"] .text-ice\/60,
+html[data-theme="light"] .hover\:text-ice\/90:hover { color: #3a8ba8 !important; }
+html[data-theme="light"] .border-t.border-silver\/10 { border-color: rgba(0,0,0,0.08) !important; }
+html[data-theme="light"] table .text-ice\/60 { color: #3a8ba8 !important; }
+html[data-theme="light"] .bg-row-even { background-color: rgba(0, 0, 0, 0.02); }
+html[data-theme="light"] .bg-row-odd { background-color: rgba(0, 0, 0, 0.06); }

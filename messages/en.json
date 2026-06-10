@@ -1,0 +1,29 @@
+{
+  "nav": { "home": "Home", "products": "Products", "about": "About", "contact": "Contact" },
+  "home": {
+    "hero_title": "Precision Cooling.",
+    "hero_subtitle": "Naturally Sustainable.",
+    "precision": "German Precision",
+    "eco": "Eco Innovation",
+    "global": "Global Reach",
+    "inquiry": "Inquiry Now"
+  },
+  "product": {
+    "energy_rating": "Energy Rating",
+    "certifications": "Certifications",
+    "co2_saved": "CO₂ Saved",
+    "specifications": "Specifications",
+    "faq": "FAQ",
+    "inquiry_form": "Send Inquiry"
+  },
+  "about": { "title": "About Us", "eco_commitment": "Our Eco Commitment" },
+  "contact": {
+    "title": "Contact Us", "name": "Name", "email": "Email", "company": "Company",
+    "phone": "Phone", "message": "Message", "submit": "Submit",
+    "thanks": "Thank you! We'll get back to you shortly."
+  },
+  "admin": {
+    "dashboard": "Dashboard", "products": "Products", "translations": "Translations",
+    "inquiries": "Inquiries", "analytics": "Analytics", "settings": "Settings"
+  }
+}

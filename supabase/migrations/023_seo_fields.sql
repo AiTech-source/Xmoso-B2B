@@ -1,0 +1,3 @@
+ALTER TABLE page_contents ADD COLUMN IF NOT EXISTS seo_title TEXT DEFAULT '';
+ALTER TABLE page_contents ADD COLUMN IF NOT EXISTS seo_description TEXT DEFAULT '';
+ALTER TABLE page_contents ADD COLUMN IF NOT EXISTS seo_image TEXT DEFAULT '';
