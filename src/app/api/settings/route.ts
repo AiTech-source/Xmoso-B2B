@@ -6,6 +6,7 @@ const ALL_KEYS = [
   "social_youtube", "social_instagram", "social_tiktok", "social_linkedin", "social_wechat_qr",
   "favicon_url", "site_title",
   "og_brand_name", "og_site_url",
+  "ga_id",
 ];
 
 async function getSetting(supabase: any, key: string): Promise<string> {

@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { ReactNode } from "react";
+import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -45,6 +46,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     }
   } catch (_) {}
 
+  let gaId = "";
+  try {
+    const supabase = await createServerSupabaseClient();
+    if (supabase) {
+      const { data } = await supabase.from("site_settings").select("value").eq("key", "ga_id").single();
+      if (data?.value) gaId = data.value;
+    }
+  } catch (_) {}
+
   const escapedLogo = logoUrl ? logoUrl.replace(/"/g, '\\"').replace(/'/g, "\\'") : "";
 
   return (
@@ -53,6 +63,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {faviconUrl && <link rel="icon" href={faviconUrl} sizes="any" />}
         {logoUrl && <link rel="preload" as="image" href={logoUrl} />}
         <link rel="stylesheet" href="/light-theme.css" />
+        {gaId && (
+          <>
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+            <script dangerouslySetInnerHTML={{
+              __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)};gtag('js',new Date());gtag('config','${gaId}');`
+            }} />
+          </>
+        )}
         <script dangerouslySetInnerHTML={{
           __html: escapedLogo
             ? `(function(){try{localStorage.setItem("logo_url","${escapedLogo}")}catch(e){}})();`

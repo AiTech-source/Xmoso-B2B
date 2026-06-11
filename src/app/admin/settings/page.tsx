@@ -18,6 +18,7 @@ export default function AdminSettingsPage() {
   const [siteTitle, setSiteTitle] = useState("");
   const [ogBrand, setOgBrand] = useState("");
   const [ogSiteUrl, setOgSiteUrl] = useState("");
+  const [gaId, setGaId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -40,6 +41,7 @@ export default function AdminSettingsPage() {
         setSiteTitle(data.site_title || "DeepCool");
         setOgBrand(data.og_brand_name || "DeepCool");
         setOgSiteUrl(data.og_site_url || "deepcool.com");
+        setGaId(data.ga_id || "");
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -230,6 +232,17 @@ export default function AdminSettingsPage() {
                     placeholder="Site URL (e.g. deepcool.com)" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
                   <Button size="sm" onClick={async () => { await saveSetting("og_site_url", ogSiteUrl); }}>Save</Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Google Analytics */}
+            <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
+              <h3 className="text-white tracking-wide mb-4">📊 Google Analytics</h3>
+              <p className="text-xs text-silver/50 mb-3">Enter your GA4 Measurement ID to enable website tracking.</p>
+              <div className="flex gap-2">
+                <input value={gaId} onChange={(e) => setGaId(e.target.value)}
+                  placeholder="G-XXXXXXXXXX" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono" />
+                <Button size="sm" onClick={async () => { await saveSetting("ga_id", gaId); }}>Save</Button>
               </div>
             </div>
 
