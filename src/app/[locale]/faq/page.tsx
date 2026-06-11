@@ -14,7 +14,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = locale === "zh" ? "常见问题" : "FAQ";
   return {
     title,
+    alternates: { canonical: `/${locale}/faq` },
     openGraph: {
+      type: "website",
       title: `${ogSet.brand} — ${title}`,
       images: [{ url: ogImageUrl({ title, type: "faq", brand: ogSet.brand }), width: 1200, height: 630 }],
     },

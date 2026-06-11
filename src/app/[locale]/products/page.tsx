@@ -15,7 +15,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = locale === "zh" ? "产品中心" : "Products";
   return {
     title,
+    alternates: { canonical: `/${locale}/products` },
     openGraph: {
+      type: "website",
       title: `${ogSet.brand} — ${title}`,
       images: [{ url: ogImageUrl({ title, subtitle: "Wine Cooling Cabinets", type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],
     },

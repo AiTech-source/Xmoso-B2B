@@ -38,7 +38,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: translation.meta_title || translation.name,
     description: translation.meta_description || translation.description || undefined,
+    alternates: { canonical: `/${locale}/products/${slug}` },
     openGraph: {
+      type: "website",
       title: translation.meta_title || translation.name,
       description: translation.meta_description || translation.description || undefined,
       images: [{ url: ogUrl, width: 1200, height: 630 }],

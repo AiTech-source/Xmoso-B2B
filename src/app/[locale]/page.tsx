@@ -17,11 +17,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const supabase = await createServerSupabaseClient();
   const ogSet = await getOgSettings(supabase);
   const title = locale === "zh" ? "首页" : "Home";
-  const desc = locale === "zh" ? "德国精工制造的葡萄酒恒温柜，精准温控。" : "German-engineered wine cooling cabinets with precision temperature control.";
+  let desc = locale === "zh" ? "德国精工制造的专业葡萄酒恒温柜，精准温控，节能环保。" : "German-engineered wine cooling cabinets with precision temperature control.";
+
+  if (supabase) {
+    const { data } = await supabase.from("page_contents")
+      .select("seo_description").eq("page_key", "home").eq("locale", locale).maybeSingle();
+    if (data?.seo_description) desc = data.seo_description;
+  }
+
   return {
     title,
     description: desc,
+    alternates: { canonical: `/${locale}` },
     openGraph: {
+      type: "website",
       title: `${ogSet.brand} — ${title}`,
       description: desc,
       images: [{ url: ogImageUrl({ title: "Less Appliances, Natural More", subtitle: "Precision Wine Cooling Cabinets", type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],

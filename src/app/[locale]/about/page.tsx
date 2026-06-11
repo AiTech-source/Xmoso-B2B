@@ -26,7 +26,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title,
     description: desc,
+    alternates: { canonical: `/${locale}/about` },
     openGraph: {
+      type: "website",
       title: `${ogSet.brand} — ${title}`,
       description: desc,
       images: [{ url: ogImageUrl({ title, type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],

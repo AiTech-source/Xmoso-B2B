@@ -25,6 +25,8 @@ export async function generateMetadata() {
     title: { template: `%s — ${siteTitle}`, default: siteTitle },
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://xmoso.com"),
     icons: { icon: faviconUrl },
+    alternates: { canonical: "/" },
+    openGraph: { type: "website" },
   };
 }
 

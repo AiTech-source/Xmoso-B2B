@@ -6,6 +6,7 @@ import PageContentRenderer from "@/components/layout/PageContentRenderer";
 import AnimateSection from "@/components/layout/AnimateSection";
 import InquiryForm from "@/components/products/InquiryForm";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { organizationSchema, renderJsonLd } from "@/lib/seo/json-ld";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import type { Metadata } from "next";
 
@@ -16,7 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = locale === "zh" ? "联系我们" : "Contact Us";
   return {
     title,
+    alternates: { canonical: `/${locale}/contact` },
     openGraph: {
+      type: "website",
       title: `${ogSet.brand} — ${title}`,
       images: [{ url: ogImageUrl({ title, type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],
     },
@@ -44,6 +47,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
       <main style={{ paddingTop: "64px" }}>
         {pageData?.show_banner !== false && <PageBannerCarousel pageKey="contact" vignette={pageData?.vignette_enabled !== false} />}
         <Breadcrumbs items={[{ label: "Contact Us" }]} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("Xmoso", "https://www.xmoso.com")) }} />
         <AnimateSection className="px-4 py-16">
           <h1 className="text-3xl md:text-4xl font-light tracking-wider text-white mb-12 text-center">
             {pageData?.title || "Contact Us"}
