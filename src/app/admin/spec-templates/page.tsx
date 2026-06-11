@@ -4,8 +4,6 @@ import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import Button from "@/components/ui/Button";
 
-const PRODUCT_TYPES = ["Wine Coolers", "Cigar Cabinet", "Drinks Cooler", "Other"];
-
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
   let current = "", inQuotes = false;
@@ -22,11 +20,20 @@ function parseCSVLine(line: string): string[] {
 export default function AdminSpecTemplatesPage() {
   const supabase = createClient();
   const [templates, setTemplates] = useState<any[]>([]);
-  const [productType, setProductType] = useState("Wine Coolers");
+  const [productTypes, setProductTypes] = useState<string[]>([]);
+  const [productType, setProductType] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState("");
   const uploadRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/product-types").then(r => r.json()).then(data => {
+      const names = (data.types || []).map((t: any) => t.name);
+      setProductTypes(names);
+      if (names.length > 0) { setProductType(names[0]); }
+    });
+  }, []);
 
   function loadTemplates(pt: string) {
     fetch(`/api/specs?product_type=${encodeURIComponent(pt)}`)
@@ -154,7 +161,7 @@ export default function AdminSpecTemplatesPage() {
 
         {/* Product type tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {PRODUCT_TYPES.map((pt) => (
+          {productTypes.map((pt) => (
             <button key={pt} onClick={() => setProductType(pt)}
               className={`px-4 py-2 text-sm rounded-full border transition-colors ${productType === pt ? "bg-forest/20 text-forest border-forest/30" : "bg-transparent text-silver/50 border-silver/20 hover:text-white"}`}>
               {pt}

@@ -4,13 +4,12 @@ import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import Button from "@/components/ui/Button";
 
-const PRODUCT_TYPES = ["Wine Coolers", "Cigar Cabinet", "Drinks Cooler", "Other"];
-
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [productTypes, setProductTypes] = useState<string[]>([]);
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
-  const [newType, setNewType] = useState("Wine Coolers");
+  const [newType, setNewType] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editVals, setEditVals] = useState<Record<string, string>>({});
   const supabase = createClient();
@@ -19,12 +18,19 @@ export default function AdminCategoriesPage() {
     supabase?.from("product_categories").select("*").order("product_type").order("sort_order").then(({ data }: { data: any[] | null }) => setCategories(data || []));
   }
 
-  useEffect(() => { loadCategories(); }, []);
+  useEffect(() => {
+    loadCategories();
+    fetch("/api/product-types").then(r => r.json()).then(data => {
+      const names = (data.types || []).map((t: any) => t.name);
+      setProductTypes(names);
+      if (names.length > 0) setNewType(names[0]);
+    });
+  }, []);
 
   async function addCategory() {
     if (!newName || !newSlug) return;
     await supabase?.from("product_categories").insert({ name: newName, slug: newSlug, sort_order: categories.length + 1, product_type: newType });
-    setNewName(""); setNewSlug(""); setNewType("Wine Coolers");
+    setNewName(""); setNewSlug(""); if (productTypes.length > 0) setNewType(productTypes[0]);
     loadCategories();
   }
 
@@ -63,7 +69,7 @@ export default function AdminCategoriesPage() {
           <input value={newSlug} onChange={(e) => setNewSlug(e.target.value)} placeholder="slug" className="bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white w-28" />
           <select value={newType} onChange={(e) => setNewType(e.target.value)}
             className="bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white w-36">
-            {PRODUCT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {productTypes.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
           <Button size="sm" onClick={addCategory}>+ Add</Button>
         </div>
@@ -93,7 +99,7 @@ export default function AdminCategoriesPage() {
                       <td className="p-2">
                         <select value={editVals.product_type || ""} onChange={(e) => setEditVals({ ...editVals, product_type: e.target.value })}
                           className="w-full bg-deep-dark border border-silver/10 rounded px-2 py-1.5 text-xs text-white">
-                          {PRODUCT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                          {productTypes.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
                       </td>
                       <td className="p-2 text-xs text-silver/40 font-mono">{cat.id.slice(0, 8)}…</td>

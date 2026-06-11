@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/categories", label: "📁 Categories" },
   { href: "/admin/translations", label: "🌐 Translations" },
   { href: "/admin/inquiries", label: "📨 Inquiries" },
+  { href: "/admin/product-types", label: "📦 Product Types" },
   { href: "/admin/spec-templates", label: "📋 Spec Templates" },
   { href: "/admin/pages", label: "📝 Pages" },
   { href: "/admin/faq", label: "📋 FAQ" },
