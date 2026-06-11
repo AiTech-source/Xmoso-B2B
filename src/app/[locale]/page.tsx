@@ -75,7 +75,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <main style={{ paddingTop: "64px", minHeight: "80vh" }}>
         {showBanner && <PageBannerCarousel pageKey="home" vignette={vignetteEnabled} />}
         <Breadcrumbs items={[{ label: "Home" }]} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("DeepCool", `https://deepcool.com/${locale}`)) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("Xmoso", `https://xmoso.com${locale === "en" ? "" : `/${locale}`}`)) }} />
         <HeroSection line1={sloganLine1} line2={sloganLine2} line1Size={sloganSize} line2Size={subtitleSize} />
 
         {/* Product Preview with category tabs */}

@@ -119,7 +119,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: renderJsonLd(breadcrumbListSchema([
-              { name: locale === "zh" ? "产品中心" : "Products", url: `https://deepcool.com/${locale}/products` },
+              { name: locale === "zh" ? "产品中心" : "Products", url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products` },
               ...(category?.name ? [{ name: category.name }] : []),
               { name: product.model_number },
             ]))

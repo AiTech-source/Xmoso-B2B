@@ -57,7 +57,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       <main style={{ paddingTop: "64px" }}>
         {pageData?.show_banner !== false && <PageBannerCarousel pageKey="about" vignette={pageData?.vignette_enabled !== false} />}
         <Breadcrumbs items={[{ label: "About Us" }]} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("DeepCool", `https://deepcool.com/${locale}`)) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("Xmoso", `https://xmoso.com${locale === "en" ? "" : `/${locale}`}`)) }} />
         <AnimateSection className="px-4 py-16" id="about-content">
           <h1 className="text-3xl md:text-4xl font-light tracking-wider text-white mb-12 text-center">
             {pageData?.title || "About DeepCool"}

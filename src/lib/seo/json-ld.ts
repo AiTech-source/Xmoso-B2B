@@ -15,10 +15,6 @@ export function productSchema(data: ProductData) {
     image: data.image || undefined,
     brand: data.brand ? { "@type": "Brand", name: data.brand } : undefined,
     sku: data.sku || undefined,
-    offers: {
-      "@type": "Offer",
-      availability: "https://schema.org/InStock",
-    },
   };
 }
 
