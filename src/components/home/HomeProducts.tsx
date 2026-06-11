@@ -31,8 +31,11 @@ export default function HomeProducts({ locale }: { locale: string }) {
       fetch("/api/categories").then(r => r.json()),
       fetch("/api/product-types").then(r => r.json()),
     ]).then(([catData, ptData]) => {
-      setCategories(catData.categories || []);
-      const names = (ptData.types || []).map((t: any) => t.name);
+      const cats = catData.categories || [];
+      setCategories(cats);
+      // Only show types that have at least one category
+      const typesWithCats = new Set(cats.map((c: any) => c.product_type));
+      const names = (ptData.types || []).map((t: any) => t.name).filter((n: string) => typesWithCats.has(n));
       setTypeNames(names);
       if (names.length > 0) setActiveType(names[0]);
     });

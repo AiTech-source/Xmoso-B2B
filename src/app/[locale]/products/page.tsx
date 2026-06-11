@@ -38,17 +38,19 @@ export default async function ProductsPage({
   // Fetch product types (sorted) and categories
   const { data: productTypes } = await supabase
     .from("product_types").select("name").order("sort_order", { ascending: true });
-  const typeList = (productTypes || []).map((pt: any) => pt.name);
 
   const { data: allCategories } = await supabase
     .from("product_categories").select("*").order("product_type").order("sort_order");
 
-  // Group categories by product_type
+  // Group categories by product_type, filter to only types with categories
   const typeMap = new Map<string, any[]>();
   for (const c of allCategories || []) {
     if (!typeMap.has(c.product_type)) typeMap.set(c.product_type, []);
     typeMap.get(c.product_type)!.push(c);
   }
+  const typeList = (productTypes || [])
+    .map((pt: any) => pt.name)
+    .filter((name: string) => typeMap.has(name));
 
   // Determine active product type
   const activeType = type || typeList[0] || "";
