@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const title = locale === "zh" ? "产品中心" : "Products";
   return {
     title,
-    alternates: { canonical: `/${locale}/products` },
+    alternates: { canonical: locale === "en" ? "/products" : `/${locale}/products` },
     openGraph: {
       type: "website",
       title: `${ogSet.brand} — ${title}`,

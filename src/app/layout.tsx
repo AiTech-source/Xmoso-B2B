@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           }}
         />
       </head>
-      <body className="bg-deep-dark text-soft-white antialiased min-h-screen" suppressHydrationWarning>
+      <body className="bg-deep-dark text-soft-white antialiased min-h-screen" itemScope itemType="https://schema.org/WebPage" suppressHydrationWarning>
         <ErrorBoundary>{children}</ErrorBoundary>
       </body>
     </html>
