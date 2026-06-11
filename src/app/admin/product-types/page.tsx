@@ -8,6 +8,7 @@ export default function AdminProductTypesPage() {
   const [newName, setNewName] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editSort, setEditSort] = useState("");
 
   function loadTypes() {
     fetch("/api/product-types").then(r => r.json()).then(data => setTypes(data.types || []));
@@ -32,8 +33,11 @@ export default function AdminProductTypesPage() {
 
   async function saveEdit(id: string) {
     if (!editName) return;
+    const body: any = { id, name: editName };
+    const sortNum = parseInt(editSort);
+    if (!isNaN(sortNum) && sortNum > 0) body.sort_order = sortNum;
     await fetch("/api/product-types", {
-      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, name: editName }),
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     setEditing(null);
     loadTypes();
@@ -75,9 +79,16 @@ export default function AdminProductTypesPage() {
               {types.map((t, i) => (
                 <tr key={t.id} className="border-b border-silver/5 hover:bg-white/5">
                   <td className="p-4 text-silver/40 text-xs">
-                    <button onClick={() => moveType(t.id, -1)} className="text-silver/40 hover:text-white text-xs px-1">↑</button>
-                    <button onClick={() => moveType(t.id, 1)} className="text-silver/40 hover:text-white text-xs px-1">↓</button>
-                    <span className="ml-2">{t.sort_order}</span>
+                    {editing === t.id ? (
+                      <input type="number" value={editSort} onChange={(e) => setEditSort(e.target.value)}
+                        className="w-16 bg-deep-dark border border-silver/10 rounded px-2 py-1 text-xs text-white text-center" />
+                    ) : (
+                      <>
+                        <button onClick={() => moveType(t.id, -1)} className="text-silver/40 hover:text-white text-xs px-1">↑</button>
+                        <button onClick={() => moveType(t.id, 1)} className="text-silver/40 hover:text-white text-xs px-1">↓</button>
+                        <span className="ml-2">{t.sort_order}</span>
+                      </>
+                    )}
                   </td>
                   <td className="p-4">
                     {editing === t.id ? (
@@ -95,7 +106,7 @@ export default function AdminProductTypesPage() {
                       </>
                     ) : (
                       <>
-                        <button onClick={() => { setEditing(t.id); setEditName(t.name); }} className="text-forest hover:text-forest/80 text-xs mr-3">Edit</button>
+                        <button onClick={() => { setEditing(t.id); setEditName(t.name); setEditSort(String(t.sort_order)); }} className="text-forest hover:text-forest/80 text-xs mr-3">Edit</button>
                         <button onClick={() => deleteType(t.id)} className="text-red-400/60 hover:text-red-400 text-xs">🗑</button>
                       </>
                     )}

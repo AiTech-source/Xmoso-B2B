@@ -15,8 +15,12 @@ export async function POST(req: Request) {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return Response.json({ error: "No client" }, { status: 500 });
 
+  // Auto-assign next sort_order
+  const { data: maxOrder } = await supabase
+    .from("product_types").select("sort_order").order("sort_order", { ascending: false }).limit(1);
+  const nextOrder = (maxOrder?.[0]?.sort_order ?? 0) + 1;
   const { data, error } = await supabase
-    .from("product_types").insert({ name, sort_order: 99 }).select().single();
+    .from("product_types").insert({ name, sort_order: nextOrder }).select().single();
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
   return Response.json(data);
