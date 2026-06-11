@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function sitemap() {
-  const baseUrl = "https://deepcool.com";
+  const baseUrl = "https://xmoso.com";
   const supabase = await createServerSupabaseClient();
 
   const locales = ["en", "zh"];

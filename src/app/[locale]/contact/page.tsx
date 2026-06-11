@@ -47,7 +47,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
       <main style={{ paddingTop: "64px" }}>
         {pageData?.show_banner !== false && <PageBannerCarousel pageKey="contact" vignette={pageData?.vignette_enabled !== false} />}
         <Breadcrumbs items={[{ label: "Contact Us" }]} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("Xmoso", "https://www.xmoso.com")) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("Xmoso", "https://xmoso.com")) }} />
         <AnimateSection className="px-4 py-16">
           <h1 className="text-3xl md:text-4xl font-light tracking-wider text-white mb-12 text-center">
             {pageData?.title || "Contact Us"}
