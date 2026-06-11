@@ -3,22 +3,40 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import FollowLinks from "@/components/social/FollowLinks";
 
+// Read from cache synchronously to avoid flash
+function getCached(key: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
+}
+
 export default function Footer() {
-  const [logoUrl, setLogoUrl] = useState("");
+  const [logoUrl, setLogoUrl] = useState(getCached("footer_logo_url", ""));
+  const [company, setCompany] = useState(getCached("footer_company", ""));
+  const [address, setAddress] = useState(getCached("footer_address", ""));
+  const [email, setEmail] = useState(getCached("footer_email", ""));
   const [sustText, setSustText] = useState("");
-  const [company, setCompany] = useState("");
-  const [address, setAddress] = useState("");
-  const [email, setEmail] = useState("");
 
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => {
-        setLogoUrl(data.footer_logo_url || "");
+        if (data.footer_logo_url) {
+          setLogoUrl(data.footer_logo_url);
+          localStorage.setItem("footer_logo_url", data.footer_logo_url);
+        }
+        if (data.footer_company) {
+          setCompany(data.footer_company);
+          localStorage.setItem("footer_company", data.footer_company);
+        }
+        if (data.footer_address) {
+          setAddress(data.footer_address);
+          localStorage.setItem("footer_address", data.footer_address);
+        }
+        if (data.footer_email) {
+          setEmail(data.footer_email);
+          localStorage.setItem("footer_email", data.footer_email);
+        }
         setSustText(data.footer_sustainability || "");
-        setCompany(data.footer_company || "");
-        setAddress(data.footer_address || "");
-        setEmail(data.footer_email || "");
       })
       .catch(() => {});
   }, []);
@@ -28,10 +46,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
           {logoUrl ? (
-            <img src={logoUrl} alt="DeepCool" className="h-8 object-contain mb-4" />
-          ) : (
-            <h3 className="text-lg font-bold tracking-widest text-white mb-4">DEEP<span className="text-forest">COOL</span></h3>
-          )}
+            <img src={logoUrl} alt="" className="h-8 object-contain mb-4" />
+          ) : null}
           <div className="text-sm text-silver/60 leading-relaxed space-y-1">
             {company && <p>{company}</p>}
             {address && <p>{address}</p>}

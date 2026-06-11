@@ -34,17 +34,26 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   let defaultTheme = "dark";
   let faviconUrl = "/favicon.svg";
   let logoUrl = "";
+  let footerLogo = "", footerCompany = "", footerAddress = "", footerEmail = "";
   try {
     const supabase = await createServerSupabaseClient();
     if (supabase) {
-      const [themeRes, faviconRes, logoRes] = await Promise.all([
+      const [themeRes, faviconRes, logoRes, ftLogoRes, ftCompanyRes, ftAddrRes, ftEmailRes] = await Promise.all([
         supabase.from("site_settings").select("value").eq("key", "default_theme").single(),
         supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
         supabase.from("site_settings").select("value").eq("key", "logo_url").single(),
+        supabase.from("site_settings").select("value").eq("key", "footer_logo_url").single(),
+        supabase.from("site_settings").select("value").eq("key", "footer_company").single(),
+        supabase.from("site_settings").select("value").eq("key", "footer_address").single(),
+        supabase.from("site_settings").select("value").eq("key", "footer_email").single(),
       ]);
       if (themeRes.data?.value === "light") defaultTheme = "light";
       if (faviconRes.data?.value) faviconUrl = faviconRes.data.value;
       if (logoRes.data?.value) logoUrl = logoRes.data.value;
+      if (ftLogoRes.data?.value) footerLogo = ftLogoRes.data.value;
+      if (ftCompanyRes.data?.value) footerCompany = ftCompanyRes.data.value;
+      if (ftAddrRes.data?.value) footerAddress = ftAddrRes.data.value;
+      if (ftEmailRes.data?.value) footerEmail = ftEmailRes.data.value;
     }
   } catch (_) {}
 
@@ -57,7 +66,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     }
   } catch (_) {}
 
-  const escapedLogo = logoUrl ? logoUrl.replace(/"/g, '\\"').replace(/'/g, "\\'") : "";
+  const esc = (s: string) => s.replace(/"/g, '\\"').replace(/'/g, "\\'");
+  const lsItems: string[] = [];
+  if (logoUrl) lsItems.push(`localStorage.setItem("logo_url","${esc(logoUrl)}")`);
+  if (footerLogo) lsItems.push(`localStorage.setItem("footer_logo_url","${esc(footerLogo)}")`);
+  if (footerCompany) lsItems.push(`localStorage.setItem("footer_company","${esc(footerCompany)}")`);
+  if (footerAddress) lsItems.push(`localStorage.setItem("footer_address","${esc(footerAddress)}")`);
+  if (footerEmail) lsItems.push(`localStorage.setItem("footer_email","${esc(footerEmail)}")`);
+
+  const lsScript = lsItems.length > 0
+    ? `(function(){try{${lsItems.join(";")}}catch(e){}})();`
+    : "";
 
   return (
     <html lang="en" className={inter.className} data-theme={defaultTheme === "light" ? "light" : undefined}>
@@ -73,11 +92,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             }} />
           </>
         )}
-        <script dangerouslySetInnerHTML={{
-          __html: escapedLogo
-            ? `(function(){try{localStorage.setItem("logo_url","${escapedLogo}")}catch(e){}})();`
-            : `(function(){try{localStorage.removeItem("logo_url")}catch(e){}})();`
-        }} />
+        {lsScript && <script dangerouslySetInnerHTML={{ __html: lsScript }} />}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
