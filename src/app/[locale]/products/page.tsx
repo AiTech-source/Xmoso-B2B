@@ -35,18 +35,18 @@ export default async function ProductsPage({
   const { type, cat } = await searchParams;
   const supabase = await createServerSupabaseClient();
 
-  // Fetch categories grouped by product_type
+  // Fetch product types (sorted) and categories
+  const { data: productTypes } = await supabase
+    .from("product_types").select("name").order("sort_order", { ascending: true });
+  const typeList = (productTypes || []).map((pt: any) => pt.name);
+
   const { data: allCategories } = await supabase
     .from("product_categories").select("*").order("product_type").order("sort_order");
 
   // Group categories by product_type
   const typeMap = new Map<string, any[]>();
-  const typeList: string[] = [];
   for (const c of allCategories || []) {
-    if (!typeMap.has(c.product_type)) {
-      typeMap.set(c.product_type, []);
-      typeList.push(c.product_type);
-    }
+    if (!typeMap.has(c.product_type)) typeMap.set(c.product_type, []);
     typeMap.get(c.product_type)!.push(c);
   }
 
@@ -115,7 +115,7 @@ export default async function ProductsPage({
           {/* Product Type tabs */}
           {typeList.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6 mt-4">
-              {typeList.map((pt) => (
+              {typeList.map((pt: string) => (
                 <Link key={pt} href={`/${locale}/products${pt === typeList[0] && !type ? "" : `?type=${encodeURIComponent(pt)}`}`} scroll={false}
                   className={`px-4 py-2 text-sm rounded-full border transition-colors ${
                     activeType === pt ? "bg-forest/20 text-forest border-forest/30" : "bg-transparent text-silver/50 border-silver/20 hover:text-white"
