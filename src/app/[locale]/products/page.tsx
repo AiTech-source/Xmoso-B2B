@@ -99,7 +99,7 @@ export default async function ProductsPage({
 
                 {/* ── Categories within this type ── */}
                 {group.categories.map((cat) => (
-                  <div key={cat.id} className="mb-10">
+                  <div key={cat.id} id={typeAnchor(group.name) + "-c-" + cat.id} className="mb-10 scroll-mt-24">
                     {group.categories.length > 1 && (
                       <div className="flex items-center gap-3 mb-5">
                         <div className="w-1 h-4 bg-ice/50 rounded-full" />
