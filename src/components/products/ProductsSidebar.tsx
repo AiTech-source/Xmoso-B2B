@@ -46,13 +46,14 @@ export default function ProductsSidebar({ typeGroups }: { typeGroups: TypeGroup[
   }
 
   return (
-    <nav className="hidden lg:block w-48 shrink-0">
+    <nav className="hidden md:block w-52 shrink-0">
       <div className="sticky top-24 space-y-1">
         <p className="text-xs uppercase tracking-widest text-silver/40 mb-4 pb-2 border-b border-silver/10">
           Product Types
         </p>
         {typeGroups.map((g) => {
           const id = typeAnchor(g.name);
+          const count = g.categories.reduce((s, c) => s + (c.products?.length || 0), 0);
           return (
             <a
               key={g.name}
@@ -61,13 +62,18 @@ export default function ProductsSidebar({ typeGroups }: { typeGroups: TypeGroup[
                 e.preventDefault();
                 scrollTo(id);
               }}
-              className={`block text-sm py-1.5 transition-colors ${
+              className={`group flex items-center justify-between text-sm py-1.5 transition-colors ${
                 active === id
                   ? "text-forest border-l-2 border-forest pl-2 font-medium"
                   : "text-silver/50 hover:text-white pl-3"
               }`}
             >
-              {g.name}
+              <span>{g.name}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                active === id
+                  ? "bg-forest/15 text-forest"
+                  : "bg-silver/5 text-silver/40 group-hover:text-silver/60"
+              }`}>{count}</span>
             </a>
           );
         })}

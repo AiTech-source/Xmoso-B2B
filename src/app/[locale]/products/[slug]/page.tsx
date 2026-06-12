@@ -138,7 +138,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
         <Breadcrumbs items={[
           { label: locale === "zh" ? "产品中心" : "Products", href: `/${locale}/products` },
-          ...(category?.product_type ? [{ label: category.product_type, href: `/${locale}/products?type=${encodeURIComponent(category.product_type)}` }] : []),
+          // Only show product_type breadcrumb if it differs from category name (avoid duplication)
+          ...(category?.product_type && category.product_type !== category?.name
+            ? [{ label: category.product_type, href: `/${locale}/products?type=${encodeURIComponent(category.product_type)}` }]
+            : []),
           ...(category?.name ? [{ label: category.name, href: `/${locale}/products?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
           { label: product.model_number },
         ]} />

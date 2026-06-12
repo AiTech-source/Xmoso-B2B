@@ -78,31 +78,43 @@ export default async function ProductsPage({
               </p>
             )}
 
-            {typeGroups.map((group) => (
+            {typeGroups.map((group) => {
+              const typeCount = group.categories.reduce((s, c) => s + c.products.length, 0);
+              return (
               <section
                 key={group.name}
                 id={typeAnchor(group.name)}
                 className="mb-16 scroll-mt-24"
               >
                 {/* ── Type heading ── */}
-                <h2 className="text-2xl font-light tracking-wider text-white mb-2">
-                  {group.name}
-                </h2>
-                <div className="w-12 h-0.5 bg-forest/60 mb-8" />
+                <div className="flex items-center gap-4 mb-6">
+                  <h2 className="text-2xl font-light tracking-wider text-white">
+                    {group.name}
+                  </h2>
+                  <span className="text-[11px] px-2.5 py-1 rounded-full bg-forest/10 text-forest/80 font-medium tracking-wide">
+                    {typeCount} {locale === "zh" ? "款" : "models"}
+                  </span>
+                  <div className="flex-1 h-px bg-gradient-to-r from-forest/40 to-transparent ml-2" />
+                </div>
 
                 {/* ── Categories within this type ── */}
                 {group.categories.map((cat) => (
                   <div key={cat.id} className="mb-10">
                     {group.categories.length > 1 && (
-                      <h3 className="text-sm uppercase tracking-widest text-silver/50 mb-4">
-                        {cat.name}
-                      </h3>
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-1 h-4 bg-ice/50 rounded-full" />
+                        <h3 className="text-sm tracking-wider text-ice/80 font-medium">
+                          {cat.name}
+                        </h3>
+                        <span className="text-[10px] text-silver/30">({cat.products.length})</span>
+                      </div>
                     )}
                     <ProductGrid products={cat.products} locale={locale} />
                   </div>
                 ))}
               </section>
-            ))}
+            );
+          })}
 
             {typeGroups.length === 0 && (
               <div className="text-center text-silver/40 text-sm py-20">
