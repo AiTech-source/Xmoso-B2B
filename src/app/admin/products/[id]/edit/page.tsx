@@ -227,28 +227,26 @@ export default function EditProductPage() {
 
   const saveContent = useCallback(async (c: any) => {
     setContent(c);
+    // Store locale-specific content in products.content as _en / _zh sub-keys
+    // This works immediately without DB migration
     if (contentLocale === "shared") {
-      await supabase?.from("products").update({ content: c }).eq("id", params.id);
+      // Save shared content — strip old locale keys to avoid stale data
+      const shared = { ...c, _en: undefined, _zh: undefined };
+      await supabase?.from("products").update({ content: shared }).eq("id", params.id);
     } else {
-      // Save to product_translations.content for the selected locale
-      const { data: existing } = await supabase
-        ?.from("product_translations").select("id").eq("product_id", params.id).eq("locale", contentLocale).maybeSingle();
-      if (existing) {
-        await supabase?.from("product_translations").update({ content: c }).eq("id", existing.id);
-      } else {
-        // Create new translation row with content
-        await supabase?.from("product_translations").insert({
-          product_id: params.id,
-          locale: contentLocale,
-          slug: form.model_number?.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "product",
-          name: form.model_number || "Product",
-          content: c,
-        });
-      }
+      // Load current products.content, merge locale-specific blocks
+      const { data: current } = await supabase
+        ?.from("products").select("content").eq("id", params.id).single();
+      const merged = { ...(current?.content || {}) };
+      const localeKey = `_${contentLocale}`;
+      merged[localeKey] = c;
+      // Keep shared blocks intact
+      if (!merged.blocks) merged.blocks = [];
+      await supabase?.from("products").update({ content: merged }).eq("id", params.id);
       // Update local cache
       setLocaleContent((prev) => ({ ...prev, [contentLocale]: c }));
     }
-  }, [params.id, contentLocale, form.model_number]);
+  }, [params.id, contentLocale]);
 
   return (
     <div className="flex">

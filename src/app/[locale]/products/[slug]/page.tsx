@@ -120,24 +120,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
   }
 
-  const isFallback = displayLocale !== locale;
+  // Determine if we're showing fallback content (reserved for future use)
+  // const isFallback = displayLocale !== locale;
 
   return (
     <>
       <Header />
       <main style={{ paddingTop: "64px" }}>
         {showBanner && <PageBannerCarousel pageKey="product-detail" vignette={vignetteEnabled} />}
-
-        {/* Language fallback notice */}
-        {isFallback && (
-          <div className="max-w-7xl mx-auto px-4 mt-4">
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-400/80 text-center">
-              {locale === "zh"
-                ? "🌐 该产品暂无中文翻译，当前显示英文内容"
-                : "🌐 This content is currently displayed in English."}
-            </div>
-          </div>
-        )}
 
         <Breadcrumbs items={[
           { label: locale === "zh" ? "产品中心" : "Products", href: `/${locale}/products` },
@@ -206,11 +196,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          {/* Rich Content — per-locale if available, else shared */}
-          {(translation.content?.blocks?.length > 0 ? translation.content : product.content) && (
+          {/* Rich Content — per-locale if available (_zh/_en key), else shared */}
+          {(product.content?.[`_${locale}`]?.blocks?.length > 0 ? product.content[`_${locale}`] : product.content) && (
             <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
               <h3 className="text-xl text-white tracking-wide mb-6">📖 Details</h3>
-              <RichContent content={translation.content?.blocks ? translation.content : product.content} />
+              <RichContent content={product.content?.[`_${locale}`]?.blocks ? product.content[`_${locale}`] : product.content} />
             </div>
           )}
 
