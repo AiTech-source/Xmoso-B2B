@@ -146,9 +146,9 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
   }
 
   function handleScrollTo(id: string) {
-    onScrollTo(id);
-    // sub-menu click: scroll only, DON'T close drawer
-    // user closes manually via ✕ or backdrop or drag
+    // Scroll after drawer close animation completes
+    setTimeout(() => onScrollTo(id), 200);
+    closeDrawer();
   }
 
   function handleDragEnd(_: any, info: any) {
