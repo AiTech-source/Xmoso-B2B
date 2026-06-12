@@ -14,3 +14,20 @@ export async function GET(req: Request) {
 
   return Response.json({ items: data || [] });
 }
+
+export async function PUT(req: Request) {
+  const { id, question, answer, category } = await req.json();
+  if (!id) return Response.json({ error: "ID required" }, { status: 400 });
+
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return Response.json({ error: "No client" }, { status: 500 });
+
+  const updates: any = { updated_at: new Date().toISOString() };
+  if (question !== undefined) updates.question = question;
+  if (answer !== undefined) updates.answer = answer;
+  if (category !== undefined) updates.category = category;
+
+  const { error } = await supabase.from("faq_items").update(updates).eq("id", id);
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  return Response.json({ ok: true });
+}

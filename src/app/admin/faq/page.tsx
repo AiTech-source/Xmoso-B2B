@@ -13,6 +13,10 @@ export default function AdminFaqPage() {
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
   const [newCategory, setNewCategory] = useState("General");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
+  const [editCategory, setEditCategory] = useState("General");
 
   function loadFaq() {
     fetch(`/api/faq?locale=${locale}`)
@@ -36,6 +40,28 @@ export default function AdminFaqPage() {
     if (!supabase) return;
     await supabase.from("faq_items").delete().eq("id", id);
     loadFaq();
+  }
+
+  function startEdit(item: any) {
+    setEditing(item.id);
+    setEditQuestion(item.question);
+    setEditAnswer(item.answer);
+    setEditCategory(item.category);
+  }
+
+  async function saveEdit(id: string) {
+    if (!editQuestion || !editAnswer || !supabase) return;
+    await fetch("/api/faq", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, question: editQuestion, answer: editAnswer, category: editCategory }),
+    });
+    setEditing(null);
+    loadFaq();
+  }
+
+  function cancelEdit() {
+    setEditing(null);
   }
 
   return (
@@ -71,12 +97,38 @@ export default function AdminFaqPage() {
         <div className="space-y-2">
           {items.map((item) => (
             <div key={item.id} className="bg-deep-blue/30 border border-silver/10 rounded-xl p-4">
-              <div className="flex justify-between items-start mb-1">
-                <span className="text-xs text-forest/80 px-2 py-0.5 rounded bg-forest/10">{item.category}</span>
-                <button onClick={() => deleteItem(item.id)} className="text-red-400/60 hover:text-red-400 text-xs">×</button>
-              </div>
-              <p className="text-sm text-white font-medium mb-1">{item.question}</p>
-              <p className="text-xs text-silver/60">{item.answer}</p>
+              {editing === item.id ? (
+                /* ── Edit Mode ── */
+                <div className="space-y-2">
+                  <input value={editQuestion} onChange={(e) => setEditQuestion(e.target.value)}
+                    placeholder="Question"
+                    className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <textarea value={editAnswer} onChange={(e) => setEditAnswer(e.target.value)} rows={3}
+                    placeholder="Answer"
+                    className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <div className="flex gap-2 items-center">
+                    <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)}
+                      className="bg-deep-dark border border-silver/10 rounded px-3 py-1.5 text-sm text-silver/60">
+                      {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <button onClick={() => saveEdit(item.id)} className="text-forest hover:text-forest/80 text-xs px-2 py-1 border border-forest/30 rounded">💾 Save</button>
+                    <button onClick={cancelEdit} className="text-silver/40 hover:text-white text-xs">✕ Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                /* ── Display Mode ── */
+                <>
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs text-forest/80 px-2 py-0.5 rounded bg-forest/10">{item.category}</span>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => startEdit(item)} className="text-ice/60 hover:text-ice text-xs">✏️ Edit</button>
+                      <button onClick={() => deleteItem(item.id)} className="text-red-400/60 hover:text-red-400 text-xs">🗑</button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-white font-medium mb-1">{item.question}</p>
+                  <p className="text-xs text-silver/60 whitespace-pre-line">{item.answer}</p>
+                </>
+              )}
             </div>
           ))}
           {items.length === 0 && <p className="text-xs text-silver/40 py-8 text-center">No FAQs yet.</p>}
