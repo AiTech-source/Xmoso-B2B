@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, useDragControls, useMotionValue, animate, useTransform } from "framer-motion";
 import { typeAnchor } from "@/lib/products-by-type";
 
@@ -23,10 +23,10 @@ function DesktopSidebar({ typeGroups, activeType, activeCat, onScrollTo }: {
   onScrollTo: (id: string) => void;
 }) {
   return (
-    <nav className="w-52 shrink-0 hidden md:block">
+    <nav className="w-52 shrink-0 max-md:hidden">
       <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-0.5 pr-1
         [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-silver/10">
-        <p className="text-[11px] uppercase tracking-[0.15em] text-silver/40 mb-3 pb-2 border-b border-silver/10">
+        <p className="text-[11px] uppercase tracking-[0.15em] text-silver/50 mb-3 pb-2 border-b border-silver/10">
           Products
         </p>
         {typeGroups.map((g) => {
@@ -37,24 +37,22 @@ function DesktopSidebar({ typeGroups, activeType, activeCat, onScrollTo }: {
 
           return (
             <div key={g.name} className="mb-1.5">
-              {/* Type link */}
               <button
                 onClick={() => onScrollTo(typeId)}
                 className={`w-full flex items-center justify-between text-sm py-1.5 px-2.5 rounded-lg transition-all duration-200 text-left ${
                   isActiveType
                     ? "text-forest bg-forest/8 font-medium shadow-[inset_2px_0_0_0_rgba(139,200,160,0.5)]"
-                    : "text-silver/50 hover:text-white hover:bg-white/[0.03]"
+                    : "text-silver/60 hover:text-white hover:bg-white/[0.03]"
                 }`}
               >
                 <span>{g.name}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                  isActiveType ? "bg-forest/12 text-forest" : "bg-silver/8 text-silver/35"
+                  isActiveType ? "bg-forest/12 text-forest" : "bg-silver/8 text-silver/40"
                 }`}>{prodCount}</span>
               </button>
 
-              {/* Category sub-links */}
               {catCount > 1 && (
-                <div className="ml-3 mt-0.5 space-y-[1px] border-l border-silver/8 pl-2.5">
+                <div className="ml-3 mt-0.5 space-y-[1px] border-l border-silver/10 pl-2.5">
                   {g.categories.map((c) => {
                     const catId = typeId + "-c-" + c.id;
                     const isActiveCat = activeCat === catId;
@@ -65,7 +63,7 @@ function DesktopSidebar({ typeGroups, activeType, activeCat, onScrollTo }: {
                         className={`block text-xs py-1 px-2 rounded-md transition-all duration-200 w-full text-left ${
                           isActiveCat
                             ? "text-ice font-medium bg-ice/6"
-                            : "text-silver/40 hover:text-silver/70"
+                            : "text-silver/50 hover:text-silver/80"
                         }`}
                       >
                         {c.name}
@@ -85,7 +83,7 @@ function DesktopSidebar({ typeGroups, activeType, activeCat, onScrollTo }: {
 // ─── Mobile Drawer ───
 
 const DRAWER_WIDTH = 280;
-const THRESHOLD = 0.25; // 25% of drawer width = snap threshold
+const THRESHOLD = 0.25;
 
 function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
   typeGroups: TypeGroup[];
@@ -96,9 +94,7 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
   const [open, setOpen] = useState(false);
   const dragControls = useDragControls();
   const x = useMotionValue(-DRAWER_WIDTH);
-  const overlayOpacity = useTransform(x, [-DRAWER_WIDTH, 0], [0, 0.6]);
 
-  // Open / close with spring
   function openDrawer() {
     setOpen(true);
     animate(x, 0, { type: "spring", stiffness: 400, damping: 35, mass: 0.8 });
@@ -110,12 +106,11 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
   }
 
   function handleScrollTo(id: string) {
-    closeDrawer();
-    // Tiny delay so the drawer closes before scroll
-    setTimeout(() => onScrollTo(id), 150);
+    onScrollTo(id);
+    // sub-menu click: scroll only, DON'T close drawer
+    // user closes manually via ✕ or backdrop or drag
   }
 
-  // Handle drag end with threshold
   function handleDragEnd(_: any, info: any) {
     const threshold = DRAWER_WIDTH * THRESHOLD;
     if (info.offset.x < -threshold || info.velocity.x < -300) {
@@ -127,7 +122,7 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
 
   return (
     <div className="md:hidden">
-      {/* Trigger pill — sits on the left edge */}
+      {/* Trigger pill — narrow, just the icon */}
       <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40">
         {!open && (
           <motion.button
@@ -135,11 +130,9 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -40, opacity: 0 }}
             onClick={openDrawer}
-            className="flex items-center gap-1.5 bg-deep-blue/90 backdrop-blur-md border border-l-0 border-silver/15 rounded-r-xl py-3 px-3 text-xs text-silver/60 hover:text-forest hover:border-forest/30 transition-colors shadow-lg cursor-pointer"
-            style={{ writingMode: "horizontal-tb" }}
+            className="flex items-center gap-1 bg-deep-blue/90 backdrop-blur-md border border-l-0 border-silver/15 rounded-r-xl py-3 px-2 text-xs text-silver/60 hover:text-forest hover:border-forest/30 transition-colors shadow-lg cursor-pointer"
           >
-            <span className="text-forest text-sm">☰</span>
-            <span className="tracking-wider">Product</span>
+            <span className="text-forest text-base leading-none">☰</span>
           </motion.button>
         )}
       </div>
@@ -164,14 +157,14 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
         dragConstraints={{ left: -DRAWER_WIDTH, right: 0 }}
         dragElastic={0.15}
         onDragEnd={handleDragEnd}
-        className="fixed left-0 top-0 bottom-0 z-50 w-[280px] bg-deep-blue/95 backdrop-blur-xl shadow-2xl border-r border-silver/10 flex flex-col"
+        className="fixed left-0 top-0 bottom-0 z-50 w-[280px] bg-[#0E0E18]/98 backdrop-blur-xl shadow-2xl border-r border-silver/8 flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-silver/8">
-          <span className="text-sm tracking-[0.2em] text-white font-light">Product</span>
+          <span className="text-sm tracking-[0.2em] text-silver/80 font-light">Product</span>
           <button
             onClick={closeDrawer}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 text-silver/50 hover:text-white hover:bg-white/10 transition-all text-sm cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 text-silver/60 hover:text-white hover:bg-white/10 transition-all text-sm cursor-pointer"
           >
             ✕
           </button>
@@ -192,18 +185,18 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
                   onClick={() => handleScrollTo(typeId)}
                   className={`w-full flex items-center justify-between text-sm py-2.5 px-3 rounded-xl transition-all duration-200 text-left ${
                     isActiveType
-                      ? "text-forest bg-forest/8 font-medium"
-                      : "text-silver/60 active:text-white"
+                      ? "text-forest font-medium bg-forest/6"
+                      : "text-silver/70 active:text-white"
                   }`}
                 >
                   <span>{g.name}</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                    isActiveType ? "bg-forest/12 text-forest" : "bg-silver/8 text-silver/40"
+                    isActiveType ? "bg-forest/12 text-forest" : "bg-silver/10 text-silver/50"
                   }`}>{prodCount}</span>
                 </button>
 
                 {catCount > 1 && (
-                  <div className="ml-4 pl-3 border-l border-silver/8 space-y-[1px]">
+                  <div className="ml-4 pl-3 border-l border-silver/10 space-y-[1px]">
                     {g.categories.map((c) => {
                       const catId = typeId + "-c-" + c.id;
                       const isActiveCat = activeCat === catId;
@@ -213,8 +206,8 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
                           onClick={() => handleScrollTo(catId)}
                           className={`block text-xs py-2 px-3 rounded-lg transition-all duration-200 w-full text-left ${
                             isActiveCat
-                              ? "text-ice font-medium bg-ice/6"
-                              : "text-silver/40 active:text-silver/70"
+                              ? "text-ice font-medium bg-ice/8"
+                              : "text-silver/50 hover:text-silver/80"
                           }`}
                         >
                           {c.name}
@@ -228,10 +221,10 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
           })}
         </div>
 
-        {/* Drag hint at bottom */}
+        {/* Drag hint */}
         <div className="px-5 py-3 border-t border-silver/8 text-center">
-          <div className="w-8 h-1 rounded-full bg-silver/20 mx-auto" />
-          <p className="text-[10px] text-silver/30 mt-1.5 tracking-wider">↔ drag to close</p>
+          <div className="w-8 h-1 rounded-full bg-silver/15 mx-auto" />
+          <p className="text-[10px] text-silver/40 mt-1.5 tracking-wider">↔ drag to close</p>
         </div>
       </motion.nav>
     </div>
@@ -245,7 +238,6 @@ export default function ProductsSidebar({ typeGroups }: { typeGroups: TypeGroup[
   const [activeCat, setActiveCat] = useState("");
   const initialized = useRef(false);
 
-  // IntersectionObserver for desktop + mobile
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -284,10 +276,10 @@ export default function ProductsSidebar({ typeGroups }: { typeGroups: TypeGroup[
     return () => observer.disconnect();
   }, [typeGroups]);
 
-  function scrollTo(id: string) {
+  const scrollTo = useCallback((id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  }, []);
 
   if (typeGroups.length === 0) return null;
 
