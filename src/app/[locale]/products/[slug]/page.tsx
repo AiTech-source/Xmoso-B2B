@@ -24,19 +24,26 @@ async function getTranslation(supabase: any, locale: string, slug: string) {
 
   if (translation) return { locale: locale as string, translation, product: translation.product };
 
-  // Fallback: find product_id by slug (any locale), then get EN translation
-  if (locale !== "en") {
-    const { data: anyLocale } = await supabase
-      .from("product_translations").select("product_id")
-      .eq("slug", slug).maybeSingle();
+  // Not found by slug+locale → find product_id via any locale's slug, then try again
+  const { data: anyLocale } = await supabase
+    .from("product_translations").select("product_id")
+    .eq("slug", slug).maybeSingle();
 
-    if (anyLocale) {
-      const { data: fallback } = await supabase
+  if (anyLocale) {
+    // Try requested locale by product_id (handles different slugs per language)
+    if (locale !== "en") {
+      const { data: localeTrans } = await supabase
         .from("product_translations").select("*, product:products(*)")
-        .eq("locale", "en").eq("product_id", anyLocale.product_id)
-        .eq("product.is_active", true).single();
-      if (fallback) return { locale: "en" as string, translation: fallback, product: fallback.product };
+        .eq("locale", locale).eq("product_id", anyLocale.product_id)
+        .eq("product.is_active", true).maybeSingle();
+      if (localeTrans) return { locale: locale as string, translation: localeTrans, product: localeTrans.product };
     }
+    // Fallback to EN by product_id
+    const { data: fallback } = await supabase
+      .from("product_translations").select("*, product:products(*)")
+      .eq("locale", "en").eq("product_id", anyLocale.product_id)
+      .eq("product.is_active", true).single();
+    if (fallback) return { locale: "en" as string, translation: fallback, product: fallback.product };
   }
 
   return null;
@@ -48,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const result = await getTranslation(supabase, locale, slug);
   if (!result) return { title: "Product" };
 
-  const { locale: displayLocale, translation } = result;
+  const { translation } = result;
   const product = translation.product;
   const ogSettings = await getOgSettings(supabase);
   const ogUrl = ogImageUrl({
@@ -77,7 +84,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const result = await getTranslation(supabase, locale, slug);
   if (!result || !result.translation) notFound();
 
-  const { locale: displayLocale, translation } = result;
+  const { translation } = result;
   const product = translation.product;
 
   // Fetch category name + product_type separately
