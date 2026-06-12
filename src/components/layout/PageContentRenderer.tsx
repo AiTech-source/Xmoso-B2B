@@ -89,6 +89,19 @@ export default function PageContentRenderer({ content }: { content: { blocks?: B
               />
             );
 
+          case "raw-html":
+            if (!block.data?.html) return null;
+            return (
+              <div key={i} className="my-6"
+                style={{
+                  color: s.color || undefined,
+                  fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
+                  textAlign: (s.textAlign as any) || undefined,
+                }}
+                dangerouslySetInnerHTML={{ __html: block.data.html }}
+              />
+            );
+
           case "rich-text":
             if (!block.data) return null;
             const segments: { text: string; color?: string; fontSize?: string; fontWeight?: string }[] = block.data.segments || [];
