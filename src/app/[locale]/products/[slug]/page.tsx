@@ -16,16 +16,33 @@ import { productSchema, breadcrumbListSchema, renderJsonLd } from "@/lib/seo/jso
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import type { Metadata } from "next";
 
+async function getTranslation(supabase: any, locale: string, slug: string) {
+  // Try requested locale first
+  const { data: translation } = await supabase
+    .from("product_translations").select("*, product:products(*)")
+    .eq("locale", locale).eq("slug", slug).eq("product.is_active", true).single();
+
+  if (translation) return { locale: locale as string, translation, product: translation.product };
+
+  // Fallback to EN if locale-specific not found
+  if (locale !== "en") {
+    const { data: fallback } = await supabase
+      .from("product_translations").select("*, product:products(*)")
+      .eq("locale", "en").eq("slug", slug).eq("product.is_active", true).single();
+
+    if (fallback) return { locale: "en" as string, translation: fallback, product: fallback.product };
+  }
+
+  return null;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
   const supabase = await createServerSupabaseClient();
-  const { data: translation } = await supabase
-    .from("product_translations")
-    .select("name, description, meta_title, meta_description, og_image, product:products(image_gallery, model_number)")
-    .eq("locale", locale).eq("slug", slug).single();
+  const result = await getTranslation(supabase, locale, slug);
+  if (!result) return { title: "Product" };
 
-  if (!translation) return { title: "Product" };
-
+  const { locale: displayLocale, translation } = result;
   const product = translation.product;
   const ogSettings = await getOgSettings(supabase);
   const ogUrl = ogImageUrl({
@@ -51,10 +68,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function ProductDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
   const supabase = await createServerSupabaseClient();
-  const { data: translation } = await supabase
-    .from("product_translations").select("*, product:products(*)").eq("locale", locale).eq("slug", slug).eq("product.is_active", true).single();
+  const result = await getTranslation(supabase, locale, slug);
+  if (!result || !result.translation) notFound();
 
-  if (!translation || !translation.product) notFound();
+  const { locale: displayLocale, translation } = result;
   const product = translation.product;
 
   // Fetch category name + product_type separately
@@ -80,23 +97,44 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const tabs = product.spec_tabs || [];
   const eco = product.eco_features || [];
 
-  // Fetch page banner toggle
+  // Fetch page banner toggle (with locale fallback)
   let showBanner = true;
   let vignetteEnabled = true;
   if (supabase) {
-    const { data: pg } = await supabase.from("page_contents")
+    let { data: pg } = await supabase.from("page_contents")
       .select("show_banner, vignette_enabled")
       .eq("page_key", "product-detail").eq("locale", locale).maybeSingle();
+    // Fallback to EN if locale-specific not found
+    if (!pg && locale !== "en") {
+      const { data: pgFallback } = await supabase.from("page_contents")
+        .select("show_banner, vignette_enabled")
+        .eq("page_key", "product-detail").eq("locale", "en").maybeSingle();
+      pg = pgFallback;
+    }
     if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
   }
+
+  const isFallback = displayLocale !== locale;
 
   return (
     <>
       <Header />
       <main style={{ paddingTop: "64px" }}>
         {showBanner && <PageBannerCarousel pageKey="product-detail" vignette={vignetteEnabled} />}
+
+        {/* Language fallback notice */}
+        {isFallback && (
+          <div className="max-w-7xl mx-auto px-4 mt-4">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-400/80 text-center">
+              {locale === "zh"
+                ? "🌐 该产品暂无中文翻译，当前显示英文内容"
+                : "🌐 This content is currently displayed in English."}
+            </div>
+          </div>
+        )}
+
         <Breadcrumbs items={[
-          { label: "Products", href: `/${locale}/products` },
+          { label: locale === "zh" ? "产品中心" : "Products", href: `/${locale}/products` },
           ...(category?.product_type ? [{ label: category.product_type, href: `/${locale}/products?type=${encodeURIComponent(category.product_type)}` }] : []),
           ...(category?.name ? [{ label: category.name, href: `/${locale}/products?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
           { label: product.model_number },
