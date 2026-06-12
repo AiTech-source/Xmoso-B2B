@@ -22,13 +22,53 @@ function DesktopSidebar({ typeGroups, activeType, activeCat, onScrollTo }: {
   activeCat: string;
   onScrollTo: (id: string) => void;
 }) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  if (collapsed) {
+    return (
+      <nav className="w-10 shrink-0 max-md:hidden">
+        <div className="sticky top-24 flex flex-col items-center pt-1 gap-1">
+          <button
+            onClick={() => setCollapsed(false)}
+            className="text-silver/40 hover:text-forest transition-colors py-2 text-sm"
+            title="Expand sidebar"
+          >
+            ☰
+          </button>
+          {typeGroups.map((g) => {
+            const typeId = typeAnchor(g.name);
+            const isActiveType = activeType === typeId;
+            return (
+              <button
+                key={g.name}
+                onClick={() => onScrollTo(typeId)}
+                title={g.name}
+                className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-medium transition-all ${
+                  isActiveType
+                    ? "text-forest bg-forest/12"
+                    : "text-silver/30 hover:text-silver/60 hover:bg-white/5"
+                }`}
+              >
+                {g.name.charAt(0).toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="w-52 shrink-0 max-md:hidden">
       <div className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-0.5 pr-1
         [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-silver/10">
-        <p className="text-[11px] uppercase tracking-[0.15em] text-silver/50 mb-3 pb-2 border-b border-silver/10">
-          Products
-        </p>
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-silver/10">
+          <p className="text-[11px] uppercase tracking-[0.15em] text-silver/50">Products</p>
+          <button onClick={() => setCollapsed(true)}
+            className="text-silver/30 hover:text-forest transition-colors text-xs px-1" title="Collapse sidebar">
+            ◀
+          </button>
+        </div>
         {typeGroups.map((g) => {
           const typeId = typeAnchor(g.name);
           const isActiveType = activeType === typeId;
@@ -186,7 +226,7 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
                   className={`w-full flex items-center justify-between text-sm py-2.5 px-3 rounded-xl transition-all duration-200 text-left ${
                     isActiveType
                       ? "text-forest font-medium bg-forest/6"
-                      : "text-silver/70 active:text-white"
+                      : "text-white/80 active:text-white"
                   }`}
                 >
                   <span>{g.name}</span>
@@ -207,7 +247,7 @@ function MobileDrawer({ typeGroups, activeType, activeCat, onScrollTo }: {
                           className={`block text-xs py-2 px-3 rounded-lg transition-all duration-200 w-full text-left ${
                             isActiveCat
                               ? "text-ice font-medium bg-ice/8"
-                              : "text-silver/50 hover:text-silver/80"
+                              : "text-white/70 hover:text-white"
                           }`}
                         >
                           {c.name}
