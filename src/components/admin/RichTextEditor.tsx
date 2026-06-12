@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { compressImage } from "@/lib/image/compress";
 
@@ -25,10 +25,19 @@ interface Block {
 }
 
 export default function RichTextEditor({ content, onSave }: { content: any; onSave: (c: any) => Promise<void> }) {
-  const [blocks, setBlocks] = useState<Block[]>(content?.blocks || []);
+  const [blocks, setBlocks] = useState<Block[]>([]);
   const [saving, setSaving] = useState(false);
   const [previews, setPreviews] = useState<Set<number>>(new Set());
   const imgInputRef = useRef<HTMLInputElement>(null);
+  const synced = useRef(false);
+
+  // Sync blocks when content loads from parent (only once per content identity)
+  useEffect(() => {
+    if (content?.blocks && !synced.current) {
+      setBlocks(content.blocks);
+      synced.current = true;
+    }
+  }, [content]);
 
   function addBlock(type: string) {
     let newBlock: Block;

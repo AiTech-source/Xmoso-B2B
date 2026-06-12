@@ -24,13 +24,19 @@ async function getTranslation(supabase: any, locale: string, slug: string) {
 
   if (translation) return { locale: locale as string, translation, product: translation.product };
 
-  // Fallback to EN if locale-specific not found
+  // Fallback: find product_id by slug (any locale), then get EN translation
   if (locale !== "en") {
-    const { data: fallback } = await supabase
-      .from("product_translations").select("*, product:products(*)")
-      .eq("locale", "en").eq("slug", slug).eq("product.is_active", true).single();
+    const { data: anyLocale } = await supabase
+      .from("product_translations").select("product_id")
+      .eq("slug", slug).maybeSingle();
 
-    if (fallback) return { locale: "en" as string, translation: fallback, product: fallback.product };
+    if (anyLocale) {
+      const { data: fallback } = await supabase
+        .from("product_translations").select("*, product:products(*)")
+        .eq("locale", "en").eq("product_id", anyLocale.product_id)
+        .eq("product.is_active", true).single();
+      if (fallback) return { locale: "en" as string, translation: fallback, product: fallback.product };
+    }
   }
 
   return null;
@@ -200,11 +206,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          {/* Rich Content */}
-          {product.content && (
+          {/* Rich Content — per-locale if available, else shared */}
+          {(translation.content?.blocks?.length > 0 ? translation.content : product.content) && (
             <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
               <h3 className="text-xl text-white tracking-wide mb-6">📖 Details</h3>
-              <RichContent content={product.content} />
+              <RichContent content={translation.content?.blocks ? translation.content : product.content} />
             </div>
           )}
 

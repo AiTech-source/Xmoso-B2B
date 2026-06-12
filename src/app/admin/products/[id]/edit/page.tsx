@@ -48,6 +48,8 @@ export default function EditProductPage() {
   const [installMedia, setInstallMedia] = useState<any[]>([]);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [contentLocale, setContentLocale] = useState("shared");
+  const [localeContent, setLocaleContent] = useState<Record<string, any>>({});
 
   useUnsavedWarning(dirty);
   const markDirty = useCallback(() => setDirty(true), []);
@@ -95,6 +97,16 @@ export default function EditProductPage() {
           });
         setImages(data.image_gallery?.map((g: any) => g.url || g) || data.images || []);
         setContent(data.content || null);
+        // Load translations for per-locale content
+        supabase?.from("product_translations").select("locale, content")
+          .eq("product_id", params.id)
+          .then(({ data: transData }: any) => {
+            const map: Record<string, any> = { shared: data.content || null };
+            for (const t of transData || []) {
+              if (t.content) map[t.locale] = t.content;
+            }
+            setLocaleContent(map);
+          });
         setHighlights(data.highlights || []);
         setParamCounters(data.param_counters?.length ? data.param_counters : [
           { label: "Temperature Range", value: "5-20", unit: "℃", icon: "🌡️" },
@@ -215,8 +227,28 @@ export default function EditProductPage() {
 
   const saveContent = useCallback(async (c: any) => {
     setContent(c);
-    await supabase?.from("products").update({ content: c }).eq("id", params.id);
-  }, [params.id]);
+    if (contentLocale === "shared") {
+      await supabase?.from("products").update({ content: c }).eq("id", params.id);
+    } else {
+      // Save to product_translations.content for the selected locale
+      const { data: existing } = await supabase
+        ?.from("product_translations").select("id").eq("product_id", params.id).eq("locale", contentLocale).maybeSingle();
+      if (existing) {
+        await supabase?.from("product_translations").update({ content: c }).eq("id", existing.id);
+      } else {
+        // Create new translation row with content
+        await supabase?.from("product_translations").insert({
+          product_id: params.id,
+          locale: contentLocale,
+          slug: form.model_number?.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "product",
+          name: form.model_number || "Product",
+          content: c,
+        });
+      }
+      // Update local cache
+      setLocaleContent((prev) => ({ ...prev, [contentLocale]: c }));
+    }
+  }, [params.id, contentLocale, form.model_number]);
 
   return (
     <div className="flex">
@@ -586,8 +618,37 @@ export default function EditProductPage() {
 
           {/* Rich Content */}
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
-            <h3 className="text-white tracking-wide mb-4">📝 Rich Content</h3>
-            <RichTextEditor content={content} onSave={saveContent} />
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h3 className="text-white tracking-wide">📝 Rich Content</h3>
+              {/* Locale tabs */}
+              <div className="flex gap-1 bg-deep-dark/60 rounded-lg p-0.5">
+                {(["shared", "en", "zh"] as const).map((l) => (
+                  <button key={l} type="button" onClick={() => {
+                    // Save current content before switching
+                    setContentLocale(l);
+                    if (l === "shared") {
+                      // Restore shared content from localeContent cache
+                      setContent(localeContent["shared"] || null);
+                    } else {
+                      setContent(localeContent[l] || null);
+                    }
+                  }}
+                    className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
+                      contentLocale === l
+                        ? "bg-forest/20 text-forest"
+                        : "text-silver/50 hover:text-white"
+                    }`}>
+                    {l === "shared" ? "📁 Shared" : l === "en" ? "🇬🇧 EN" : "🇨🇳 CN"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-silver/40 mb-4">
+              {contentLocale === "shared"
+                ? "Shared content — shown for all languages unless a per-locale override exists."
+                : `Editing ${contentLocale === "en" ? "English" : "Chinese"} content — overrides Shared content for ${contentLocale === "en" ? "EN" : "CN"} visitors.`}
+            </p>
+            <RichTextEditor key={contentLocale} content={content} onSave={saveContent} />
           </div>
 
           <div className="flex gap-3">
