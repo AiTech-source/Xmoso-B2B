@@ -6,15 +6,15 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 
 const links = [
   { href: "/admin/dashboard", label: "📊 Dashboard" },
-  { href: "/admin/products", label: "📦 Products" },
-  { href: "/admin/categories", label: "📁 Categories" },
-  { href: "/admin/translations", label: "🌐 Translations" },
-  { href: "/admin/inquiries", label: "📨 Inquiries" },
-  { href: "/admin/product-types", label: "📦 Product Types" },
-  { href: "/admin/spec-templates", label: "📋 Spec Templates" },
-  { href: "/admin/pages", label: "📝 Pages" },
-  { href: "/admin/faq", label: "📋 FAQ" },
   { href: "/admin/banners", label: "🎠 Banners" },
+  { href: "/admin/pages", label: "📝 Pages" },
+  { href: "/admin/product-types", label: "📦 Product Types" },
+  { href: "/admin/categories", label: "📁 Categories" },
+  { href: "/admin/products", label: "📦 Products" },
+  { href: "/admin/translations", label: "🌐 Translations" },
+  { href: "/admin/spec-templates", label: "📋 Spec Templates" },
+  { href: "/admin/faq", label: "📋 FAQ" },
+  { href: "/admin/inquiries", label: "📨 Inquiries" },
   { href: "/admin/analytics", label: "📈 Analytics" },
   { href: "/admin/settings", label: "⚙️ Settings" },
 ];
@@ -43,8 +43,9 @@ export default function AdminSidebar() {
                 : "text-silver/60 hover:text-white hover:bg-white/5"
             }`}>{link.label}</Link>
         ))}
+        <span className="mt-auto" />
+        <ThemeToggle />
       </nav>
-      <ThemeToggle />
       <button onClick={handleLogout} className="w-full px-4 py-3 text-sm text-silver/40 hover:text-red-400 transition-colors text-left">← Sign Out</button>
     </aside>
   );
