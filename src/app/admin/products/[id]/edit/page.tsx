@@ -154,11 +154,12 @@ export default function EditProductPage() {
     };
 
     // Always preserve existing locale keys from DB — never drop _zh/_en
+    // Only overwrite shared blocks when saving from the shared tab
     const { data: cur } = await supabase
       ?.from("products").select("content").eq("id", params.id).single();
     const existing = cur?.content || {};
     payload.content = {
-      blocks: content?.blocks || existing.blocks || [],
+      blocks: contentLocale === "shared" ? (content?.blocks || existing.blocks || []) : (existing.blocks || []),
       _en: existing._en,
       _zh: existing._zh,
     };
