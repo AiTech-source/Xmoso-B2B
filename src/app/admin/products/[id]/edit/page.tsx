@@ -637,7 +637,7 @@ export default function EditProductPage() {
               <h3 className="text-white tracking-wide">📝 Rich Content</h3>
               {/* Locale tabs */}
               <div className="flex gap-1 bg-deep-dark/60 rounded-lg p-0.5">
-                {(["shared", "en", "zh"] as const).map((l) => (
+                {(["shared", "zh"] as const).map((l) => (
                   <button key={l} type="button" onClick={() => {
                     setContentLocale(l);
                     if (l === "shared") {
@@ -653,15 +653,15 @@ export default function EditProductPage() {
                         ? "bg-forest/20 text-forest"
                         : "text-silver/50 hover:text-white"
                     }`}>
-                    {l === "shared" ? "📁 Shared" : l === "en" ? "🇬🇧 EN" : "🇨🇳 CN"}
+                    {l === "shared" ? "📁 Shared" : "🇨🇳 CN"}
                   </button>
                 ))}
               </div>
             </div>
             <p className="text-xs text-silver/40 mb-4">
               {contentLocale === "shared"
-                ? "Shared content — shown for all languages unless a per-locale override exists."
-                : `Editing ${contentLocale === "en" ? "English" : "Chinese"} content — overrides Shared content for ${contentLocale === "en" ? "EN" : "CN"} visitors.`}
+                ? "Shared content — shown for all languages unless CN override exists."
+                : "Editing Chinese content — overrides Shared content for CN visitors."}
             </p>
             <RichTextEditor key={contentLocale} content={content} onSave={saveContent} />
           </div>
