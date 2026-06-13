@@ -2,11 +2,20 @@
 import { useEffect, useRef } from "react";
 
 // Toolbar config — Color, size, bold/italic, alignment
+const COLORS = [
+  "#ffffff", "#C0C0C0", "#8BC8A0", "#7EC8E3", "#e8c87e", "#ffc107", "#f44336",
+  "#000000", "#333333", "#666666", "#999999", "#cccccc",
+  "#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f2f1",
+  "#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#009688",
+  "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800",
+  "#ff5722", "#795548", "#607d8b",
+];
+
 const TOOLBAR_OPTIONS = [
   [{ header: [1, 2, 3, false] }],
   [{ size: ["small", false, "large", "huge"] }],
   ["bold", "italic", "underline", "strike"],
-  [{ color: [] }, { background: [] }],
+  [{ color: COLORS }, { background: COLORS }],
   [{ align: [] }],
   ["blockquote", "code-block"],
   [{ list: "ordered" }, { list: "bullet" }],
