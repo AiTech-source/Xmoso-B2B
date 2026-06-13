@@ -1,13 +1,12 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-// Toolbar config — Color, size, bold/italic, alignment
+// Brand + extended palette
 const COLORS = [
   "#ffffff", "#C0C0C0", "#8BC8A0", "#7EC8E3", "#e8c87e", "#ffc107", "#f44336",
   "#000000", "#333333", "#666666", "#999999", "#cccccc",
-  "#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f2f1",
   "#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#009688",
-  "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800",
+  "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ff9800",
   "#ff5722", "#795548", "#607d8b",
 ];
 
@@ -34,15 +33,14 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
   const initialized = useRef(false);
+  const [customColor, setCustomColor] = useState("#8BC8A0");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (initialized.current) return;
 
-    // Dynamic import of Quill
     async function init() {
       const Quill = (await import("quill")).default;
-      // Import CSS
       await import("quill/dist/quill.snow.css?inline" as any);
 
       if (!editorRef.current || quillRef.current) return;
@@ -53,7 +51,6 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
         placeholder,
       });
 
-      // Set initial content
       if (value) {
         quill.root.innerHTML = value;
       }
@@ -70,19 +67,49 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
     }
 
     init();
-
     return () => {
       quillRef.current = null;
       initialized.current = false;
     };
   }, []);
 
-  // Update content if value changes externally
   useEffect(() => {
     if (quillRef.current && value !== quillRef.current.root.innerHTML) {
       quillRef.current.root.innerHTML = value;
     }
   }, [value]);
+
+  function applyColor(color: string, isBg = false) {
+    const quill = quillRef.current;
+    if (!quill) return;
+    const range = quill.getSelection();
+    if (!range || range.length === 0) {
+      // No selection — set as default format for next typing
+      quill.format(isBg ? "background" : "color", color);
+      return;
+    }
+    quill.formatText(range.index, range.length, isBg ? "background" : "color", color);
+    quill.setSelection(range.index + range.length, 0);
+  }
+
+  function applyHex(e: React.FormEvent) {
+    e.preventDefault();
+    const hex = customColor.trim();
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) {
+      applyColor(hex);
+    }
+  }
+
+  function applyRgb(e: React.FormEvent) {
+    e.preventDefault();
+    const input = (e.target as HTMLFormElement).querySelector<HTMLInputElement>('[name="rgb"]');
+    if (!input) return;
+    const val = input.value.trim();
+    if (/^rgb\(/.test(val) || /^\d+/.test(val)) {
+      const rgb = val.startsWith("rgb") ? val : `rgb(${val})`;
+      applyColor(rgb);
+    }
+  }
 
   return (
     <div className="quill-wrapper" style={{ minHeight }}>
@@ -120,8 +147,55 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
           background: #1A1A2E !important;
           border-color: rgba(192,192,192,0.1) !important;
         }
+        /* Color swatch items in Quill picker */
+        .ql-picker-item[data-value] {
+          width: 18px !important;
+          height: 18px !important;
+          margin: 1px !important;
+          border-radius: 3px !important;
+        }
       `}</style>
       <div ref={editorRef} />
+
+      {/* ── Custom color bar (always visible below toolbar) ── */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-[#14142a] border border-t-0 border-silver/10 rounded-b-lg flex-wrap">
+        {/* Quick brand colors */}
+        <span className="text-[10px] text-silver/40 uppercase tracking-wider mr-1">Color:</span>
+        {["#8BC8A0", "#7EC8E3", "#e8c87e", "#ffc107", "#ffffff", "#C0C0C0", "#333333", "#000000"].map((c) => (
+          <button
+            key={c}
+            onClick={() => applyColor(c)}
+            className="w-6 h-6 rounded-md border border-silver/20 hover:scale-110 transition-transform cursor-pointer"
+            style={{ backgroundColor: c }}
+            title={c}
+          />
+        ))}
+
+        {/* Hex input */}
+        <form onSubmit={applyHex} className="flex items-center gap-1 ml-2">
+          <span className="text-[10px] text-silver/40">Hex:</span>
+          <input
+            type="text"
+            value={customColor}
+            onChange={(e) => setCustomColor(e.target.value)}
+            className="w-20 bg-deep-dark border border-silver/10 rounded px-2 py-1 text-xs text-white font-mono"
+            placeholder="#8BC8A0"
+          />
+          <button type="submit" className="text-[10px] text-forest hover:text-forest/80 px-1">Apply</button>
+        </form>
+
+        {/* RGB input */}
+        <form onSubmit={applyRgb} className="flex items-center gap-1">
+          <span className="text-[10px] text-silver/40">RGB:</span>
+          <input
+            name="rgb"
+            type="text"
+            className="w-28 bg-deep-dark border border-silver/10 rounded px-2 py-1 text-xs text-white font-mono"
+            placeholder="rgb(139,200,160)"
+          />
+          <button type="submit" className="text-[10px] text-ice hover:text-ice/80 px-1">Apply</button>
+        </form>
+      </div>
     </div>
   );
 }
