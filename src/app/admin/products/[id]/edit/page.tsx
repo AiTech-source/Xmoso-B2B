@@ -97,11 +97,16 @@ export default function EditProductPage() {
           });
         setImages(data.image_gallery?.map((g: any) => g.url || g) || data.images || []);
         setContent(data.content || null);
-        // Load translations for per-locale content
+        // Load locale-specific content from products.content._zh / _en
+        // (these are stored inside products.content by the saveContent function)
         supabase?.from("product_translations").select("locale, content")
           .eq("product_id", params.id)
           .then(({ data: transData }: any) => {
             const map: Record<string, any> = { shared: data.content || null };
+            // Extract locale-specific content from products.content locale keys
+            if (data.content?._zh) map.zh = data.content._zh;
+            if (data.content?._en) map.en = data.content._en;
+            // Merge legacy translation table content (if any)
             for (const t of transData || []) {
               if (t.content) map[t.locale] = t.content;
             }
@@ -623,11 +628,11 @@ export default function EditProductPage() {
               <div className="flex gap-1 bg-deep-dark/60 rounded-lg p-0.5">
                 {(["shared", "en", "zh"] as const).map((l) => (
                   <button key={l} type="button" onClick={() => {
-                    // Save current content before switching
                     setContentLocale(l);
                     if (l === "shared") {
-                      // Restore shared content from localeContent cache
-                      setContent(localeContent["shared"] || null);
+                      // Strip locale keys (_zh/_en) from content before passing to editor
+                      const shared = localeContent["shared"];
+                      setContent(shared?.blocks ? { blocks: shared.blocks } : shared);
                     } else {
                       setContent(localeContent[l] || null);
                     }
