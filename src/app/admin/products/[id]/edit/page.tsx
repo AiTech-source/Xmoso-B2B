@@ -96,21 +96,19 @@ export default function EditProductPage() {
             })));
           });
         setImages(data.image_gallery?.map((g: any) => g.url || g) || data.images || []);
-        // Strip locale keys from initial content — shared tab must only see shared blocks
-        const cleanShared = data.content ? { blocks: data.content.blocks || [] } : null;
-        setContent(cleanShared);
-        // Load locale-specific content from products.content._zh / _en
-        // (these are stored inside products.content by the saveContent function)
+        // Extract locale keys from DB content. The shape is:
+        //   { blocks: [shared], _zh: { blocks: [...] }, _en: { blocks: [...] } }
+        const dbContent = data.content || {};
+        setContent(dbContent?.blocks ? { blocks: dbContent.blocks } : null);
+        const map: Record<string, any> = { shared: dbContent?.blocks ? { blocks: dbContent.blocks } : null };
+        if (dbContent._zh) map.zh = dbContent._zh;
+        if (dbContent._en) map.en = dbContent._en;
+        // Load legacy translation table content if any
         supabase?.from("product_translations").select("locale, content")
           .eq("product_id", params.id)
           .then(({ data: transData }: any) => {
-            const map: Record<string, any> = { shared: cleanShared };
-            // Extract locale-specific content from products.content locale keys
-            if (data.content?._zh) map.zh = data.content._zh;
-            if (data.content?._en) map.en = data.content._en;
-            // Merge legacy translation table content (if any)
             for (const t of transData || []) {
-              if (t.content) map[t.locale] = t.content;
+              if (t.content && !map[t.locale]) map[t.locale] = t.content;
             }
             setLocaleContent(map);
           });
@@ -155,16 +153,11 @@ export default function EditProductPage() {
       installation_media: installMedia,
     };
 
-    // Always preserve existing locale keys from DB — never drop _zh/_en
-    // Only overwrite shared blocks when saving from the shared tab
+    // Preserve DB content exactly as-is — handleSubmit should never change content
+    // (use Save Content in RichTextEditor for content changes)
     const { data: cur } = await supabase
       ?.from("products").select("content").eq("id", params.id).single();
-    const existing = cur?.content || {};
-    payload.content = {
-      blocks: contentLocale === "shared" ? (content?.blocks || existing.blocks || []) : (existing.blocks || []),
-      _en: existing._en,
-      _zh: existing._zh,
-    };
+    payload.content = cur?.content || null;
 
     await supabase?.from("products").update(payload).eq("id", params.id);
     setDirty(false);
@@ -244,27 +237,32 @@ export default function EditProductPage() {
   }
 
   const saveContent = useCallback(async (c: any) => {
-    setContent(c);
-    // Always load current DB content so we never overwrite locale keys
+    // Read current DB content
     const { data: current } = await supabase
       ?.from("products").select("content").eq("id", params.id).single();
     const dbContent = current?.content || {};
 
     if (contentLocale === "shared") {
-      // Merge: keep existing locale keys (_zh, _en), replace shared blocks
-      const merged = { ...dbContent, ...c, _en: dbContent._en, _zh: dbContent._zh };
+      // Only touch shared `blocks`, leave _zh/_en untouched
+      const merged = { blocks: c?.blocks || [], _en: dbContent._en, _zh: dbContent._zh };
       await supabase?.from("products").update({ content: merged }).eq("id", params.id);
-      // Update shared cache with full merged state
-      setLocaleContent((prev) => ({ ...prev, shared: merged }));
     } else {
-      // Save locale-specific blocks, keep everything else
+      // Only touch locale key (_zh or _en), leave everything else
       const localeKey = `_${contentLocale}`;
       const merged = { ...dbContent, [localeKey]: c };
-      if (!merged.blocks) merged.blocks = [];
       await supabase?.from("products").update({ content: merged }).eq("id", params.id);
-      // Update both locale cache AND shared cache (so shared tab sees the merged result)
-      setLocaleContent((prev) => ({ ...prev, [contentLocale]: c, shared: merged }));
     }
+
+    // Reload fresh DB state into content/localeContent
+    const { data: reloaded } = await supabase
+      ?.from("products").select("content").eq("id", params.id).single();
+    const fresh = reloaded?.content || {};
+    setContent(fresh?.blocks ? { blocks: fresh.blocks } : null);
+    setLocaleContent({
+      shared: fresh?.blocks ? { blocks: fresh.blocks } : null,
+      zh: fresh._zh || null,
+      en: fresh._en || null,
+    });
   }, [params.id, contentLocale]);
 
   return (
