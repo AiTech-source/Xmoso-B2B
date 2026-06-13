@@ -84,31 +84,11 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
     if (!quill) return;
     const range = quill.getSelection();
     if (!range || range.length === 0) {
-      // No selection — set as default format for next typing
       quill.format(isBg ? "background" : "color", color);
       return;
     }
     quill.formatText(range.index, range.length, isBg ? "background" : "color", color);
     quill.setSelection(range.index + range.length, 0);
-  }
-
-  function applyHex(e: React.FormEvent) {
-    e.preventDefault();
-    const hex = customColor.trim();
-    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) {
-      applyColor(hex);
-    }
-  }
-
-  function applyRgb(e: React.FormEvent) {
-    e.preventDefault();
-    const input = (e.target as HTMLFormElement).querySelector<HTMLInputElement>('[name="rgb"]');
-    if (!input) return;
-    const val = input.value.trim();
-    if (/^rgb\(/.test(val) || /^\d+/.test(val)) {
-      const rgb = val.startsWith("rgb") ? val : `rgb(${val})`;
-      applyColor(rgb);
-    }
   }
 
   return (
@@ -164,6 +144,7 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
         {["#8BC8A0", "#7EC8E3", "#e8c87e", "#ffc107", "#ffffff", "#C0C0C0", "#333333", "#000000"].map((c) => (
           <button
             key={c}
+            type="button"
             onClick={() => applyColor(c)}
             className="w-6 h-6 rounded-md border border-silver/20 hover:scale-110 transition-transform cursor-pointer"
             style={{ backgroundColor: c }}
@@ -172,7 +153,7 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
         ))}
 
         {/* Hex input */}
-        <form onSubmit={applyHex} className="flex items-center gap-1 ml-2">
+        <div className="flex items-center gap-1 ml-2">
           <span className="text-[10px] text-silver/40">Hex:</span>
           <input
             type="text"
@@ -180,21 +161,43 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
             onChange={(e) => setCustomColor(e.target.value)}
             className="w-20 bg-deep-dark border border-silver/10 rounded px-2 py-1 text-xs text-white font-mono"
             placeholder="#8BC8A0"
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyColor(customColor); } }}
           />
-          <button type="submit" className="text-[10px] text-forest hover:text-forest/80 px-1">Apply</button>
-        </form>
+          <button type="button" onClick={() => {
+            const hex = customColor.trim();
+            if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) {
+              applyColor(hex);
+            }
+          }} className="text-[10px] text-forest hover:text-forest/80 px-1">Apply</button>
+        </div>
 
         {/* RGB input */}
-        <form onSubmit={applyRgb} className="flex items-center gap-1">
+        <div className="flex items-center gap-1">
           <span className="text-[10px] text-silver/40">RGB:</span>
           <input
             name="rgb"
             type="text"
             className="w-28 bg-deep-dark border border-silver/10 rounded px-2 py-1 text-xs text-white font-mono"
             placeholder="rgb(139,200,160)"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const val = (e.target as HTMLInputElement).value.trim();
+                if (/^rgb\(/.test(val) || /^\d+/.test(val)) {
+                  applyColor(val.startsWith("rgb") ? val : `rgb(${val})`);
+                }
+              }
+            }}
           />
-          <button type="submit" className="text-[10px] text-ice hover:text-ice/80 px-1">Apply</button>
-        </form>
+          <button type="button" onClick={(e) => {
+            const input = (e.currentTarget.parentElement?.querySelector<HTMLInputElement>('[name="rgb"]'));
+            if (!input) return;
+            const val = input.value.trim();
+            if (/^rgb\(/.test(val) || /^\d+/.test(val)) {
+              applyColor(val.startsWith("rgb") ? val : `rgb(${val})`);
+            }
+          }} className="text-[10px] text-ice hover:text-ice/80 px-1">Apply</button>
+        </div>
       </div>
     </div>
   );
