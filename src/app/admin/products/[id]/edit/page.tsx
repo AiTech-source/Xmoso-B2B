@@ -153,20 +153,15 @@ export default function EditProductPage() {
       installation_media: installMedia,
     };
 
-    // Merge content with existing locale keys so form save never drops _zh/_en
-    if (contentLocale !== "shared") {
-      // Locale tab: content state only has { blocks: [...] } — merge with DB locale keys
-      const { data: cur } = await supabase
-        ?.from("products").select("content").eq("id", params.id).single();
-      const existing = cur?.content || {};
-      payload.content = {
-        blocks: content?.blocks || existing.blocks || [],
-        _en: existing._en,
-        _zh: existing._zh,
-      };
-    } else {
-      payload.content = content;
-    }
+    // Always preserve existing locale keys from DB — never drop _zh/_en
+    const { data: cur } = await supabase
+      ?.from("products").select("content").eq("id", params.id).single();
+    const existing = cur?.content || {};
+    payload.content = {
+      blocks: content?.blocks || existing.blocks || [],
+      _en: existing._en,
+      _zh: existing._zh,
+    };
 
     await supabase?.from("products").update(payload).eq("id", params.id);
     setDirty(false);
