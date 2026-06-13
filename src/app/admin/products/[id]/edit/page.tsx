@@ -146,13 +146,28 @@ export default function EditProductPage() {
     const payload: any = {
       ...form,
       image_gallery: images.map((url: string) => ({ url, alt: form.model_number })),
-      content,
       highlights,
       param_counters: paramCounters,
       eco_features: ecoFeatures,
       spec_tabs: specTabs,
       installation_media: installMedia,
     };
+
+    // Merge content with existing locale keys so form save never drops _zh/_en
+    if (contentLocale !== "shared") {
+      // Locale tab: content state only has { blocks: [...] } — merge with DB locale keys
+      const { data: cur } = await supabase
+        ?.from("products").select("content").eq("id", params.id).single();
+      const existing = cur?.content || {};
+      payload.content = {
+        blocks: content?.blocks || existing.blocks || [],
+        _en: existing._en,
+        _zh: existing._zh,
+      };
+    } else {
+      payload.content = content;
+    }
+
     await supabase?.from("products").update(payload).eq("id", params.id);
     setDirty(false);
     // Save specs to product_specs table
