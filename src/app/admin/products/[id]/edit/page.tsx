@@ -227,24 +227,25 @@ export default function EditProductPage() {
 
   const saveContent = useCallback(async (c: any) => {
     setContent(c);
-    // Store locale-specific content in products.content as _en / _zh sub-keys
-    // This works immediately without DB migration
+    // Always load current DB content so we never overwrite locale keys
+    const { data: current } = await supabase
+      ?.from("products").select("content").eq("id", params.id).single();
+    const dbContent = current?.content || {};
+
     if (contentLocale === "shared") {
-      // Save shared content — strip old locale keys to avoid stale data
-      const shared = { ...c, _en: undefined, _zh: undefined };
-      await supabase?.from("products").update({ content: shared }).eq("id", params.id);
+      // Merge: keep existing locale keys (_zh, _en), replace shared blocks
+      const merged = { ...dbContent, ...c, _en: dbContent._en, _zh: dbContent._zh };
+      await supabase?.from("products").update({ content: merged }).eq("id", params.id);
+      // Update shared cache with full merged state
+      setLocaleContent((prev) => ({ ...prev, shared: merged }));
     } else {
-      // Load current products.content, merge locale-specific blocks
-      const { data: current } = await supabase
-        ?.from("products").select("content").eq("id", params.id).single();
-      const merged = { ...(current?.content || {}) };
+      // Save locale-specific blocks, keep everything else
       const localeKey = `_${contentLocale}`;
-      merged[localeKey] = c;
-      // Keep shared blocks intact
+      const merged = { ...dbContent, [localeKey]: c };
       if (!merged.blocks) merged.blocks = [];
       await supabase?.from("products").update({ content: merged }).eq("id", params.id);
-      // Update local cache
-      setLocaleContent((prev) => ({ ...prev, [contentLocale]: c }));
+      // Update both locale cache AND shared cache (so shared tab sees the merged result)
+      setLocaleContent((prev) => ({ ...prev, [contentLocale]: c, shared: merged }));
     }
   }, [params.id, contentLocale]);
 
