@@ -96,13 +96,15 @@ export default function EditProductPage() {
             })));
           });
         setImages(data.image_gallery?.map((g: any) => g.url || g) || data.images || []);
-        setContent(data.content || null);
+        // Strip locale keys from initial content — shared tab must only see shared blocks
+        const cleanShared = data.content ? { blocks: data.content.blocks || [] } : null;
+        setContent(cleanShared);
         // Load locale-specific content from products.content._zh / _en
         // (these are stored inside products.content by the saveContent function)
         supabase?.from("product_translations").select("locale, content")
           .eq("product_id", params.id)
           .then(({ data: transData }: any) => {
-            const map: Record<string, any> = { shared: data.content || null };
+            const map: Record<string, any> = { shared: cleanShared };
             // Extract locale-specific content from products.content locale keys
             if (data.content?._zh) map.zh = data.content._zh;
             if (data.content?._en) map.en = data.content._en;
