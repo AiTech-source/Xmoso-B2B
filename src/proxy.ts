@@ -10,20 +10,25 @@ const REDIRECTS: Record<string, string> = {
   "/productinfo/1546192.html": "/products/xbc90db-wine-cooler",
 };
 
+const VALID_LOCALES = ["en", "zh"];
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const locale = pathname.split("/")[1] || "en";
+  const firstSeg = pathname.split("/")[1] || "";
+  const locale = VALID_LOCALES.includes(firstSeg) ? firstSeg : "en";
 
   // Old URL redirects — match with or without locale prefix
   for (const [oldPath, newPath] of Object.entries(REDIRECTS)) {
     if (pathname === oldPath || pathname === `/${locale}${oldPath}`) {
-      return NextResponse.redirect(`https://xmoso.com/${locale}${newPath}`, 301);
+      const prefix = locale === "en" ? "" : `/${locale}`;
+      return NextResponse.redirect(`https://xmoso.com${prefix}${newPath}`, 301);
     }
   }
 
   // /ProductInfoCategory?categoryId=xxx → /products
   if (pathname === "/ProductInfoCategory" || pathname === `/${locale}/ProductInfoCategory`) {
-    return NextResponse.redirect(`https://xmoso.com/${locale}/products`, 301);
+    const prefix = locale === "en" ? "" : `/${locale}`;
+    return NextResponse.redirect(`https://xmoso.com${prefix}/products`, 301);
   }
 
   if (pathname.startsWith("/admin")) {
