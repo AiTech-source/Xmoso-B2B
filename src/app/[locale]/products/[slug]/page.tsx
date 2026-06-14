@@ -172,6 +172,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
         <div className="max-w-7xl mx-auto px-4">
 
+          {/* Floating share — left side on desktop */}
+          <div className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-30">
+            <ShareButton url={`/${locale}/products/${slug}`} title={translation.name} floating />
+          </div>
+
           {/* Image + Info + SPEC */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <ImageGallery images={images} />

@@ -100,6 +100,44 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 })();`
           }}
         />
+
+        {/* GEO / SEO structured data — Organization + WebSite */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  name: "Xmoso",
+                  url: "https://xmoso.com",
+                  logo: logoUrl || undefined,
+                  description: "Premium wine cooling cabinets, cigar cabinets, and bar cabinets for hospitality and residential.",
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    email: footerEmail || undefined,
+                    contactType: "sales",
+                  },
+                },
+                {
+                  "@type": "WebSite",
+                  url: "https://xmoso.com",
+                  name: "Xmoso",
+                  description: "Premium wine cooling cabinets, cigar cabinets, and bar cabinets for hospitality and residential.",
+                  potentialAction: {
+                    "@type": "SearchAction",
+                    target: {
+                      "@type": "EntryPoint",
+                      urlTemplate: "https://xmoso.com/en/products?q={search_term_string}",
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body className="bg-deep-dark text-soft-white antialiased min-h-screen" itemScope itemType="https://schema.org/WebPage" suppressHydrationWarning>
         <ErrorBoundary>{children}</ErrorBoundary>
