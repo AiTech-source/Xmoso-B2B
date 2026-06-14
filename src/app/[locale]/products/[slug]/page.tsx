@@ -58,11 +58,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { translation } = result;
   const product = translation.product;
   const ogSettings = await getOgSettings(supabase);
+  const productImage = product?.image_gallery?.[0]?.url || product?.images?.[0] || "";
   const ogUrl = ogImageUrl({
     title: translation.meta_title || translation.name,
     subtitle: product?.model_number || "",
     type: "product",
     brand: ogSettings.brand,
+    image: productImage || undefined,
   });
 
   return {
@@ -74,6 +76,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       title: translation.meta_title || translation.name,
       description: translation.meta_description || translation.description || undefined,
       images: [{ url: ogUrl, width: 1200, height: 630 }],
+    },
+    other: {
+      "twitter:card": "summary_large_image",
+      "twitter:title": translation.meta_title || translation.name,
+      "twitter:description": translation.meta_description || translation.description || undefined,
+      "twitter:image": productImage || ogUrl,
     },
   };
 }
@@ -172,8 +180,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
         <div className="max-w-7xl mx-auto px-4">
 
-          {/* Floating share — left side on desktop */}
-          <div className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-30">
+          {/* Floating share — left side (desktop only) */}
+          <div className="hidden md:block fixed left-0 top-1/2 -translate-y-1/2 z-40" style={{ marginTop: "32px" }}>
             <ShareButton url={`/${locale}/products/${slug}`} title={translation.name} floating />
           </div>
 

@@ -4,6 +4,7 @@ import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import PageBannerCarousel from "@/components/layout/PageBannerCarousel";
 import ProductGrid from "@/components/products/ProductGrid";
 import ProductsSidebar from "@/components/products/ProductsSidebar";
+import CompareBar from "@/components/products/CompareBar";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getProductsByType, typeAnchor } from "@/lib/products-by-type";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
@@ -109,7 +110,7 @@ export default async function ProductsPage({
                         <span className="text-[10px] text-silver/30">({cat.products.length})</span>
                       </div>
                     )}
-                    <ProductGrid products={cat.products} locale={locale} />
+                    <ProductGrid products={cat.products} locale={locale} selectable />
                   </div>
                 ))}
               </section>
@@ -124,6 +125,7 @@ export default async function ProductsPage({
           </div>
         </div>
       </main>
+      <CompareBar />
       <Footer />
     </>
   );

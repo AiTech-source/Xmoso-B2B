@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import ProductCard from "@/components/products/ProductCard";
+import CompareBar from "@/components/products/CompareBar";
 import { typeAnchor } from "@/lib/products-by-type";
 
 interface Product {
@@ -75,6 +76,7 @@ export default function HomeProducts({ locale }: { locale: string }) {
                   locale={locale}
                   highlights={product.highlights}
                   productStyle={product.product_style}
+                  selectable
                 />
               </motion.div>
             ))}
@@ -108,6 +110,7 @@ export default function HomeProducts({ locale }: { locale: string }) {
           </Link>
         </div>
       )}
+      <CompareBar />
     </section>
   );
 }

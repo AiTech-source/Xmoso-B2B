@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const PLATFORMS = [
   {
@@ -42,7 +41,6 @@ const PLATFORMS = [
 
 export default function ShareButton({ url, title, floating = false }: { url: string; title: string; floating?: boolean }) {
   const [copied, setCopied] = useState(false);
-  const [showMore, setShowMore] = useState(false);
   const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}` : url;
 
   function copyLink() {
@@ -63,24 +61,24 @@ export default function ShareButton({ url, title, floating = false }: { url: str
   // Floating vertical share bar
   if (floating) {
     return (
-      <div className="flex flex-col items-center gap-3">
-        <span className="text-[9px] text-silver/40 uppercase tracking-widest mb-1" style={{ writingMode: "vertical-rl" as any }}>
+      <div className="flex flex-col items-center gap-2.5 bg-deep-blue/60 backdrop-blur-sm border border-silver/10 rounded-xl py-3 px-2 shadow-lg">
+        <span className="text-[8px] text-silver/40 uppercase tracking-widest" style={{ writingMode: "vertical-rl" as any }}>
           Share
         </span>
-        <div className="w-px h-4 bg-silver/20" />
+        <div className="w-px h-3 bg-silver/15" />
         {PLATFORMS.filter((p) => p.id !== "email").slice(0, 4).map((p) => (
           <button
             key={p.id}
             onClick={() => share(p)}
-            className={`text-silver/40 ${p.color} transition-colors`}
+            className={`text-silver/50 ${p.color} transition-colors hover:scale-110`}
             title={p.label}
           >
             {p.icon}
           </button>
         ))}
-        <div className="w-px h-4 bg-silver/20" />
+        <div className="w-px h-3 bg-silver/15" />
         <button onClick={copyLink}
-          className="text-silver/40 hover:text-forest transition-colors text-xs"
+          className="text-silver/50 hover:text-forest transition-colors text-xs"
           title={copied ? "Copied!" : "Copy link"}>
           {copied ? "✓" : "🔗"}
         </button>
@@ -92,7 +90,7 @@ export default function ShareButton({ url, title, floating = false }: { url: str
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       <span className="text-[10px] text-silver/40 tracking-wider mr-0.5">Share:</span>
-      {PLATFORMS.slice(0, 5).map((p) => (
+      {PLATFORMS.map((p) => (
         <button
           key={p.id}
           onClick={() => share(p)}
@@ -102,31 +100,6 @@ export default function ShareButton({ url, title, floating = false }: { url: str
           {p.icon}
         </button>
       ))}
-
-      {/* More toggle */}
-      <div className="relative">
-        <button onClick={() => setShowMore(!showMore)}
-          className="text-silver/40 hover:text-white transition-colors text-xs px-1 font-mono">
-          +
-        </button>
-        <AnimatePresence>
-          {showMore && (
-            <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.95 }}
-              className="absolute left-0 top-full mt-1 bg-deep-blue border border-silver/10 rounded-xl p-2 shadow-2xl z-50 flex gap-1.5"
-            >
-              {PLATFORMS.slice(5).map((p) => (
-                <button key={p.id} onClick={() => share(p)}
-                  className={`text-silver/50 ${p.color} transition-colors`} title={p.label}>
-                  {p.icon}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
       <button onClick={copyLink}
         className="text-silver/40 hover:text-forest transition-colors text-sm leading-none ml-1"

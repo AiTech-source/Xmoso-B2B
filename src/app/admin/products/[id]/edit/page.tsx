@@ -305,7 +305,7 @@ export default function EditProductPage() {
           {/* Images */}
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
             <h3 className="text-white tracking-wide mb-4">📸 Images</h3>
-            <ImageUploader existing={images} onUploaded={setImages} />
+            <ImageUploader existing={images} onUploaded={setImages}  />
           </div>
 
           {/* Highlights */}
