@@ -8,6 +8,15 @@ export async function GET(req: Request) {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return Response.json({ posts: [] });
 
+  const id = searchParams.get("id");
+
+  if (id) {
+    const { data } = await supabase
+      .from("blog_posts").select("*")
+      .eq("id", id).single();
+    return Response.json({ post: data || null });
+  }
+
   if (slug) {
     const { data } = await supabase
       .from("blog_posts").select("*")

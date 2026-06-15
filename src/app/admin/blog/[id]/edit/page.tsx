@@ -18,7 +18,7 @@ export default function AdminBlogEditPage() {
 
   useEffect(() => {
     if (isNew) return;
-    fetch(`/api/blog?locale=en&slug=${params.id}`).then((r) => r.json()).then((data) => {
+    fetch(`/api/blog?id=${params.id}`).then((r) => r.json()).then((data) => {
       const p = data.post;
       if (p) {
         setForm({ title: p.title, slug: p.slug, excerpt: p.excerpt || "", author: p.author || "", cover_image: p.cover_image || "", locale: p.locale || "en", published: p.published });
