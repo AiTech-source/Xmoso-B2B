@@ -107,13 +107,10 @@ export default function ComparePage() {
         <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
 
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <style>{`/* hide mobile carousel scrollbar */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+          <style>{`.scrollbar-hide::-webkit-scrollbar{display:none}.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}`}</style>
           <h1 className="text-2xl font-light tracking-wider text-white mb-8">📊 {t("Compare Products", "产品对比")}</h1>
 
-          {/* ── Images — mobile carousel, desktop grid ── */}
-          {/* Desktop grid */}
+          {/* ── Images — desktop grid / mobile carousel ── */}
           <div className={`hidden md:grid ${gridCols} gap-4 mb-0`}>
             {products.map((p) => (
               <div key={p.id} className="text-center">
@@ -126,7 +123,6 @@ export default function ComparePage() {
             ))}
           </div>
 
-          {/* Mobile carousel */}
           <div className="md:hidden relative">
             <div ref={scrollRef} onScroll={() => {
               if (!scrollRef.current) return;
@@ -144,7 +140,6 @@ export default function ComparePage() {
                 </div>
               ))}
             </div>
-            {/* Dots */}
             {products.length > 1 && (
               <div className="flex justify-center gap-1.5 mt-3">
                 {products.map((_, i) => (
@@ -170,31 +165,34 @@ export default function ComparePage() {
           {/* ── Spec rows ── */}
           <div>
             {allLabels.map((label, i) => (
-              <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
-                {/* Label — desktop hover */}
-                <div className="hidden md:block absolute -top-2.5 left-2 text-[9px] uppercase tracking-wider text-forest/60 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-10">
-                  {label}
+              <div key={label} className={`group relative overflow-visible ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
+                {/* Desktop label — always subtly visible as a floating badge */}
+                <div className="hidden md:block absolute -top-2.5 left-2 z-10 select-none pointer-events-none">
+                  <span className="text-[9px] tracking-wider text-forest/40 group-hover:text-forest/80 transition-colors duration-200" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+                    {label}
+                  </span>
                 </div>
                 <div className={`grid grid-cols-1 ${gridCols} gap-x-4 py-3 px-2 -mx-2 border-b border-silver/5`}>
-                  {/* Mobile label */}
-                  <div className="md:hidden text-[11px] text-[#2a7d4e] font-medium mb-0.5 tracking-wide">{label}</div>
+                  {/* Mobile label — forest green */}
+                  <div className="md:hidden text-[11px] font-medium mb-0.5 tracking-wide" style={{ color: "#2a7d4e" }}>{label}</div>
                   {products.map((p, pi) => {
                     const spec = specLookups[pi].get(label);
                     const cellStyle: React.CSSProperties = {};
                     if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
                     if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
-                    // Custom color preserves; default is white for readability on dark rows
-                    if (spec?.color) cellStyle.color = spec.color;
-                    else if (spec?.bgColor) {
+                    // Custom color if set, else black text on light rows / white on dark rows
+                    if (spec?.color) {
+                      cellStyle.color = spec.color;
+                    } else if (spec?.bgColor) {
                       const m = spec.bgColor.match(/\d+/g);
                       if (m && m.length >= 3) {
                         const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
                         cellStyle.color = avg > 160 ? "#0A0A0F" : "#ffffff";
-                      } else cellStyle.color = "#ffffff";
-                    } else cellStyle.color = "#ffffff";
+                      } else cellStyle.color = "#0A0A0F";
+                    } else cellStyle.color = "#0A0A0F";
                     return (
-                      <div key={p.id} className="text-sm" style={cellStyle}>
-                        {spec?.value || <span className="text-silver/40">—</span>}
+                      <div key={p.id} className="text-sm font-medium" style={cellStyle}>
+                        {spec?.value || <span className="text-gray-400">—</span>}
                       </div>
                     );
                   })}
