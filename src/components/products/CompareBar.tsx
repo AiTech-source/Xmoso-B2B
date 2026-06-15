@@ -1,36 +1,25 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 
 const STORAGE_KEY = "compare_slugs";
+
+function readStorage(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? raw.split(",").filter(Boolean) : [];
+  } catch { return []; }
+}
 
 export default function CompareBar() {
   const [slugs, setSlugs] = useState<string[]>([]);
   const router = useRouter();
   const locale = useLocale();
-  const pathname = usePathname();
-
-  function readStorage(): string[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? raw.split(",").filter(Boolean) : [];
-    } catch { return []; }
-  }
 
   useEffect(() => {
-    const isHome = pathname === "/" || pathname === `/${locale}` || pathname === `/${locale}/`;
-    if (isHome) {
-      localStorage.removeItem(STORAGE_KEY);
-      setSlugs([]);
-      return;
-    }
-
-    // Initial read
     setSlugs(readStorage());
-
-    // Listen for changes
     function handler() { setSlugs(readStorage()); }
     window.addEventListener("compare-update", handler);
     window.addEventListener("storage", handler);
@@ -38,7 +27,7 @@ export default function CompareBar() {
       window.removeEventListener("compare-update", handler);
       window.removeEventListener("storage", handler);
     };
-  }, [pathname, locale]);
+  }, []);
 
   function clearAll() {
     localStorage.removeItem(STORAGE_KEY);
