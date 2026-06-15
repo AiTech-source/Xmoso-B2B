@@ -115,7 +115,7 @@ export default function ComparePage() {
                   <th className="w-32 hidden md:table-cell bg-[#1A1A2E]" />
                   {products.map((p) => (
                     <th key={p.id} className="p-3 text-center min-w-[180px] border-b border-silver/10 bg-[#1A1A2E]">
-                      <div className="text-white text-sm">{p.name}</div>
+                      <div style={{color:"#ffffff"}} className="text-sm">{p.name}</div>
                     </th>
                   ))}
                 </tr>
