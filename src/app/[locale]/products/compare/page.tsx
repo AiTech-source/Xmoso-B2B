@@ -36,6 +36,25 @@ export default function ComparePage() {
   const [loading, setLoading] = useState(true);
   const [scrollIdx, setScrollIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const redirected = useRef(false);
+
+  // When no slugs in URL but localStorage has them → redirect with those slugs
+  useEffect(() => {
+    if (redirected.current) return;
+    if (typeof window === "undefined") return;
+    if (slugs) return; // already has URL slugs
+    try {
+      const raw = localStorage.getItem("compare_slugs");
+      if (raw) {
+        redirected.current = true;
+        const storedSlugs = raw.split(",").filter(Boolean);
+        if (storedSlugs.length >= 2) {
+          const qs = storedSlugs.map((s) => encodeURIComponent(s)).join(",");
+          window.location.href = `/${locale}/products/compare?slugs=${qs}`;
+        }
+      }
+    } catch {}
+  }, [slugs, locale]);
 
   useEffect(() => {
     if (!slugs) { setLoading(false); return; }
@@ -164,7 +183,7 @@ export default function ComparePage() {
               <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
                 {/* Desktop hover label */}
                 <div className="max-md:hidden absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
-                  <span className="inline-block text-[10px] font-medium tracking-wide text-white bg-deep-blue px-2 py-0.5 rounded-sm shadow-sm border border-silver/10 transition-opacity duration-200">
+                  <span className="inline-block text-[10px] font-medium tracking-wide text-white bg-[#1A1A2E] px-2 py-0.5 rounded-sm shadow-sm border border-silver/10 transition-opacity duration-200">
                     {label}
                   </span>
                 </div>
