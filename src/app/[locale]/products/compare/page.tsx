@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -19,31 +19,27 @@ interface CompareProduct {
 
 export default function ComparePage() {
   const params = useParams();
+  const router = useRouter();
   const locale = (params?.locale as string) || "en";
   const [products, setProducts] = useState<CompareProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrollIdx, setScrollIdx] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Read slugs from URL or localStorage
+  // Read slugs from URL on mount and clear localStorage (it's now URL-encoded)
   const [slugs, setSlugs] = useState<string[]>([]);
 
   useEffect(() => {
-    // Try URL first
     let found: string[] = [];
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const raw = p.get("slugs");
       found = raw ? raw.split(",").filter(Boolean) : [];
     }
-    // Fallback to localStorage (for locale switch)
-    if (found.length === 0 && typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem("compare_slugs");
-        found = raw ? raw.split(",").filter(Boolean) : [];
-      } catch {}
-    }
     setSlugs(found);
-  }, [locale]);
+    // Clear localStorage — data is now in the URL
+    try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
+  }, []);
 
   useEffect(() => {
     if (!slugs.length || slugs.length < 2) { setLoading(false); return; }
@@ -53,6 +49,16 @@ export default function ComparePage() {
       .then((data) => { setProducts(data.products || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [slugs, locale]);
+
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const handler = () => {
+      setScrollIdx(Math.min(products.length - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth) || 0)));
+    };
+    el.addEventListener("scroll", handler);
+    return () => el.removeEventListener("scroll", handler);
+  }, [products]);
 
   const t = (en: string, zh: string) => locale === "zh" ? zh : en;
   const colCount = products.length;
@@ -71,6 +77,11 @@ export default function ComparePage() {
     for (const s of p.specs) map.set(s.label, s);
     return map;
   });
+
+  function clearCompare() {
+    try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
+    router.push(`/${locale}/products`);
+  }
 
   if (loading) {
     return (
@@ -108,7 +119,14 @@ export default function ComparePage() {
         <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
 
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-light tracking-wider text-white mb-8">{t("Compare Products", "产品对比")}</h1>
+          <h1 className="text-2xl font-light tracking-wider text-white mb-2">{t("Compare Products", "产品对比")}</h1>
+
+          <div className="flex items-center gap-3 mb-8">
+            <button onClick={clearCompare}
+              className="text-xs text-silver/40 hover:text-red-400 transition-colors">
+              ✕ {t("Clear & go back", "清除并返回")}
+            </button>
+          </div>
 
           {/* ── Desktop: images in grid ── */}
           <div className={`grid ${gridCols} gap-4 mb-0 max-md:hidden`}>
@@ -123,18 +141,9 @@ export default function ComparePage() {
             ))}
           </div>
 
-          {/* ── Mobile: image carousel ── */}
+          {/* ── Mobile image carousel ── */}
           <div className="md:hidden relative">
-            <div ref={(el) => {
-              if (el) {
-                const handler = () => {
-                  if (!el) return;
-                  const idx = Math.round(el.scrollLeft / el.clientWidth);
-                  setScrollIdx(Math.min(products.length - 1, Math.max(0, idx)));
-                };
-                el.addEventListener("scroll", handler);
-              }
-            }}
+            <div ref={carouselRef}
               className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
               {products.map((p) => (
@@ -152,8 +161,8 @@ export default function ComparePage() {
               <div className="flex justify-center gap-1.5 mt-3">
                 {products.map((_, i) => (
                   <button key={i} onClick={() => {
-                    const carousel = document.querySelector(".snap-x.snap-mandatory");
-                    carousel?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center" });
+                    const el = carouselRef.current;
+                    if (el) { el.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center" }); }
                   }}
                     className={`w-2 h-2 rounded-full transition-all cursor-pointer ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
                 ))}
@@ -177,7 +186,7 @@ export default function ComparePage() {
             {allLabels.map((label, i) => (
               <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
                 <div className="max-md:hidden absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
-                  <span className="inline-block text-[10px] font-medium tracking-wide text-white bg-[#1A1A2E] px-2 py-0.5 rounded-sm shadow-sm border border-silver/10 transition-opacity duration-200">
+                  <span className="inline-block text-xs font-semibold tracking-wide text-[#ffffff] bg-[#1A1A2E] px-2 py-1 rounded border border-silver/20 transition-opacity duration-200">
                     {label}
                   </span>
                 </div>
@@ -188,9 +197,8 @@ export default function ComparePage() {
                     const cellStyle: React.CSSProperties = {};
                     if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
                     if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
-                    if (spec?.color) {
-                      cellStyle.color = spec.color;
-                    } else if (spec?.bgColor) {
+                    if (spec?.color) { cellStyle.color = spec.color; }
+                    else if (spec?.bgColor) {
                       const m = spec.bgColor.match(/\d+/g);
                       if (m && m.length >= 3) {
                         const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
@@ -208,10 +216,15 @@ export default function ComparePage() {
             ))}
           </div>
 
-          <div className="text-center mt-12 mb-8">
-            <Link href={`/${locale}/products`} className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
+          <div className="text-center mt-12 mb-8 flex items-center justify-center gap-4">
+            <Link href={`/${locale}/products`}
+              className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
               ← {t("Back to Products", "返回产品页")}
             </Link>
+            <button onClick={clearCompare}
+              className="inline-block px-8 py-3 border border-red-400/30 text-red-400/60 rounded-full text-sm tracking-wider hover:bg-red-400/5 hover:text-red-400 transition-all">
+              ✕ {t("Clear comparison", "清除对比")}
+            </button>
           </div>
         </div>
       </main>

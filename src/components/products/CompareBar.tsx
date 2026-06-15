@@ -9,7 +9,9 @@ const STORAGE_KEY = "compare_slugs";
 function readStorage(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? raw.split(",").filter(Boolean) : [];
+    const items = raw ? raw.split(",").filter(Boolean) : [];
+    // Strict validation: must look like a URL slug (letters, hyphens, length > 2)
+    return items.filter((s) => /^[a-z][a-z0-9-]+$/.test(s));
   } catch { return []; }
 }
 
@@ -19,15 +21,8 @@ export default function CompareBar() {
   const locale = useLocale();
 
   useEffect(() => {
-    const data = readStorage();
-    // Sanitize: only allow valid slugs (no numbers, no empty strings)
-    // Filter out pure numbers or single chars (stale test data)
-    const valid = data.filter((s) => s.length > 2 && !/^\d+$/.test(s));
-    if (valid.length !== data.length) {
-      localStorage.setItem(STORAGE_KEY, valid.join(","));
-    }
-    setSlugs(valid);
-    function handler() { setSlugs(readStorage().filter((s) => s.length > 2 && !/^\d+$/.test(s))); }
+    setSlugs(readStorage());
+    function handler() { setSlugs(readStorage()); }
     window.addEventListener("compare-update", handler);
     window.addEventListener("storage", handler);
     return () => {
@@ -49,15 +44,11 @@ export default function CompareBar() {
   }
 
   return (
-    <AnimatePresence>
+    <div>
       {slugs.length >= 2 && (
-        <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-deep-blue/90 backdrop-blur-lg border-t border-silver/10 shadow-2xl"
-        >
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-deep-blue/90 backdrop-blur-lg border-t border-silver/10 shadow-2xl"
+          style={{ animation: "slideUp 0.3s ease-out" }}>
+          <style>{`@keyframes slideUp{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-sm text-silver/60">
@@ -71,8 +62,8 @@ export default function CompareBar() {
               📊 Compare
             </button>
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </div>
   );
 }
