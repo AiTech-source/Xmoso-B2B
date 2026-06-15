@@ -46,7 +46,7 @@ export default function FloatingInquiry({ locale, productName, productModel, pro
   return (
     <div className="w-full">
       <button onClick={() => { setOpen(true); setSubmitted(false); setError(""); }}
-        className="w-full px-6 py-4 rounded-xl bg-forest text-deep-dark font-medium tracking-wide hover:bg-forest/90 transition-colors flex items-center justify-center gap-2 shadow-lg text-base">
+        className="w-full px-6 py-4 rounded-xl bg-forest text-[#0A0A0F] font-semibold tracking-wide hover:bg-forest/90 transition-colors flex items-center justify-center gap-2 shadow-lg text-base">
         <span className="text-lg">✉</span>
         <span>Send Inquiry</span>
       </button>
@@ -54,43 +54,62 @@ export default function FloatingInquiry({ locale, productName, productModel, pro
       <AnimatePresence>
         {open && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
+            <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:w-[420px] bg-deep-blue/95 backdrop-blur-xl border border-silver/10 rounded-2xl shadow-2xl max-h-[85vh] flex flex-col"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:w-[520px] bg-white rounded-2xl shadow-2xl max-h-[90vh] flex flex-col"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-silver/10">
-                <h3 className="text-white font-medium tracking-wide">📩 Send Inquiry</h3>
-                <button onClick={() => setOpen(false)} className="text-silver/60 hover:text-white text-lg leading-none">✕</button>
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                <h3 className="text-[#0A0A0F] font-semibold text-base tracking-wide">📩 Send Inquiry</h3>
+                <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-[#0A0A0F] text-lg leading-none transition-colors">✕</button>
               </div>
-              <div className="p-5 overflow-y-auto">
+
+              {/* Body */}
+              <div className="p-6 overflow-y-auto">
                 {submitted ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8">
-                    <span className="text-4xl">✅</span>
-                    <p className="text-forest mt-3 text-sm">Thank you! We&apos;ll get back to you shortly.</p>
-                    <button onClick={() => setOpen(false)} className="mt-4 text-xs text-silver/50 hover:text-white">Close</button>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10">
+                    <span className="text-5xl">✅</span>
+                    <p className="text-forest mt-4 text-sm font-medium">Thank you! We&apos;ll get back to you shortly.</p>
+                    <button onClick={() => setOpen(false)} className="mt-5 text-xs text-gray-400 hover:text-[#0A0A0F] transition-colors">Close</button>
                   </motion.div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-3">
+                  <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Product info display */}
                     {(productName || productModel) && (
-                      <div className="bg-forest/10 border border-forest/20 rounded-lg px-3 py-2 text-sm">
-                        <span className="text-silver/50 text-xs">Product: </span>
-                        <span className="text-white">{productName || productModel}</span>
-                        {productModel && productName && <span className="text-silver/50 text-xs ml-1">({productModel})</span>}
+                      <div className="bg-forest/10 border border-forest/30 rounded-lg px-4 py-3 flex items-center gap-2">
+                        <span className="text-forest text-base">📎</span>
+                        <div>
+                          <span className="text-[#0A0A0F] text-sm font-medium">{productName || productModel}</span>
+                          {productModel && productName && (
+                            <span className="text-gray-500 text-xs ml-1.5">({productModel})</span>
+                          )}
+                        </div>
                       </div>
                     )}
-                    <input name="name" required placeholder="Name *" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
-                    <input name="email" required type="email" placeholder="Email *" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
-                    <input name="company" placeholder="Company" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
-                    <input name="phone" placeholder="Phone" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
-                    <textarea name="message" rows={3} placeholder={locale === "zh" ? "留言（如有其他感兴趣的产品请在此说明）" : "Message (mention other products of interest here)"} className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
-                    {error && <p className="text-red-400 text-xs">{error}</p>}
+
+                    <input name="name" required placeholder="Name *"
+                      className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
+                    <input name="email" required type="email" placeholder="Email *"
+                      className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <input name="company" placeholder="Company"
+                        className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
+                      <input name="phone" placeholder="Phone"
+                        className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
+                    </div>
+                    <textarea name="message" rows={3}
+                      placeholder={locale === "zh" ? "留言（如有其他感兴趣的产品请在此说明）" : "Message (mention other products of interest here)"}
+                      className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
+
+                    {error && <p className="text-red-500 text-xs">{error}</p>}
+
                     <button type="submit" disabled={sending}
-                      className="w-full py-2.5 bg-forest text-deep-dark text-sm font-medium rounded-lg hover:bg-forest/90 transition-colors disabled:opacity-50">
-                      {sending ? "Sending..." : "Send Inquiry"}
+                      className="w-full py-3 bg-forest text-[#0A0A0F] font-semibold text-sm rounded-lg hover:bg-forest/90 transition-colors disabled:opacity-50">
+                      {sending ? "Sending..." : "Send Inquiry →"}
                     </button>
                   </form>
                 )}
