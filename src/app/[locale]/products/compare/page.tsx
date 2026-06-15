@@ -22,6 +22,8 @@ export default function ComparePage() {
   const [scrollIdx, setScrollIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [slugs, setSlugs] = useState<string[]>([]);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [stickyTop, setStickyTop] = useState(-9999);
 
   useEffect(() => {
     let found: string[] = [];
@@ -46,6 +48,19 @@ export default function ComparePage() {
     el.addEventListener("scroll", handler); return () => el.removeEventListener("scroll", handler);
   }, [products]);
 
+  /** Track when the table header enters/leaves the sticky zone */
+  useEffect(() => {
+    function onScroll() {
+      if (headerRef.current) {
+        const top = headerRef.current.getBoundingClientRect().top;
+        setStickyTop(top);
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [products]);
+
   const t = (en: string, zh: string) => locale === "zh" ? zh : en;
   const allLabels: string[] = []; const seen = new Set<string>();
   if (products[0]?.specs) { for (const s of products[0].specs) { allLabels.push(s.label); seen.add(s.label); } }
@@ -56,6 +71,8 @@ export default function ComparePage() {
     try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
     router.push(`/${locale}/products`);
   }
+
+  const showSticky = stickyTop < 80;
 
   if (loading) return (<><Header /><main style={{ paddingTop: "64px" }}><div className="max-w-7xl mx-auto px-4 py-20 text-center text-silver/40">{t("Loading...", "加载中...")}</div></main><Footer /></>);
   if (!slugs.length || products.length < 2) return (
@@ -76,7 +93,7 @@ export default function ComparePage() {
             <button onClick={clearCompare} className="text-xs text-silver/40 hover:text-red-400">✕ {t("Clear", "清除")}</button>
           </div>
 
-          {/* Desktop images — scrolls out with page */}
+          {/* Desktop images */}
           <div className="hidden md:flex gap-6 mb-2">
             <div className="w-32 shrink-0" />
             {products.map((p) => (
@@ -107,25 +124,35 @@ export default function ComparePage() {
             </div>
           </div>
 
-          {/* Sticky product name row — OUTSIDE overflow so sticky works */}
-          <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
-            <div className="flex gap-6">
-              <div className="w-32 shrink-0 hidden md:block" />
-              {products.map((p) => (
-                <div key={p.id} className="flex-1 min-w-0 text-center" style={{color:"#ffffff"}}>
-                  {p.name}
-                </div>
-              ))}
+          {/*** Fixed overlay bar — shows when scrolling down ***/}
+          {showSticky && (
+            <div className="fixed top-20 left-0 right-0 z-40 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg py-3 px-4 md:px-8 overflow-x-auto">
+              <div className="max-w-7xl mx-auto flex gap-6" style={{ minWidth: products.length * 200 + 40 }}>
+                <div className="w-32 shrink-0 hidden md:block" />
+                {products.map((p) => (
+                  <div key={p.id} className="flex-1 min-w-[180px] text-center" style={{color:"#ffffff"}}>{p.name}</div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Scrollable spec table */}
-          <div className="overflow-x-auto border border-silver/10 rounded-xl">
-            <table className="w-full text-sm">
+          {/* Spec table */}
+          <div ref={headerRef} className="mt-4 border border-silver/10 rounded-xl overflow-x-auto">
+            <table className="w-full text-sm" style={{ minWidth: `${products.length * 200 + 140}px` }}>
+              <thead>
+                <tr>
+                  <th className="w-32 hidden md:table-cell p-3 border-b border-silver/10 bg-[#1A1A2E]" />
+                  {products.map((p) => (
+                    <th key={p.id} className="p-3 text-center min-w-[180px] border-b border-silver/10 bg-[#1A1A2E]">
+                      <div style={{color:"#ffffff"}} className="text-sm">{p.name}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
               <tbody>
                 {allLabels.map((label, i) => (
                   <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
-                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 min-w-[140px] hidden md:table-cell" style={{color:"#0A0A0F"}}>
+                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 w-32 hidden md:table-cell" style={{color:"#0A0A0F"}}>
                       {label}
                     </td>
                     {products.map((p, pi) => {
