@@ -12,44 +12,36 @@ export default function CompareBar() {
   const locale = useLocale();
   const pathname = usePathname();
 
-  // Clear compare when visiting the homepage (any locale)
+  function readStorage(): string[] {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? raw.split(",").filter(Boolean) : [];
+    } catch { return []; }
+  }
+
   useEffect(() => {
     const isHome = pathname === "/" || pathname === `/${locale}` || pathname === `/${locale}/`;
     if (isHome) {
-      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      localStorage.removeItem(STORAGE_KEY);
       setSlugs([]);
-      window.dispatchEvent(new CustomEvent("compare-update"));
       return;
     }
-    // Otherwise read current selection
-    function update() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        setSlugs(raw ? raw.split(",").filter(Boolean) : []);
-      } catch { setSlugs([]); }
-    }
-    update();
-  }, [pathname, locale]);
 
-  // Listen for updates from other components
-  useEffect(() => {
-    if (pathname === "/" || pathname === `/${locale}` || pathname === `/${locale}/`) return;
-    function update() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        setSlugs(raw ? raw.split(",").filter(Boolean) : []);
-      } catch { setSlugs([]); }
-    }
-    window.addEventListener("compare-update", update);
-    window.addEventListener("storage", update);
+    // Initial read
+    setSlugs(readStorage());
+
+    // Listen for changes
+    function handler() { setSlugs(readStorage()); }
+    window.addEventListener("compare-update", handler);
+    window.addEventListener("storage", handler);
     return () => {
-      window.removeEventListener("compare-update", update);
-      window.removeEventListener("storage", update);
+      window.removeEventListener("compare-update", handler);
+      window.removeEventListener("storage", handler);
     };
   }, [pathname, locale]);
 
   function clearAll() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    localStorage.removeItem(STORAGE_KEY);
     setSlugs([]);
     window.dispatchEvent(new CustomEvent("compare-update"));
   }
@@ -76,9 +68,7 @@ export default function CompareBar() {
                 <span className="text-forest font-medium">{slugs.length}</span> products selected
               </span>
               <button onClick={clearAll}
-                className="text-xs text-silver/40 hover:text-silver/70 transition-colors">
-                Clear all
-              </button>
+                className="text-xs text-silver/40 hover:text-silver/70 transition-colors">Clear all</button>
             </div>
             <button onClick={goCompare}
               className="px-6 py-2 bg-forest text-deep-dark text-sm font-medium rounded-lg hover:bg-forest/90 transition-all flex items-center gap-2">
