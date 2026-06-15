@@ -20,6 +20,14 @@ export default function HomeProducts({ locale }: { locale: string }) {
   const [typeGroups, setTypeGroups] = useState<TypeGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Clear compare selection on homepage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("compare_slugs");
+      window.dispatchEvent(new CustomEvent("compare-update"));
+    }
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     fetch(`/api/products-by-type?locale=${locale}&limit=6`)

@@ -103,7 +103,7 @@ export default function ComparePage() {
           <h1 className="text-2xl font-light tracking-wider text-white mb-8">{t("Compare Products", "产品对比")}</h1>
 
           {/* ── Desktop: images in grid ── */}
-          <div className={`hidden md:grid ${gridCols} gap-4 mb-0`}>
+          <div className={`grid ${gridCols} gap-4 mb-0 max-md:hidden`}>
             {products.map((p) => (
               <div key={p.id} className="text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
@@ -149,11 +149,10 @@ export default function ComparePage() {
 
           {/* ── Sticky model names ── */}
           <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
-            <div className={`grid grid-cols-1 ${gridCols} gap-4`}>
+            <div className={`grid ${gridCols} gap-4 max-md:grid-cols-1`}>
               {products.map((p) => (
                 <div key={p.id} className="text-center">
-                  <div className="text-white font-semibold text-sm">{p.model_number}</div>
-                  <div className="text-xs text-white/80 mt-0.5 line-clamp-1">{p.name}</div>
+                  <div className="text-xs text-white/70">{p.name}</div>
                 </div>
               ))}
             </div>
@@ -164,13 +163,13 @@ export default function ComparePage() {
             {allLabels.map((label, i) => (
               <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
                 {/* Desktop hover label */}
-                <div className="hidden md:block absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
-                  <span className="inline-block text-[9px] uppercase tracking-widest text-forest/60 group-hover:text-forest bg-[#0A0A0F]/80 px-1.5 py-0.5 rounded-sm transition-colors duration-200">
+                <div className="max-md:hidden absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
+                  <span className="inline-block text-[10px] font-medium tracking-wide text-white bg-deep-blue px-2 py-0.5 rounded-sm shadow-sm border border-silver/10 transition-opacity duration-200">
                     {label}
                   </span>
                 </div>
-                <div className={`grid grid-cols-1 ${gridCols} gap-x-4 py-2.5 px-2 -mx-2 border-b border-silver/5`}>
-                  {/* Mobile: label in forest green */}
+                <div className={`grid ${gridCols} gap-x-4 py-2.5 px-2 -mx-2 border-b border-silver/5 max-md:grid-cols-1`}>
+                  {/* Mobile label */}
                   <div className="md:hidden text-[11px] font-medium mb-0.5 tracking-wide text-[#2a7d4e]">{label}</div>
                   {products.map((p, pi) => {
                     const spec = specLookups[pi].get(label);

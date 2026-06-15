@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 
 const STORAGE_KEY = "compare_slugs";
@@ -10,8 +10,18 @@ export default function CompareBar() {
   const [slugs, setSlugs] = useState<string[]>([]);
   const router = useRouter();
   const locale = useLocale();
+  const pathname = usePathname();
 
+  // Clear compare when visiting the homepage (any locale)
   useEffect(() => {
+    const isHome = pathname === "/" || pathname === `/${locale}` || pathname === `/${locale}/`;
+    if (isHome) {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      setSlugs([]);
+      window.dispatchEvent(new CustomEvent("compare-update"));
+      return;
+    }
+    // Otherwise read current selection
     function update() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -19,13 +29,24 @@ export default function CompareBar() {
       } catch { setSlugs([]); }
     }
     update();
+  }, [pathname, locale]);
+
+  // Listen for updates from other components
+  useEffect(() => {
+    if (pathname === "/" || pathname === `/${locale}` || pathname === `/${locale}/`) return;
+    function update() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        setSlugs(raw ? raw.split(",").filter(Boolean) : []);
+      } catch { setSlugs([]); }
+    }
     window.addEventListener("compare-update", update);
     window.addEventListener("storage", update);
     return () => {
       window.removeEventListener("compare-update", update);
       window.removeEventListener("storage", update);
     };
-  }, []);
+  }, [pathname, locale]);
 
   function clearAll() {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
@@ -54,17 +75,13 @@ export default function CompareBar() {
               <span className="text-sm text-silver/60">
                 <span className="text-forest font-medium">{slugs.length}</span> products selected
               </span>
-              <button
-                onClick={clearAll}
-                className="text-xs text-silver/40 hover:text-silver/70 transition-colors"
-              >
+              <button onClick={clearAll}
+                className="text-xs text-silver/40 hover:text-silver/70 transition-colors">
                 Clear all
               </button>
             </div>
-            <button
-              onClick={goCompare}
-              className="px-6 py-2 bg-forest text-deep-dark text-sm font-medium rounded-lg hover:bg-forest/90 transition-all flex items-center gap-2"
-            >
+            <button onClick={goCompare}
+              className="px-6 py-2 bg-forest text-deep-dark text-sm font-medium rounded-lg hover:bg-forest/90 transition-all flex items-center gap-2">
               📊 Compare
             </button>
           </div>
