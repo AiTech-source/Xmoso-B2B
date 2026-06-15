@@ -2,7 +2,14 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function FloatingInquiry({ locale }: { locale: string }) {
+interface FloatingInquiryProps {
+  locale: string;
+  productName?: string;
+  productModel?: string;
+  productId?: string;
+}
+
+export default function FloatingInquiry({ locale, productName, productModel, productId }: FloatingInquiryProps) {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
@@ -21,6 +28,7 @@ export default function FloatingInquiry({ locale }: { locale: string }) {
         body: JSON.stringify({
           name: form.get("name"), email: form.get("email"),
           company: form.get("company"), phone: form.get("phone"), message: form.get("message"),
+          product_id: productId || undefined,
           locale, page_url: window.location.pathname,
           utm_source: params.get("utm_source") || "", utm_medium: params.get("utm_medium") || "", utm_campaign: params.get("utm_campaign") || "",
         }),
@@ -55,7 +63,7 @@ export default function FloatingInquiry({ locale }: { locale: string }) {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-silver/10">
                 <h3 className="text-white font-medium tracking-wide">📩 Send Inquiry</h3>
-                <button onClick={() => setOpen(false)} className="text-silver/50 hover:text-white text-lg leading-none">✕</button>
+                <button onClick={() => setOpen(false)} className="text-silver/60 hover:text-white text-lg leading-none">✕</button>
               </div>
               <div className="p-5 overflow-y-auto">
                 {submitted ? (
@@ -66,11 +74,19 @@ export default function FloatingInquiry({ locale }: { locale: string }) {
                   </motion.div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-3">
-                    <input name="name" required placeholder="Name *" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
-                    <input name="email" required type="email" placeholder="Email *" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
-                    <input name="company" placeholder="Company" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
-                    <input name="phone" placeholder="Phone" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
-                    <textarea name="message" rows={3} placeholder="Message" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
+                    {/* Product info display */}
+                    {(productName || productModel) && (
+                      <div className="bg-forest/10 border border-forest/20 rounded-lg px-3 py-2 text-sm">
+                        <span className="text-silver/50 text-xs">Product: </span>
+                        <span className="text-white">{productName || productModel}</span>
+                        {productModel && productName && <span className="text-silver/50 text-xs ml-1">({productModel})</span>}
+                      </div>
+                    )}
+                    <input name="name" required placeholder="Name *" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
+                    <input name="email" required type="email" placeholder="Email *" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
+                    <input name="company" placeholder="Company" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
+                    <input name="phone" placeholder="Phone" className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
+                    <textarea name="message" rows={3} placeholder={locale === "zh" ? "留言（如有其他感兴趣的产品请在此说明）" : "Message (mention other products of interest here)"} className="w-full bg-deep-dark border border-silver/20 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/60 focus:border-forest/50 focus:outline-none" />
                     {error && <p className="text-red-400 text-xs">{error}</p>}
                     <button type="submit" disabled={sending}
                       className="w-full py-2.5 bg-forest text-deep-dark text-sm font-medium rounded-lg hover:bg-forest/90 transition-colors disabled:opacity-50">

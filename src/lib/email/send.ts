@@ -91,7 +91,7 @@ function buildEmailHtml(data: InquiryEmailData): string {
     <p style="background:#0A0A0F;border-radius:8px;padding:16px;color:rgba(255,255,255,0.8);font-size:13px;line-height:1.6;margin:0">${escapeHtml(data.message)}</p>
     ` : ""}
     ${data.product_name ? `<p style="margin-top:24px;font-size:13px;color:rgba(192,192,192,0.5)">📎 Product: ${escapeHtml(data.product_name)} ${data.model_number ? "(" + escapeHtml(data.model_number) + ")" : ""}</p>` : ""}
-    ${data.page_url ? `<p style="font-size:13px;color:rgba(192,192,192,0.5)">🌐 Page: ${escapeHtml(data.page_url)}</p>` : ""}
+    ${data.page_url ? `<p style="font-size:13px;color:rgba(192,192,192,0.5)">🌐 Page: <a href="https://xmoso.com${escapeHtml(data.page_url)}" style="color:#7EC8E3">${escapeHtml(data.page_url)}</a></p>` : ""}
     <p style="font-size:12px;color:rgba(192,192,192,0.3);margin-top:24px">🕐 ${new Date().toISOString().slice(0, 19).replace("T", " ")}</p>
     <div style="margin-top:24px;text-align:center">
       <a href="https://xmoso.com/admin/inquiries" style="display:inline-block;padding:10px 24px;background:#8BC8A0;color:#0A0A0F;text-decoration:none;border-radius:8px;font-size:13px;font-weight:500">→ View in Admin</a>

@@ -251,7 +251,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
           {/* Inquiry — scrolls naturally with content */}
           <div className="max-w-xs mx-auto pb-8">
-            <FloatingInquiry locale={locale} />
+            <FloatingInquiry locale={locale} productName={translation.name} productModel={product.model_number} productId={product.id} />
           </div>
         </div>
       </main>
