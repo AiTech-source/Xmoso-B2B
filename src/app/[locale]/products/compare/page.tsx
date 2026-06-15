@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
@@ -17,30 +17,38 @@ interface CompareProduct {
   highlights: string[]; energy_rating: string; specs: Spec[];
 }
 
-function useSlugs(): string {
-  const [slugs, setSlugs] = useState("");
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      setSlugs(p.get("slugs") || "");
-    }
-  }, []);
-  return slugs;
-}
-
 export default function ComparePage() {
   const params = useParams();
   const locale = (params?.locale as string) || "en";
-  const slugs = useSlugs();
   const [products, setProducts] = useState<CompareProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrollIdx, setScrollIdx] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Read slugs from URL or localStorage
+  const [slugs, setSlugs] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!slugs) { setLoading(false); return; }
+    // Try URL first
+    let found: string[] = [];
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      const raw = p.get("slugs");
+      found = raw ? raw.split(",").filter(Boolean) : [];
+    }
+    // Fallback to localStorage (for locale switch)
+    if (found.length === 0 && typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("compare_slugs");
+        found = raw ? raw.split(",").filter(Boolean) : [];
+      } catch {}
+    }
+    setSlugs(found);
+  }, [locale]);
+
+  useEffect(() => {
+    if (!slugs.length || slugs.length < 2) { setLoading(false); return; }
     setLoading(true);
-    fetch(`/api/product-compare?slugs=${encodeURIComponent(slugs)}&locale=${locale}`)
+    fetch(`/api/product-compare?slugs=${encodeURIComponent(slugs.join(","))}&locale=${locale}`)
       .then((r) => r.json())
       .then((data) => { setProducts(data.products || []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -76,7 +84,7 @@ export default function ComparePage() {
     );
   }
 
-  if (!slugs || products.length < 2) {
+  if (!slugs.length || products.length < 2) {
     return (
       <>
         <Header />
@@ -117,15 +125,18 @@ export default function ComparePage() {
 
           {/* ── Mobile: image carousel ── */}
           <div className="md:hidden relative">
-            <div ref={scrollRef}
-              onScroll={() => {
-                if (!scrollRef.current) return;
-                const idx = Math.round(scrollRef.current.scrollLeft / scrollRef.current.clientWidth);
-                setScrollIdx(Math.min(products.length - 1, Math.max(0, idx)));
-              }}
+            <div ref={(el) => {
+              if (el) {
+                const handler = () => {
+                  if (!el) return;
+                  const idx = Math.round(el.scrollLeft / el.clientWidth);
+                  setScrollIdx(Math.min(products.length - 1, Math.max(0, idx)));
+                };
+                el.addEventListener("scroll", handler);
+              }
+            }}
               className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
               {products.map((p) => (
                 <div key={p.id} className="snap-center shrink-0 w-[85vw]">
                   <Link href={`/${locale}/products/${p.slug}`}>
@@ -140,7 +151,10 @@ export default function ComparePage() {
             {products.length > 1 && (
               <div className="flex justify-center gap-1.5 mt-3">
                 {products.map((_, i) => (
-                  <button key={i} onClick={() => scrollRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })}
+                  <button key={i} onClick={() => {
+                    const carousel = document.querySelector(".snap-x.snap-mandatory");
+                    carousel?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center" });
+                  }}
                     className={`w-2 h-2 rounded-full transition-all cursor-pointer ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
                 ))}
               </div>
@@ -162,14 +176,12 @@ export default function ComparePage() {
           <div>
             {allLabels.map((label, i) => (
               <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
-                {/* Desktop hover label */}
                 <div className="max-md:hidden absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
                   <span className="inline-block text-[10px] font-medium tracking-wide text-white bg-[#1A1A2E] px-2 py-0.5 rounded-sm shadow-sm border border-silver/10 transition-opacity duration-200">
                     {label}
                   </span>
                 </div>
                 <div className={`grid ${gridCols} gap-x-4 py-2.5 px-2 -mx-2 border-b border-silver/5 max-md:grid-cols-1`}>
-                  {/* Mobile label */}
                   <div className="md:hidden text-[11px] font-medium mb-0.5 tracking-wide text-[#2a7d4e]">{label}</div>
                   {products.map((p, pi) => {
                     const spec = specLookups[pi].get(label);

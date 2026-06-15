@@ -19,8 +19,15 @@ export default function CompareBar() {
   const locale = useLocale();
 
   useEffect(() => {
-    setSlugs(readStorage());
-    function handler() { setSlugs(readStorage()); }
+    const data = readStorage();
+    // Sanitize: only allow valid slugs (no numbers, no empty strings)
+    // Filter out pure numbers or single chars (stale test data)
+    const valid = data.filter((s) => s.length > 2 && !/^\d+$/.test(s));
+    if (valid.length !== data.length) {
+      localStorage.setItem(STORAGE_KEY, valid.join(","));
+    }
+    setSlugs(valid);
+    function handler() { setSlugs(readStorage().filter((s) => s.length > 2 && !/^\d+$/.test(s))); }
     window.addEventListener("compare-update", handler);
     window.addEventListener("storage", handler);
     return () => {
