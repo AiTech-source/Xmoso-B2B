@@ -64,13 +64,6 @@ export default function ComparePage() {
     return map;
   });
 
-  function scrollCarousel(dir: -1 | 1) {
-    if (!scrollRef.current) return;
-    const w = scrollRef.current.clientWidth;
-    scrollRef.current.scrollBy({ left: w * dir, behavior: "smooth" });
-    setScrollIdx(Math.max(0, Math.min(products.length - 1, scrollIdx + dir)));
-  }
-
   if (loading) {
     return (
       <>
@@ -107,15 +100,14 @@ export default function ComparePage() {
         <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
 
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <style>{`.scrollbar-hide::-webkit-scrollbar{display:none}.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}`}</style>
-          <h1 className="text-2xl font-light tracking-wider text-white mb-8">📊 {t("Compare Products", "产品对比")}</h1>
+          <h1 className="text-2xl font-light tracking-wider text-white mb-8">{t("Compare Products", "产品对比")}</h1>
 
-          {/* ── Images — desktop grid / mobile carousel ── */}
+          {/* ── Desktop: images in grid ── */}
           <div className={`hidden md:grid ${gridCols} gap-4 mb-0`}>
             {products.map((p) => (
               <div key={p.id} className="text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
-                  <div className="aspect-[4/3] bg-[#f5f0e8] border border-silver/10 rounded-xl overflow-hidden hover:border-forest/30 transition-colors flex items-center justify-center">
+                  <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 hover:border-forest/30 transition-colors flex items-center justify-center">
                     {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
                   </div>
                 </Link>
@@ -123,16 +115,21 @@ export default function ComparePage() {
             ))}
           </div>
 
+          {/* ── Mobile: image carousel ── */}
           <div className="md:hidden relative">
-            <div ref={scrollRef} onScroll={() => {
-              if (!scrollRef.current) return;
-              const idx = Math.round(scrollRef.current.scrollLeft / scrollRef.current.clientWidth);
-              setScrollIdx(Math.min(products.length - 1, Math.max(0, idx)));
-            }} className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-              {products.map((p, i) => (
+            <div ref={scrollRef}
+              onScroll={() => {
+                if (!scrollRef.current) return;
+                const idx = Math.round(scrollRef.current.scrollLeft / scrollRef.current.clientWidth);
+                setScrollIdx(Math.min(products.length - 1, Math.max(0, idx)));
+              }}
+              className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {products.map((p) => (
                 <div key={p.id} className="snap-center shrink-0 w-[85vw]">
                   <Link href={`/${locale}/products/${p.slug}`}>
-                    <div className="aspect-[4/3] bg-[#f5f0e8] border border-silver/10 rounded-xl overflow-hidden flex items-center justify-center">
+                    <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 flex items-center justify-center">
                       {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
                     </div>
                   </Link>
@@ -144,7 +141,7 @@ export default function ComparePage() {
               <div className="flex justify-center gap-1.5 mt-3">
                 {products.map((_, i) => (
                   <button key={i} onClick={() => scrollRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })}
-                    className={`w-2 h-2 rounded-full transition-all ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
+                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
                 ))}
               </div>
             )}
@@ -155,8 +152,8 @@ export default function ComparePage() {
             <div className={`grid grid-cols-1 ${gridCols} gap-4`}>
               {products.map((p) => (
                 <div key={p.id} className="text-center">
-                  <span className="text-white font-medium text-sm">{p.model_number}</span>
-                  <p className="text-xs text-white/60 mt-0.5 line-clamp-1">{p.name}</p>
+                  <div className="text-white font-semibold text-sm">{p.model_number}</div>
+                  <div className="text-xs text-white/80 mt-0.5 line-clamp-1">{p.name}</div>
                 </div>
               ))}
             </div>
@@ -165,22 +162,21 @@ export default function ComparePage() {
           {/* ── Spec rows ── */}
           <div>
             {allLabels.map((label, i) => (
-              <div key={label} className={`group relative overflow-visible ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
-                {/* Desktop label — always subtly visible as a floating badge */}
-                <div className="hidden md:block absolute -top-2.5 left-2 z-10 select-none pointer-events-none">
-                  <span className="text-[9px] tracking-wider text-forest/40 group-hover:text-forest/80 transition-colors duration-200" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+              <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
+                {/* Desktop hover label */}
+                <div className="hidden md:block absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
+                  <span className="inline-block text-[9px] uppercase tracking-widest text-forest/60 group-hover:text-forest bg-[#0A0A0F]/80 px-1.5 py-0.5 rounded-sm transition-colors duration-200">
                     {label}
                   </span>
                 </div>
-                <div className={`grid grid-cols-1 ${gridCols} gap-x-4 py-3 px-2 -mx-2 border-b border-silver/5`}>
-                  {/* Mobile label — forest green */}
-                  <div className="md:hidden text-[11px] font-medium mb-0.5 tracking-wide" style={{ color: "#2a7d4e" }}>{label}</div>
+                <div className={`grid grid-cols-1 ${gridCols} gap-x-4 py-2.5 px-2 -mx-2 border-b border-silver/5`}>
+                  {/* Mobile: label in forest green */}
+                  <div className="md:hidden text-[11px] font-medium mb-0.5 tracking-wide text-[#2a7d4e]">{label}</div>
                   {products.map((p, pi) => {
                     const spec = specLookups[pi].get(label);
                     const cellStyle: React.CSSProperties = {};
                     if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
                     if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
-                    // Custom color if set, else black text on light rows / white on dark rows
                     if (spec?.color) {
                       cellStyle.color = spec.color;
                     } else if (spec?.bgColor) {
@@ -191,7 +187,7 @@ export default function ComparePage() {
                       } else cellStyle.color = "#0A0A0F";
                     } else cellStyle.color = "#0A0A0F";
                     return (
-                      <div key={p.id} className="text-sm font-medium" style={cellStyle}>
+                      <div key={p.id} className="text-sm leading-relaxed" style={cellStyle}>
                         {spec?.value || <span className="text-gray-400">—</span>}
                       </div>
                     );
@@ -201,7 +197,6 @@ export default function ComparePage() {
             ))}
           </div>
 
-          {/* ── Back link ── */}
           <div className="text-center mt-12 mb-8">
             <Link href={`/${locale}/products`} className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
               ← {t("Back to Products", "返回产品页")}
