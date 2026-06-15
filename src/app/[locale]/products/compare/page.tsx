@@ -6,10 +6,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 
-interface Spec {
-  label: string; value: string; sort_order: number;
-  bgColor?: string; fontSize?: string; color?: string;
-}
+interface Spec { label: string; value: string; sort_order: number; bgColor?: string; fontSize?: string; color?: string; }
 
 interface CompareProduct {
   id: string; model_number: string; image: string; name: string;
@@ -31,8 +28,7 @@ export default function ComparePage() {
     let found: string[] = [];
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
-      const raw = p.get("slugs");
-      found = raw ? raw.split(",").filter(Boolean) : [];
+      const raw = p.get("slugs"); found = raw ? raw.split(",").filter(Boolean) : [];
     }
     setSlugs(found);
     try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
@@ -42,159 +38,114 @@ export default function ComparePage() {
     if (!slugs.length || slugs.length < 2) { setLoading(false); return; }
     setLoading(true);
     fetch(`/api/product-compare?slugs=${encodeURIComponent(slugs.join(","))}&locale=${locale}`)
-      .then((r) => r.json())
-      .then((data) => { setProducts(data.products || []); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((r) => r.json()).then((data) => { setProducts(data.products || []); setLoading(false); }).catch(() => setLoading(false));
   }, [slugs, locale]);
 
   useEffect(() => {
-    const el = carouselRef.current;
-    if (!el) return;
-    const handler = () => {
-      setScrollIdx(Math.min(products.length - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth) || 0)));
-    };
-    el.addEventListener("scroll", handler);
-    return () => el.removeEventListener("scroll", handler);
+    const el = carouselRef.current; if (!el) return;
+    const handler = () => { setScrollIdx(Math.min(products.length - 1, Math.max(0, Math.round(el.scrollLeft / el.clientWidth) || 0))); };
+    el.addEventListener("scroll", handler); return () => el.removeEventListener("scroll", handler);
   }, [products]);
 
   const t = (en: string, zh: string) => locale === "zh" ? zh : en;
-  const colCount = products.length;
-
-  const allLabels: string[] = [];
-  const seen = new Set<string>();
-  if (products[0]?.specs) {
-    for (const s of products[0].specs) { allLabels.push(s.label); seen.add(s.label); }
-  }
-  for (const p of products) {
-    for (const s of p.specs) { if (!seen.has(s.label)) { allLabels.push(s.label); seen.add(s.label); } }
-  }
-
-  const specLookups = products.map((p) => {
-    const map = new Map<string, any>();
-    for (const s of p.specs) map.set(s.label, s);
-    return map;
-  });
+  const allLabels: string[] = []; const seen = new Set<string>();
+  if (products[0]?.specs) { for (const s of products[0].specs) { allLabels.push(s.label); seen.add(s.label); } }
+  for (const p of products) { for (const s of p.specs) { if (!seen.has(s.label)) { allLabels.push(s.label); seen.add(s.label); } } }
+  const specLookups = products.map((p) => { const map = new Map<string, any>(); for (const s of p.specs) map.set(s.label, s); return map; });
 
   function clearCompare() {
     try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
     router.push(`/${locale}/products`);
   }
 
-  if (loading) {
-    return (
-      <>
-        <Header />
-        <main style={{ paddingTop: "64px" }}>
-          <div className="max-w-7xl mx-auto px-4 py-20 text-center text-silver/40">{t("Loading...", "加载中...")}</div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
+  if (loading) return (<><Header /><main style={{ paddingTop: "64px" }}><div className="max-w-7xl mx-auto px-4 py-20 text-center text-silver/40">{t("Loading...", "加载中...")}</div></main><Footer /></>);
 
-  if (!slugs.length || products.length < 2) {
-    return (
-      <>
-        <Header />
-        <main style={{ paddingTop: "64px" }}>
-          <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-            <p className="text-silver/40 text-sm mb-4">{t("Select 2+ products to compare.", "请选择2款以上产品进行对比。")}</p>
-            <Link href={`/${locale}/products`} className="text-forest underline text-sm">{t("Browse products", "浏览产品")}</Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
+  if (!slugs.length || products.length < 2) return (
+    <><Header /><main style={{ paddingTop: "64px" }}><div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <p className="text-silver/40 text-sm mb-4">{t("Select 2+ products.", "请选择2款以上产品进行对比。")}</p>
+      <Link href={`/${locale}/products`} className="text-forest underline text-sm">{t("Browse", "浏览产品")}</Link>
+    </div></main><Footer /></>
+  );
 
   return (
     <>
       <Header />
       <main style={{ paddingTop: "64px" }} className="min-h-screen">
         <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
-
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-light tracking-wider text-white">{t("Compare Products", "产品对比")}</h1>
-            <button onClick={clearCompare} className="text-xs text-silver/40 hover:text-red-400 transition-colors flex items-center gap-1">
-              <span>✕</span> {t("Clear", "清除")}
-            </button>
+            <button onClick={clearCompare} className="text-xs text-silver/40 hover:text-red-400">✕ {t("Clear", "清除")}</button>
           </div>
 
-          {/* ── Desktop: images side by side ── */}
+          {/* Desktop images — scrolls out */}
           <div className="hidden md:flex gap-6 mb-0">
-            <div className="w-[140px] shrink-0" />
+            <div className="w-32 shrink-0" />
             {products.map((p) => (
               <div key={p.id} className="flex-1 min-w-0 text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
-                  <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 hover:border-forest/30 transition-colors flex items-center justify-center">
-                    {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
+                  <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 flex items-center justify-center">
+                    <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
                   </div>
                 </Link>
               </div>
             ))}
           </div>
 
-          {/* ── Mobile carousel ── */}
-          <div className="md:hidden relative">
+          {/* Mobile carousel */}
+          <div className="md:hidden relative mb-4">
             <div ref={carouselRef} className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: "none" }}>
               {products.map((p) => (
                 <div key={p.id} className="snap-center shrink-0 w-[85vw]">
                   <Link href={`/${locale}/products/${p.slug}`}>
-                    <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 flex items-center justify-center">
-                      {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
+                    <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden flex items-center justify-center border border-silver/10">
+                      <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
                     </div>
                   </Link>
                   <p className="text-center text-sm text-white mt-2">{p.name}</p>
                 </div>
               ))}
             </div>
-            {products.length > 1 && (
-              <div className="flex justify-center gap-1.5 mt-3">
-                {products.map((_, i) => (
-                  <button key={i} onClick={() => { carouselRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center" }); }}
-                    className={`w-2 h-2 rounded-full transition-all cursor-pointer ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* ── Sticky header: model names ── */}
-          <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
-            <div className="flex gap-6">
-              <div className="w-[140px] shrink-0 hidden md:block" />
-              {products.map((p) => (
-                <div key={p.id} className="flex-1 min-w-0 text-center text-white text-sm">{p.name}</div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Spec table ── */}
-          <div className="overflow-x-auto">
+          {/* Sticky header + spec table — unified layout */}
+          <div className="overflow-x-auto mt-4 border border-silver/10 rounded-xl">
             <table className="w-full text-sm">
+              <thead>
+                <tr className="sticky top-20 z-30 bg-[#1A1A2E]/95 backdrop-blur-md">
+                  <th className="p-3 text-left w-32 text-xs text-silver/50 uppercase tracking-wider border-b border-silver/10 hidden md:table-cell">
+                    {t("Spec", "规格")}
+                  </th>
+                  {products.map((p) => (
+                    <th key={p.id} className="p-3 text-center min-w-[180px] border-b border-silver/10">
+                      <div className="text-white font-semibold text-sm">{p.model_number}</div>
+                      <div className="text-white/70 text-xs mt-0.5">{p.name}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
               <tbody>
                 {allLabels.map((label, i) => {
-                  const firstSpec = specLookups[0]?.get(label);
+                  const spec0 = specLookups[0]?.get(label);
                   return (
                     <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
-                      <td className="p-3 text-sm text-white/90 font-medium w-[140px] align-middle border-b border-silver/5">
+                      <td className="p-3 text-sm text-white/90 font-medium align-middle border-b border-silver/5 hidden md:table-cell">
                         {label}
                       </td>
                       {products.map((p, pi) => {
                         const spec = specLookups[pi]?.get(label);
-                        const cellStyle: React.CSSProperties = {};
-                        if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
-                        if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
-                        if (spec?.color) { cellStyle.color = spec.color; }
+                        const cs: React.CSSProperties = {};
+                        if (spec?.bgColor) cs.backgroundColor = spec.bgColor;
+                        if (spec?.fontSize) cs.fontSize = `${spec.fontSize}px`;
+                        if (spec?.color) cs.color = spec.color;
                         else if (spec?.bgColor) {
-                          const m = spec.bgColor.match(/\d+/g);
-                          if (m && m.length >= 3) {
-                            const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
-                            cellStyle.color = avg > 160 ? "#0A0A0F" : "#ffffff";
-                          } else cellStyle.color = "#0A0A0F";
-                        } else cellStyle.color = "#0A0A0F";
+                          const n = spec.bgColor.match(/\d+/g);
+                          if (n && n.length >= 3) { const avg = (Number(n[0])+Number(n[1])+Number(n[2]))/3; cs.color = avg > 160 ? "#0A0A0F" : "#ffffff"; }
+                          else cs.color = "#0A0A0F";
+                        } else cs.color = "#0A0A0F";
                         return (
-                          <td key={p.id} className="p-3 align-middle text-center border-b border-silver/5" style={cellStyle}>
+                          <td key={p.id} className="p-3 text-center align-middle border-b border-silver/5 min-w-[180px]" style={cs}>
+                            <span className="md:hidden block text-[11px] font-medium text-[#2a7d4e] mb-0.5">{label}</span>
                             {spec?.value || <span className="text-gray-400">—</span>}
                           </td>
                         );
@@ -206,11 +157,11 @@ export default function ComparePage() {
             </table>
           </div>
 
-          <div className="text-center mt-12 mb-8 flex items-center justify-center gap-4">
-            <Link href={`/${locale}/products`} className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
+          <div className="text-center mt-10 mb-8 flex flex-wrap items-center justify-center gap-4">
+            <Link href={`/${locale}/products`} className="px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
               ← {t("Back", "返回")}
             </Link>
-            <button onClick={clearCompare} className="inline-block px-8 py-3 border border-red-400/30 text-red-400/60 rounded-full text-sm tracking-wider hover:bg-red-400/5 hover:text-red-400 transition-all">
+            <button onClick={clearCompare} className="px-8 py-3 border border-red-400/30 text-red-400/60 rounded-full text-sm tracking-wider hover:bg-red-400/5 hover:text-red-400 transition-all">
               ✕ {t("Clear", "清除对比")}
             </button>
           </div>
