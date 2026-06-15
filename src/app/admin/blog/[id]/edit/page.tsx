@@ -81,9 +81,11 @@ export default function AdminBlogEditPage() {
             placeholder="Post Title" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-xl text-white font-light tracking-wide" />
 
           {/* Slug + Locale + Published */}
-          <div className="flex gap-3 items-center flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-silver/50">URL:</span>
             <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-") })}
-              placeholder="slug-url" className="flex-1 bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white font-mono min-w-[200px]" />
+              placeholder="blog-post-url-slug" className="flex-1 bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white font-mono min-w-[200px]" />
+<span className="text-xs text-silver/40">/blog/</span>
             <select value={form.locale} onChange={(e) => setForm({ ...form, locale: e.target.value })}
               className="bg-deep-dark border border-silver/10 rounded-lg px-3 py-2 text-sm text-white">
               <option value="en">🇬🇧 English</option><option value="zh">🇨🇳 Chinese</option>
