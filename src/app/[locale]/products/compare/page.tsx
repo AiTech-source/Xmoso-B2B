@@ -25,8 +25,6 @@ export default function ComparePage() {
   const [loading, setLoading] = useState(true);
   const [scrollIdx, setScrollIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
-
-  // Read slugs from URL on mount and clear localStorage (it's now URL-encoded)
   const [slugs, setSlugs] = useState<string[]>([]);
 
   useEffect(() => {
@@ -37,7 +35,6 @@ export default function ComparePage() {
       found = raw ? raw.split(",").filter(Boolean) : [];
     }
     setSlugs(found);
-    // Clear localStorage — data is now in the URL
     try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
   }, []);
 
@@ -110,8 +107,6 @@ export default function ComparePage() {
     );
   }
 
-  const gridCols = colCount === 2 ? "md:grid-cols-2" : colCount === 3 ? "md:grid-cols-3" : "md:grid-cols-4";
-
   return (
     <>
       <Header />
@@ -119,19 +114,18 @@ export default function ComparePage() {
         <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
 
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-light tracking-wider text-white mb-2">{t("Compare Products", "产品对比")}</h1>
-
-          <div className="flex items-center gap-3 mb-8">
-            <button onClick={clearCompare}
-              className="text-xs text-silver/40 hover:text-red-400 transition-colors">
-              ✕ {t("Clear & go back", "清除并返回")}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-light tracking-wider text-white">{t("Compare Products", "产品对比")}</h1>
+            <button onClick={clearCompare} className="text-xs text-silver/40 hover:text-red-400 transition-colors flex items-center gap-1">
+              <span>✕</span> {t("Clear", "清除")}
             </button>
           </div>
 
-          {/* ── Desktop: images in grid ── */}
-          <div className={`grid ${gridCols} gap-4 mb-0 max-md:hidden`}>
+          {/* ── Desktop: images side by side ── */}
+          <div className="hidden md:flex gap-6 mb-0">
+            <div className="w-[140px] shrink-0" />
             {products.map((p) => (
-              <div key={p.id} className="text-center">
+              <div key={p.id} className="flex-1 min-w-0 text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
                   <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 hover:border-forest/30 transition-colors flex items-center justify-center">
                     {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
@@ -141,11 +135,9 @@ export default function ComparePage() {
             ))}
           </div>
 
-          {/* ── Mobile image carousel ── */}
+          {/* ── Mobile carousel ── */}
           <div className="md:hidden relative">
-            <div ref={carouselRef}
-              className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            <div ref={carouselRef} className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: "none" }}>
               {products.map((p) => (
                 <div key={p.id} className="snap-center shrink-0 w-[85vw]">
                   <Link href={`/${locale}/products/${p.slug}`}>
@@ -153,77 +145,73 @@ export default function ComparePage() {
                       {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
                     </div>
                   </Link>
-                  <p className="text-center text-sm text-white mt-2">{p.model_number} — {p.name}</p>
+                  <p className="text-center text-sm text-white mt-2">{p.name}</p>
                 </div>
               ))}
             </div>
             {products.length > 1 && (
               <div className="flex justify-center gap-1.5 mt-3">
                 {products.map((_, i) => (
-                  <button key={i} onClick={() => {
-                    const el = carouselRef.current;
-                    if (el) { el.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center" }); }
-                  }}
+                  <button key={i} onClick={() => { carouselRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", inline: "center" }); }}
                     className={`w-2 h-2 rounded-full transition-all cursor-pointer ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
                 ))}
               </div>
             )}
           </div>
 
-          {/* ── Sticky model names ── */}
+          {/* ── Sticky header: model names ── */}
           <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
-            <div className={`grid ${gridCols} gap-4 max-md:grid-cols-1`}>
+            <div className="flex gap-6">
+              <div className="w-[140px] shrink-0 hidden md:block" />
               {products.map((p) => (
-                <div key={p.id} className="text-center">
-                  <div className="text-xs text-white/70">{p.name}</div>
-                </div>
+                <div key={p.id} className="flex-1 min-w-0 text-center text-white text-sm">{p.name}</div>
               ))}
             </div>
           </div>
 
-          {/* ── Spec rows ── */}
-          <div>
-            {allLabels.map((label, i) => (
-              <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
-                <div className="max-md:hidden absolute -top-2.5 left-0 z-10 select-none pointer-events-none">
-                  <span className="inline-block text-xs font-semibold tracking-wide text-[#ffffff] bg-[#1A1A2E] px-2 py-1 rounded border border-silver/20 transition-opacity duration-200">
-                    {label}
-                  </span>
-                </div>
-                <div className={`grid ${gridCols} gap-x-4 py-2.5 px-2 -mx-2 border-b border-silver/5 max-md:grid-cols-1`}>
-                  <div className="md:hidden text-[11px] font-medium mb-0.5 tracking-wide text-[#2a7d4e]">{label}</div>
-                  {products.map((p, pi) => {
-                    const spec = specLookups[pi].get(label);
-                    const cellStyle: React.CSSProperties = {};
-                    if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
-                    if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
-                    if (spec?.color) { cellStyle.color = spec.color; }
-                    else if (spec?.bgColor) {
-                      const m = spec.bgColor.match(/\d+/g);
-                      if (m && m.length >= 3) {
-                        const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
-                        cellStyle.color = avg > 160 ? "#0A0A0F" : "#ffffff";
-                      } else cellStyle.color = "#0A0A0F";
-                    } else cellStyle.color = "#0A0A0F";
-                    return (
-                      <div key={p.id} className="text-sm leading-relaxed" style={cellStyle}>
-                        {spec?.value || <span className="text-gray-400">—</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+          {/* ── Spec table ── */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <tbody>
+                {allLabels.map((label, i) => {
+                  const firstSpec = specLookups[0]?.get(label);
+                  return (
+                    <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
+                      <td className="p-3 text-sm text-white/90 font-medium w-[140px] align-middle border-b border-silver/5">
+                        {label}
+                      </td>
+                      {products.map((p, pi) => {
+                        const spec = specLookups[pi]?.get(label);
+                        const cellStyle: React.CSSProperties = {};
+                        if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
+                        if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
+                        if (spec?.color) { cellStyle.color = spec.color; }
+                        else if (spec?.bgColor) {
+                          const m = spec.bgColor.match(/\d+/g);
+                          if (m && m.length >= 3) {
+                            const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
+                            cellStyle.color = avg > 160 ? "#0A0A0F" : "#ffffff";
+                          } else cellStyle.color = "#0A0A0F";
+                        } else cellStyle.color = "#0A0A0F";
+                        return (
+                          <td key={p.id} className="p-3 align-middle text-center border-b border-silver/5" style={cellStyle}>
+                            {spec?.value || <span className="text-gray-400">—</span>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
           <div className="text-center mt-12 mb-8 flex items-center justify-center gap-4">
-            <Link href={`/${locale}/products`}
-              className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
-              ← {t("Back to Products", "返回产品页")}
+            <Link href={`/${locale}/products`} className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
+              ← {t("Back", "返回")}
             </Link>
-            <button onClick={clearCompare}
-              className="inline-block px-8 py-3 border border-red-400/30 text-red-400/60 rounded-full text-sm tracking-wider hover:bg-red-400/5 hover:text-red-400 transition-all">
-              ✕ {t("Clear comparison", "清除对比")}
+            <button onClick={clearCompare} className="inline-block px-8 py-3 border border-red-400/30 text-red-400/60 rounded-full text-sm tracking-wider hover:bg-red-400/5 hover:text-red-400 transition-all">
+              ✕ {t("Clear", "清除对比")}
             </button>
           </div>
         </div>
