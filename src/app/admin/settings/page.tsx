@@ -287,6 +287,25 @@ export default function AdminSettingsPage() {
                     placeholder="Notification Email (where alerts are sent)" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
                   <Button size="sm" onClick={async () => { await saveSetting("notification_email", notifEmail); }}>Save</Button>
                 </div>
+                <div className="pt-2">
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    setSaving(true);
+                    try {
+                      const res = await fetch("/api/test-email", { method: "POST" });
+                      const data = await res.json();
+                      if (data.success) {
+                        alert(`✅ Test email sent! Check ${notifEmail || "your inbox"}.`);
+                      } else {
+                        alert(`❌ Failed: ${data.error}\n\nSettings: ${JSON.stringify(data.settings, null, 2)}`);
+                      }
+                    } catch (e: any) {
+                      alert(`❌ Error: ${e.message}`);
+                    }
+                    setSaving(false);
+                  }} disabled={saving}>
+                    {saving ? "Sending..." : "📧 Send Test Email"}
+                  </Button>
+                </div>
               </div>
             </div>
 
