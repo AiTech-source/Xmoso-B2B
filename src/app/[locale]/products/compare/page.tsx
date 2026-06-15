@@ -86,7 +86,7 @@ export default function ComparePage() {
                     <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
                   </div>
                 </Link>
-                <p className="text-sm text-white mt-2">{p.name}</p>
+                <p className="text-sm mt-2" style={{color:"#ffffff"}}>{p.name}</p>
               </div>
             ))}
           </div>
@@ -101,7 +101,7 @@ export default function ComparePage() {
                       <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
                     </div>
                   </Link>
-                  <p className="text-center text-sm text-white mt-2">{p.name}</p>
+                  <p className="text-center text-sm mt-2">{p.name}</p>
                 </div>
               ))}
             </div>
@@ -123,7 +123,7 @@ export default function ComparePage() {
               <tbody>
                 {allLabels.map((label, i) => (
                   <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
-                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 hidden md:table-cell text-[#0A0A0F]">
+                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 hidden md:table-cell" style={{color:"#0A0A0F"}}>
                       {label}
                     </td>
                     {products.map((p, pi) => {
