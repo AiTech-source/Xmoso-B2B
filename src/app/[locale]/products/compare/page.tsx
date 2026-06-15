@@ -115,7 +115,7 @@ export default function ComparePage() {
           </div>
 
           {/* ── Sticky model names — appear when images scroll past ── */}
-          <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#0A0A0F]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
+          <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
             <div className="grid gap-4" style={{ gridTemplateColumns: gridAutoCols }}>
               {products.map((p) => (
                 <div key={p.id} className="text-center">
@@ -134,7 +134,7 @@ export default function ComparePage() {
             </div>
 
             {allLabels.map((label, i) => (
-              <div key={label} className={`grid gap-4 py-3.5 ${i % 2 === 0 ? "" : "bg-white/[0.015]"}`} style={{ gridTemplateColumns: gridAutoCols }}>
+              <div key={label} className={`grid gap-4 py-3.5 px-2 -mx-2 ${i % 2 === 0 ? "bg-[#131325]" : "bg-[#0E0E1E]"}`} style={{ gridTemplateColumns: gridAutoCols }}>
                 {products.map((p, pi) => {
                   const spec = specLookups[pi].get(label);
                   const cellStyle: React.CSSProperties = {};
@@ -146,13 +146,12 @@ export default function ComparePage() {
                     if (m && m.length >= 3) {
                       const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
                       cellStyle.color = avg > 160 ? "#0A0A0F" : "rgba(255,255,255,0.85)";
-                    } else cellStyle.color = "rgba(255,255,255,0.75)";
-                  } else cellStyle.color = "rgba(255,255,255,0.75)";
+                    } else cellStyle.color = "#C0C0C0";
+                  } else cellStyle.color = "#C0C0C0";
                   return (
                     <div key={p.id} className="flex flex-col gap-0.5">
-                      {/* Label only on mobile */}
-                      <span className="md:hidden text-[10px] text-silver/40 tracking-wider">{label}</span>
-                      <span className="text-sm" style={cellStyle}>{spec?.value || <span className="text-silver/30">—</span>}</span>
+                      <span className="md:hidden text-[10px] text-silver/50 tracking-wider">{label}</span>
+                      <span className="text-sm" style={cellStyle}>{spec?.value || <span className="text-silver/40">—</span>}</span>
                     </div>
                   );
                 })}
