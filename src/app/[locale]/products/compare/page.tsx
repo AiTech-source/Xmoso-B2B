@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
@@ -47,7 +47,6 @@ export default function ComparePage() {
   const t = (en: string, zh: string) => locale === "zh" ? zh : en;
   const colCount = products.length;
 
-  // Build spec matrix
   const allLabels: string[] = [];
   const seen = new Set<string>();
   if (products[0]?.specs) {
@@ -90,7 +89,7 @@ export default function ComparePage() {
     );
   }
 
-  const gridAutoCols = colCount === 2 ? "repeat(2,1fr)" : colCount === 3 ? "repeat(3,1fr)" : "repeat(4,1fr)";
+  const gridCols = colCount === 2 ? "md:grid-cols-2" : colCount === 3 ? "md:grid-cols-3" : "md:grid-cols-4";
 
   return (
     <>
@@ -101,8 +100,8 @@ export default function ComparePage() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-light tracking-wider text-white mb-8">📊 {t("Compare Products", "产品对比")}</h1>
 
-          {/* ── Images — scroll out naturally ── */}
-          <div className="grid gap-4 mb-0" style={{ gridTemplateColumns: gridAutoCols }}>
+          {/* ── Images ── */}
+          <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-0`}>
             {products.map((p) => (
               <div key={p.id} className="text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
@@ -114,9 +113,9 @@ export default function ComparePage() {
             ))}
           </div>
 
-          {/* ── Sticky model names — appear when images scroll past ── */}
+          {/* ── Sticky model names ── */}
           <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
-            <div className="grid gap-4" style={{ gridTemplateColumns: gridAutoCols }}>
+            <div className={`grid grid-cols-1 ${gridCols} gap-4`}>
               {products.map((p) => (
                 <div key={p.id} className="text-center">
                   <span className="text-white font-medium text-sm">{p.model_number}</span>
@@ -127,34 +126,36 @@ export default function ComparePage() {
           </div>
 
           {/* ── Spec rows ── */}
-          <div className="divide-y divide-silver/8">
-            {/* Header spacer */}
-            <div className="grid gap-4 py-3 text-[11px] text-silver/40 uppercase tracking-wider" style={{ gridTemplateColumns: gridAutoCols }}>
-              {products.map((p) => <div key={p.id}>{t("Specifications", "规格参数")}</div>)}
-            </div>
-
+          <div>
             {allLabels.map((label, i) => (
-              <div key={label} className={`grid gap-4 py-3.5 px-2 -mx-2 ${i % 2 === 0 ? "bg-[#131325]" : "bg-[#0E0E1E]"}`} style={{ gridTemplateColumns: gridAutoCols }}>
-                {products.map((p, pi) => {
-                  const spec = specLookups[pi].get(label);
-                  const cellStyle: React.CSSProperties = {};
-                  if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
-                  if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
-                  if (spec?.color) cellStyle.color = spec.color;
-                  else if (spec?.bgColor) {
-                    const m = spec.bgColor.match(/\d+/g);
-                    if (m && m.length >= 3) {
-                      const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
-                      cellStyle.color = avg > 160 ? "#0A0A0F" : "rgba(255,255,255,0.85)";
+              <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
+                {/* Label overlay — invisible on desktop, visible on hover */}
+                <div className="hidden md:block absolute -top-3 left-2 text-[9px] text-silver/30 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                  {label}
+                </div>
+                {/* Mobile label + value, desktop grid */}
+                <div className={`grid grid-cols-1 ${gridCols} gap-x-4 py-3 px-2 -mx-2 border-b border-silver/5`}>
+                  <div className="md:hidden text-[11px] text-silver/50 mb-0.5">{label}</div>
+                  {products.map((p, pi) => {
+                    const spec = specLookups[pi].get(label);
+                    const cellStyle: React.CSSProperties = {};
+                    if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
+                    if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
+                    if (spec?.color) cellStyle.color = spec.color;
+                    else if (spec?.bgColor) {
+                      const m = spec.bgColor.match(/\d+/g);
+                      if (m && m.length >= 3) {
+                        const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
+                        cellStyle.color = avg > 160 ? "#0A0A0F" : "rgba(255,255,255,0.85)";
+                      } else cellStyle.color = "#C0C0C0";
                     } else cellStyle.color = "#C0C0C0";
-                  } else cellStyle.color = "#C0C0C0";
-                  return (
-                    <div key={p.id} className="flex flex-col gap-0.5">
-                      <span className="md:hidden text-[10px] text-silver/50 tracking-wider">{label}</span>
-                      <span className="text-sm" style={cellStyle}>{spec?.value || <span className="text-silver/40">—</span>}</span>
-                    </div>
-                  );
-                })}
+                    return (
+                      <div key={p.id} className="text-sm" style={cellStyle}>
+                        {spec?.value || <span className="text-silver/40">—</span>}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
