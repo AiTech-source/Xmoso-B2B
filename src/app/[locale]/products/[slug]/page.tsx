@@ -173,8 +173,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           dangerouslySetInnerHTML={{
             __html: renderJsonLd(breadcrumbListSchema([
               { name: locale === "zh" ? "产品中心" : "Products", url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products` },
-              ...(category?.name ? [{ name: category.name }] : []),
-              { name: product.model_number },
+              ...(category?.name ? [{ name: category.name, url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
+              { name: product.model_number, url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products/${slug}` },
             ]))
           }}
         />

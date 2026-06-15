@@ -15,6 +15,13 @@ export function productSchema(data: ProductData) {
     image: data.image || undefined,
     brand: data.brand ? { "@type": "Brand", name: data.brand } : undefined,
     sku: data.sku || undefined,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+      url: `https://xmoso.com/products?q=${encodeURIComponent(data.sku || data.name)}`,
+    },
   };
 }
 
@@ -36,7 +43,7 @@ export function breadcrumbListSchema(items: { name: string; url?: string }[]) {
       "@type": "ListItem",
       position: i + 1,
       name: item.name,
-      ...(item.url ? { item: item.url } : {}),
+      item: item.url || "https://xmoso.com/products",
     })),
   };
 }
