@@ -7,7 +7,6 @@ import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 
 interface Spec { label: string; value: string; sort_order: number; bgColor?: string; fontSize?: string; color?: string; }
-
 interface CompareProduct {
   id: string; model_number: string; image: string; name: string;
   slug: string; description: string; product_style: string;
@@ -59,7 +58,6 @@ export default function ComparePage() {
   }
 
   if (loading) return (<><Header /><main style={{ paddingTop: "64px" }}><div className="max-w-7xl mx-auto px-4 py-20 text-center text-silver/40">{t("Loading...", "加载中...")}</div></main><Footer /></>);
-
   if (!slugs.length || products.length < 2) return (
     <><Header /><main style={{ paddingTop: "64px" }}><div className="max-w-7xl mx-auto px-4 py-20 text-center">
       <p className="text-silver/40 text-sm mb-4">{t("Select 2+ products.", "请选择2款以上产品进行对比。")}</p>
@@ -78,8 +76,8 @@ export default function ComparePage() {
             <button onClick={clearCompare} className="text-xs text-silver/40 hover:text-red-400">✕ {t("Clear", "清除")}</button>
           </div>
 
-          {/* Desktop images — scrolls out */}
-          <div className="hidden md:flex gap-6 mb-0">
+          {/* Desktop images */}
+          <div className="hidden md:flex gap-6 mb-2">
             <div className="w-32 shrink-0" />
             {products.map((p) => (
               <div key={p.id} className="flex-1 min-w-0 text-center">
@@ -88,6 +86,7 @@ export default function ComparePage() {
                     <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
                   </div>
                 </Link>
+                <p className="text-sm text-white mt-2">{p.name}</p>
               </div>
             ))}
           </div>
@@ -108,51 +107,45 @@ export default function ComparePage() {
             </div>
           </div>
 
-          {/* Sticky header + spec table — unified layout */}
-          <div className="overflow-x-auto mt-4 border border-silver/10 rounded-xl">
+          {/* Spec table */}
+          <div className="overflow-x-auto mt-4 border border-silver/10 rounded-xl" >
             <table className="w-full text-sm">
               <thead>
-                <tr className="sticky top-20 z-30 bg-[#1A1A2E]/95 backdrop-blur-md">
-                  <th className="p-3 text-left w-32 text-xs text-silver/50 uppercase tracking-wider border-b border-silver/10 hidden md:table-cell">
-                    {t("Spec", "规格")}
-                  </th>
+                <tr className="sticky top-20 z-30 bg-[#1A1A2E]">
+                  <th className="w-32 hidden md:table-cell bg-[#1A1A2E]" />
                   {products.map((p) => (
-                    <th key={p.id} className="p-3 text-center min-w-[180px] border-b border-silver/10">
-                      <div className="text-white font-semibold text-sm">{p.model_number}</div>
-                      <div className="text-white/70 text-xs mt-0.5">{p.name}</div>
+                    <th key={p.id} className="p-3 text-center min-w-[180px] border-b border-silver/10 bg-[#1A1A2E]">
+                      <div className="text-white text-sm">{p.name}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {allLabels.map((label, i) => {
-                  const spec0 = specLookups[0]?.get(label);
-                  return (
-                    <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
-                      <td className="p-3 text-sm text-white/90 font-medium align-middle border-b border-silver/5 hidden md:table-cell">
-                        {label}
-                      </td>
-                      {products.map((p, pi) => {
-                        const spec = specLookups[pi]?.get(label);
-                        const cs: React.CSSProperties = {};
-                        if (spec?.bgColor) cs.backgroundColor = spec.bgColor;
-                        if (spec?.fontSize) cs.fontSize = `${spec.fontSize}px`;
-                        if (spec?.color) cs.color = spec.color;
-                        else if (spec?.bgColor) {
-                          const n = spec.bgColor.match(/\d+/g);
-                          if (n && n.length >= 3) { const avg = (Number(n[0])+Number(n[1])+Number(n[2]))/3; cs.color = avg > 160 ? "#0A0A0F" : "#ffffff"; }
-                          else cs.color = "#0A0A0F";
-                        } else cs.color = "#0A0A0F";
-                        return (
-                          <td key={p.id} className="p-3 text-center align-middle border-b border-silver/5 min-w-[180px]" style={cs}>
-                            <span className="md:hidden block text-[11px] font-medium text-[#2a7d4e] mb-0.5">{label}</span>
-                            {spec?.value || <span className="text-gray-400">—</span>}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
+                {allLabels.map((label, i) => (
+                  <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
+                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 hidden md:table-cell text-[#0A0A0F]">
+                      {label}
+                    </td>
+                    {products.map((p, pi) => {
+                      const spec = specLookups[pi]?.get(label);
+                      const cs: React.CSSProperties = {};
+                      if (spec?.bgColor) cs.backgroundColor = spec.bgColor;
+                      if (spec?.fontSize) cs.fontSize = `${spec.fontSize}px`;
+                      if (spec?.color) cs.color = spec.color;
+                      else if (spec?.bgColor) {
+                        const n = spec.bgColor.match(/\d+/g);
+                        if (n && n.length >= 3) { const avg = (Number(n[0])+Number(n[1])+Number(n[2]))/3; cs.color = avg > 160 ? "#0A0A0F" : "#ffffff"; }
+                        else cs.color = "#0A0A0F";
+                      } else cs.color = "#0A0A0F";
+                      return (
+                        <td key={p.id} className="p-3 text-center align-middle border-b border-silver/5 min-w-[180px]" style={cs}>
+                          <span className="md:hidden block text-[11px] font-medium text-[#2a7d4e] mb-0.5">{label}</span>
+                          {spec?.value || <span className="text-gray-400">—</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
