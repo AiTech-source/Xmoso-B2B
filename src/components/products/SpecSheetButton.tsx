@@ -40,7 +40,7 @@ export default function SpecSheetButton({ slug, locale, modelNumber }: SpecSheet
   }
 
   function printSpecs() {
-    window.print();
+    window.open(`/${locale}/products/${slug}/print`, "_blank", "width=960,height=720");
     setOpen(false);
   }
 
