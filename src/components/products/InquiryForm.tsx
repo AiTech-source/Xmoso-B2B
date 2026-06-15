@@ -2,26 +2,37 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/client";
 
 interface InquiryFormProps { productId?: string; locale: string; }
 
 export default function InquiryForm({ productId, locale }: InquiryFormProps) {
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const supabase = createClient();
-    if (!supabase) return;
+    setError("");
     const form = new FormData(e.currentTarget);
     const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
-    await supabase.from("inquiries").insert({
-      product_id: productId, name: form.get("name"), email: form.get("email"),
-      company: form.get("company"), phone: form.get("phone"), message: form.get("message"),
-      locale, page_url: typeof window !== "undefined" ? window.location.pathname : "",
-      utm_source: params.get("utm_source") || "", utm_medium: params.get("utm_medium") || "", utm_campaign: params.get("utm_campaign") || "",
-    });
-    setSubmitted(true);
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: productId, name: form.get("name"), email: form.get("email"),
+          company: form.get("company"), phone: form.get("phone"), message: form.get("message"),
+          locale, page_url: typeof window !== "undefined" ? window.location.pathname : "",
+          utm_source: params.get("utm_source") || "", utm_medium: params.get("utm_medium") || "", utm_campaign: params.get("utm_campaign") || "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed"); return; }
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Network error");
+    }
   }
+
   if (submitted) {
     return <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
       <span className="text-4xl">✅</span><p className="text-forest mt-4">Thank you! We'll get back to you shortly.</p>
@@ -36,6 +47,7 @@ export default function InquiryForm({ productId, locale }: InquiryFormProps) {
         <input name="phone" placeholder="Phone" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none transition-colors" />
       </div>
       <textarea name="message" rows={4} placeholder="Message" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none transition-colors" />
+      {error && <p className="text-red-400 text-xs">{error}</p>}
       <Button type="submit" variant="primary">Send Inquiry</Button>
     </form>
   );

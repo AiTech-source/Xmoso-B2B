@@ -19,6 +19,12 @@ export default function AdminSettingsPage() {
   const [ogBrand, setOgBrand] = useState("");
   const [ogSiteUrl, setOgSiteUrl] = useState("");
   const [gaId, setGaId] = useState("");
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpPass, setSmtpPass] = useState("");
+  const [smtpSecure, setSmtpSecure] = useState(false);
+  const [notifEmail, setNotifEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -42,6 +48,10 @@ export default function AdminSettingsPage() {
         setOgBrand(data.og_brand_name || "DeepCool");
         setOgSiteUrl(data.og_site_url || "deepcool.com");
         setGaId(data.ga_id || "");
+        setSmtpHost(data.smtp_host || ""); setSmtpPort(data.smtp_port || "587");
+        setSmtpUser(data.smtp_user || ""); setSmtpPass(data.smtp_pass || "");
+        setSmtpSecure(data.smtp_secure === "true");
+        setNotifEmail(data.notification_email || "");
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -243,6 +253,40 @@ export default function AdminSettingsPage() {
                 <input value={gaId} onChange={(e) => setGaId(e.target.value)}
                   placeholder="G-XXXXXXXXXX" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono" />
                 <Button size="sm" onClick={async () => { await saveSetting("ga_id", gaId); }}>Save</Button>
+              </div>
+            </div>
+
+            {/* SMTP Email */}
+            <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
+              <h3 className="text-white tracking-wide mb-4">📧 Email Notifications</h3>
+              <p className="text-xs text-silver/50 mb-3">Configure SMTP to receive email when a visitor submits an inquiry form.</p>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)}
+                    placeholder="SMTP Host (e.g. smtp.company.com)" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <input value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)}
+                    placeholder="Port" className="w-20 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <Button size="sm" onClick={async () => { await saveSetting("smtp_host", smtpHost); await saveSetting("smtp_port", smtpPort); }}>Save</Button>
+                </div>
+                <div className="flex gap-2">
+                  <input value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)}
+                    placeholder="SMTP Username" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <input value={smtpPass} onChange={(e) => setSmtpPass(e.target.value)} type="password"
+                    placeholder="SMTP Password" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <Button size="sm" onClick={async () => { await saveSetting("smtp_user", smtpUser); await saveSetting("smtp_pass", smtpPass); }}>Save</Button>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={smtpSecure} onChange={(e) => { setSmtpSecure(e.target.checked); saveSetting("smtp_secure", e.target.checked ? "true" : "false"); }}
+                      className="w-4 h-4 rounded accent-forest" />
+                    <span className="text-sm text-silver/60">Use SSL/TLS (port 465)</span>
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <input value={notifEmail} onChange={(e) => setNotifEmail(e.target.value)}
+                    placeholder="Notification Email (where alerts are sent)" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  <Button size="sm" onClick={async () => { await saveSetting("notification_email", notifEmail); }}>Save</Button>
+                </div>
               </div>
             </div>
 

@@ -1,42 +1,48 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { createClient } from "@/lib/supabase/client";
 
 export default function FloatingInquiry({ locale }: { locale: string }) {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSending(true);
-    const supabase = createClient();
-    if (!supabase) return;
+    setError("");
     const form = new FormData(e.currentTarget);
     const params = new URLSearchParams(window.location.search);
-    await supabase.from("inquiries").insert({
-      name: form.get("name"), email: form.get("email"),
-      company: form.get("company"), phone: form.get("phone"), message: form.get("message"),
-      locale, page_url: window.location.pathname,
-      utm_source: params.get("utm_source") || "", utm_medium: params.get("utm_medium") || "", utm_campaign: params.get("utm_campaign") || "",
-    });
-    setSending(false);
-    setSubmitted(true);
+    try {
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.get("name"), email: form.get("email"),
+          company: form.get("company"), phone: form.get("phone"), message: form.get("message"),
+          locale, page_url: window.location.pathname,
+          utm_source: params.get("utm_source") || "", utm_medium: params.get("utm_medium") || "", utm_campaign: params.get("utm_campaign") || "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Failed to send"); setSending(false); return; }
+      setSending(false);
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Network error");
+      setSending(false);
+    }
   }
 
   return (
     <div className="w-full">
-      {/* Button — scrolls naturally with the page */}
-      <button
-        onClick={() => { setOpen(true); setSubmitted(false); }}
-        className="w-full px-6 py-4 rounded-xl bg-forest text-deep-dark font-medium tracking-wide hover:bg-forest/90 transition-colors flex items-center justify-center gap-2 shadow-lg text-base"
-      >
+      <button onClick={() => { setOpen(true); setSubmitted(false); setError(""); }}
+        className="w-full px-6 py-4 rounded-xl bg-forest text-deep-dark font-medium tracking-wide hover:bg-forest/90 transition-colors flex items-center justify-center gap-2 shadow-lg text-base">
         <span className="text-lg">✉</span>
         <span>Send Inquiry</span>
       </button>
 
-      {/* Modal */}
       <AnimatePresence>
         {open && (
           <>
@@ -65,6 +71,7 @@ export default function FloatingInquiry({ locale }: { locale: string }) {
                     <input name="company" placeholder="Company" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
                     <input name="phone" placeholder="Phone" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
                     <textarea name="message" rows={3} placeholder="Message" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none" />
+                    {error && <p className="text-red-400 text-xs">{error}</p>}
                     <button type="submit" disabled={sending}
                       className="w-full py-2.5 bg-forest text-deep-dark text-sm font-medium rounded-lg hover:bg-forest/90 transition-colors disabled:opacity-50">
                       {sending ? "Sending..." : "Send Inquiry"}

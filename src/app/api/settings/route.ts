@@ -7,6 +7,7 @@ const ALL_KEYS = [
   "favicon_url", "site_title",
   "og_brand_name", "og_site_url",
   "ga_id",
+  "smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_secure", "notification_email",
 ];
 
 async function getSetting(supabase: any, key: string): Promise<string> {
