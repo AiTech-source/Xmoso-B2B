@@ -76,7 +76,7 @@ export default function ComparePage() {
             <button onClick={clearCompare} className="text-xs text-silver/40 hover:text-red-400">✕ {t("Clear", "清除")}</button>
           </div>
 
-          {/* Desktop images */}
+          {/* Desktop images — scrolls out with page */}
           <div className="hidden md:flex gap-6 mb-2">
             <div className="w-32 shrink-0" />
             {products.map((p) => (
@@ -101,29 +101,31 @@ export default function ComparePage() {
                       <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
                     </div>
                   </Link>
-                  <p className="text-center text-sm mt-2">{p.name}</p>
+                  <p className="text-center text-sm mt-2" style={{color:"#ffffff"}}>{p.name}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Spec table */}
-          <div className="overflow-x-auto mt-4 border border-silver/10 rounded-xl" >
+          {/* Sticky product name row — OUTSIDE overflow so sticky works */}
+          <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
+            <div className="flex gap-6">
+              <div className="w-32 shrink-0 hidden md:block" />
+              {products.map((p) => (
+                <div key={p.id} className="flex-1 min-w-0 text-center" style={{color:"#ffffff"}}>
+                  {p.name}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Scrollable spec table */}
+          <div className="overflow-x-auto border border-silver/10 rounded-xl">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="sticky top-20 z-30 bg-[#1A1A2E]">
-                  <th className="w-32 hidden md:table-cell bg-[#1A1A2E]" />
-                  {products.map((p) => (
-                    <th key={p.id} className="p-3 text-center min-w-[180px] border-b border-silver/10 bg-[#1A1A2E]">
-                      <div style={{color:"#ffffff"}} className="text-sm">{p.name}</div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
               <tbody>
                 {allLabels.map((label, i) => (
                   <tr key={label} className={i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}>
-                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 hidden md:table-cell" style={{color:"#0A0A0F"}}>
+                    <td className="p-3 text-sm font-medium align-middle border-b border-silver/5 min-w-[140px] hidden md:table-cell" style={{color:"#0A0A0F"}}>
                       {label}
                     </td>
                     {products.map((p, pi) => {
