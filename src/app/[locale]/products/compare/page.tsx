@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
@@ -34,6 +34,8 @@ export default function ComparePage() {
   const slugs = useSlugs();
   const [products, setProducts] = useState<CompareProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scrollIdx, setScrollIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!slugs) { setLoading(false); return; }
@@ -61,6 +63,13 @@ export default function ComparePage() {
     for (const s of p.specs) map.set(s.label, s);
     return map;
   });
+
+  function scrollCarousel(dir: -1 | 1) {
+    if (!scrollRef.current) return;
+    const w = scrollRef.current.clientWidth;
+    scrollRef.current.scrollBy({ left: w * dir, behavior: "smooth" });
+    setScrollIdx(Math.max(0, Math.min(products.length - 1, scrollIdx + dir)));
+  }
 
   if (loading) {
     return (
@@ -98,10 +107,14 @@ export default function ComparePage() {
         <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
 
         <div className="max-w-7xl mx-auto px-4 py-8">
+          <style>{`/* hide mobile carousel scrollbar */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
           <h1 className="text-2xl font-light tracking-wider text-white mb-8">📊 {t("Compare Products", "产品对比")}</h1>
 
-          {/* ── Images ── */}
-          <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-0`}>
+          {/* ── Images — mobile carousel, desktop grid ── */}
+          {/* Desktop grid */}
+          <div className={`hidden md:grid ${gridCols} gap-4 mb-0`}>
             {products.map((p) => (
               <div key={p.id} className="text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
@@ -113,13 +126,42 @@ export default function ComparePage() {
             ))}
           </div>
 
+          {/* Mobile carousel */}
+          <div className="md:hidden relative">
+            <div ref={scrollRef} onScroll={() => {
+              if (!scrollRef.current) return;
+              const idx = Math.round(scrollRef.current.scrollLeft / scrollRef.current.clientWidth);
+              setScrollIdx(Math.min(products.length - 1, Math.max(0, idx)));
+            }} className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+              {products.map((p, i) => (
+                <div key={p.id} className="snap-center shrink-0 w-[85vw]">
+                  <Link href={`/${locale}/products/${p.slug}`}>
+                    <div className="aspect-[4/3] bg-[#f5f0e8] border border-silver/10 rounded-xl overflow-hidden flex items-center justify-center">
+                      {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" /> : <span className="text-6xl text-silver/20">🍷</span>}
+                    </div>
+                  </Link>
+                  <p className="text-center text-sm text-white mt-2">{p.model_number} — {p.name}</p>
+                </div>
+              ))}
+            </div>
+            {/* Dots */}
+            {products.length > 1 && (
+              <div className="flex justify-center gap-1.5 mt-3">
+                {products.map((_, i) => (
+                  <button key={i} onClick={() => scrollRef.current?.children[i]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })}
+                    className={`w-2 h-2 rounded-full transition-all ${scrollIdx === i ? "bg-forest w-4" : "bg-silver/30"}`} />
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* ── Sticky model names ── */}
           <div className="sticky top-20 z-30 -mx-4 px-4 py-3 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-silver/10 shadow-lg mb-0 mt-4">
             <div className={`grid grid-cols-1 ${gridCols} gap-4`}>
               {products.map((p) => (
                 <div key={p.id} className="text-center">
                   <span className="text-white font-medium text-sm">{p.model_number}</span>
-                  <p className="text-xs text-silver/50 mt-0.5 line-clamp-1">{p.name}</p>
+                  <p className="text-xs text-white/60 mt-0.5 line-clamp-1">{p.name}</p>
                 </div>
               ))}
             </div>
@@ -129,26 +171,27 @@ export default function ComparePage() {
           <div>
             {allLabels.map((label, i) => (
               <div key={label} className={`group relative ${i % 2 === 0 ? "bg-row-even" : "bg-row-odd"}`}>
-                {/* Label overlay — invisible on desktop, visible on hover */}
-                <div className="hidden md:block absolute -top-3 left-2 text-[9px] text-silver/30 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+                {/* Label — desktop hover */}
+                <div className="hidden md:block absolute -top-2.5 left-2 text-[9px] uppercase tracking-wider text-forest/60 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-10">
                   {label}
                 </div>
-                {/* Mobile label + value, desktop grid */}
                 <div className={`grid grid-cols-1 ${gridCols} gap-x-4 py-3 px-2 -mx-2 border-b border-silver/5`}>
-                  <div className="md:hidden text-[11px] text-silver/50 mb-0.5">{label}</div>
+                  {/* Mobile label */}
+                  <div className="md:hidden text-[11px] text-[#2a7d4e] font-medium mb-0.5 tracking-wide">{label}</div>
                   {products.map((p, pi) => {
                     const spec = specLookups[pi].get(label);
                     const cellStyle: React.CSSProperties = {};
                     if (spec?.bgColor) cellStyle.backgroundColor = spec.bgColor;
                     if (spec?.fontSize) cellStyle.fontSize = `${spec.fontSize}px`;
+                    // Custom color preserves; default is white for readability on dark rows
                     if (spec?.color) cellStyle.color = spec.color;
                     else if (spec?.bgColor) {
                       const m = spec.bgColor.match(/\d+/g);
                       if (m && m.length >= 3) {
                         const avg = (Number(m[0]) + Number(m[1]) + Number(m[2])) / 3;
-                        cellStyle.color = avg > 160 ? "#0A0A0F" : "rgba(255,255,255,0.85)";
-                      } else cellStyle.color = "#C0C0C0";
-                    } else cellStyle.color = "#C0C0C0";
+                        cellStyle.color = avg > 160 ? "#0A0A0F" : "#ffffff";
+                      } else cellStyle.color = "#ffffff";
+                    } else cellStyle.color = "#ffffff";
                     return (
                       <div key={p.id} className="text-sm" style={cellStyle}>
                         {spec?.value || <span className="text-silver/40">—</span>}
