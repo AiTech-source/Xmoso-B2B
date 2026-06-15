@@ -60,7 +60,7 @@ export default function FloatingInquiry({ locale, productName, productModel, pro
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:w-[520px] bg-white rounded-2xl shadow-2xl max-h-[90vh] flex flex-col"
+              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 md:min-w-[480px] bg-white rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden" style={{ resize: "both" }}
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
@@ -101,7 +101,7 @@ export default function FloatingInquiry({ locale, productName, productModel, pro
                       <input name="phone" placeholder="Phone"
                         className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
                     </div>
-                    <textarea name="message" rows={3}
+                    <textarea name="message" rows={3} style={{ resize: "both", minHeight: "80px" }}
                       placeholder={locale === "zh" ? "留言（如有其他感兴趣的产品请在此说明）" : "Message (mention other products of interest here)"}
                       className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
 

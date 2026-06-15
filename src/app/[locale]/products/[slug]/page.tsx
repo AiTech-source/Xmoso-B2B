@@ -10,6 +10,7 @@ import ParamCounter from "@/components/products/ParamCounter";
 import SpecTabs from "@/components/products/SpecTabs";
 import FloatingInquiry from "@/components/products/FloatingInquiry";
 import ShareButton from "@/components/social/ShareButton";
+import SpecSheetButton from "@/components/products/SpecSheetButton";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { productSchema, breadcrumbListSchema, renderJsonLd } from "@/lib/seo/json-ld";
@@ -193,7 +194,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <div className="mt-3">
                 <ShareButton url={`/${locale}/products/${slug}`} title={translation.name} />
               </div>
-              <p className="text-silver/50 text-sm mt-3">{product.model_number}</p>
+              <div className="flex items-center gap-3 mt-3">
+                <p className="text-silver/50 text-sm">{product.model_number}</p>
+                <SpecSheetButton slug={slug} locale={locale} modelNumber={product.model_number} />
+              </div>
               <p className="text-silver/60 mt-6 leading-relaxed">{translation.description}</p>
               {/* SPEC right below description */}
               {specs.length > 0 && (

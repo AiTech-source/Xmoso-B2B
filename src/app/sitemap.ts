@@ -15,6 +15,19 @@ export default async function sitemap() {
     }))
   );
 
+  let blogEntries: any[] = [];
+  if (supabase) {
+    const { data: blogPosts } = await supabase
+      .from("blog_posts").select("slug, locale, updated_at")
+      .eq("published", true);
+    blogEntries = (blogPosts || []).map((p: any) => ({
+      url: `${baseUrl}/${p.locale}/blog/${p.slug}`,
+      lastModified: new Date(p.updated_at || new Date()),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }));
+  }
+
   let productEntries: any[] = [];
   let imageEntries: any[] = [];
   if (supabase) {
@@ -34,5 +47,5 @@ export default async function sitemap() {
     }));
   }
 
-  return [...staticEntries, ...productEntries];
+  return [...staticEntries, ...blogEntries, ...productEntries];
 }
