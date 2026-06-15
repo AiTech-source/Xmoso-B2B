@@ -36,6 +36,10 @@ export async function GET(req: Request) {
   const model = product.model_number;
   const name = translation.name;
   const img = product.image_gallery?.[0]?.url || "";
+  let logoUrl = "";
+  const { data: logoSettings } = await supabase
+    .from("site_settings").select("value").eq("key", "logo_url").single();
+  if (logoSettings?.value) logoUrl = logoSettings.value;
 
   const specRowsHtml = specs.map((s: any, i: number) => `
     <div class="s-item ${i % 2 === 0 ? "" : "alt"}">
@@ -103,7 +107,7 @@ export async function GET(req: Request) {
   <span class="h">Ctrl+P to print · Save as PDF from print dialog</span>
 </div>
 <div class="hd">
-  <div class="hd-l"><div class="m">X</div><div><div class="b">XMOSO</div><div class="t">SPECIFICATION SHEET</div></div></div>
+  <div class="hd-l">${logoUrl ? `<img src="${esc(logoUrl)}" style="height:32px;max-width:120px;object-fit:contain" alt="Xmoso" />` : `<div class="m">X</div>`}<div><div class="b">XMOSO</div><div class="t">SPECIFICATION SHEET</div></div></div>
   <div class="hd-r"><h1>${esc(name)}</h1><div class="sub">${esc(model)}</div>${catName ? `<div class="cat">${esc(catName)}</div>` : ""}</div>
 </div>
 <div class="tc">

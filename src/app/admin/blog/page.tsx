@@ -42,7 +42,7 @@ export default function AdminBlogPage() {
                 {l === "en" ? "🇬🇧 EN" : "🇨🇳 ZH"}
               </button>
             ))}
-            <Button size="sm" onClick={() => router.push("/admin/blog/new")}>+ New Post</Button>
+            <Button size="sm" onClick={() => router.push("/admin/blog/new/edit")}>+ New Post</Button>
           </div>
         </div>
 
