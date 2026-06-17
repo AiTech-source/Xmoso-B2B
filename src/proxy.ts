@@ -25,6 +25,11 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Old sitemap.xml → new sitemap-index.xml (GSC caching issue)
+  if (pathname === "/sitemap.xml") {
+    return NextResponse.redirect(new URL("https://xmoso.com/sitemap-index.xml"), 301);
+  }
+
   // /ProductInfoCategory?categoryId=xxx → /products
   if (pathname === "/ProductInfoCategory" || pathname === `/${locale}/ProductInfoCategory`) {
     const prefix = locale === "en" ? "" : `/${locale}`;
@@ -38,5 +43,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|svg|webp|css|js|woff|woff2|ttf|eot|map|json)$).*)"],
+  matcher: ["/((?!api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|svg|webp|css|js|woff|woff2|ttf|eot|map|json|xml)$).*)"],
 };
