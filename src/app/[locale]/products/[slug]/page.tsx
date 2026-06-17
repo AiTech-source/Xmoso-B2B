@@ -95,6 +95,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   const { translation } = result;
   const product = translation.product;
+  const ogSettings = await getOgSettings(supabase);
 
   // Fetch category name + product_type separately
   let category: { name: string; product_type: string } | null = null;
@@ -163,7 +164,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               name: translation.name,
               description: translation.description,
               image: images?.[0]?.url || undefined,
-              brand: "DeepCool",
+              brand: ogSettings.brand,
               sku: product.model_number,
             }))
           }}
