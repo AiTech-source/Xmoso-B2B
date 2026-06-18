@@ -38,7 +38,6 @@ export default function AdminBlogEditPage() {
     if (!form.title || !form.slug) return;
     setSaving(true);
     const body = { ...form, content: content || { blocks: [] } };
-
     if (isNew) {
       const res = await fetch("/api/blog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -72,7 +71,6 @@ export default function AdminBlogEditPage() {
     if (!file) return;
     try {
       const text = await file.text();
-      // Extract title from h1
       const m = text.match(/<h1>([^<]*)<\/h1>/i);
       if (m) {
         const t = m[1].trim();
@@ -82,30 +80,7 @@ export default function AdminBlogEditPage() {
           slug: f.slug || "blog-" + Date.now().toString(36),
         }));
       }
-      // Extract style tag content
-      let styleHtml = "";
-      const si = text.indexOf("<style>");
-      const se = text.indexOf("</style>");
-      if (si >= 0 && se > si) styleHtml = "<style>" + text.slice(si + 7, se).trim() + "</style>";
-      // Extract .blog-content div content
-      let bodyHtml = "";
-      const ci = text.indexOf('class="blog-content"');
-      if (ci >= 0) {
-        const di = text.indexOf(">", ci) + 1;
-        const depth = 1;
-        let pos = di;
-        let d = 1;
-        while (d > 0 && pos < text.length) {
-          if (text[pos] === "<" && text[pos + 1] === "/" && text.slice(pos + 2).startsWith("div>")) { d--; if (d === 0) break; }
-          else if (text[pos] === "<" && text.slice(pos).startsWith("<div")) d++;
-          pos++;
-        }
-        bodyHtml = text.slice(di, pos);
-      } else {
-        bodyHtml = text.replace(/<script[\s\S]*?<\/script>/gi, "").trim();
-      }
-      const fullHtml = (styleHtml ? styleHtml + "\n\n" : "") + bodyHtml;
-      setContent({ blocks: [{ type: "raw-html", data: { html: fullHtml } }] });
+      setContent({ blocks: [{ type: "raw-html", data: { html: text } }] });
       setContentVersion((v) => v + 1);
     } catch (e: any) { alert(e.message); }
     e.target.value = "";
@@ -120,11 +95,9 @@ export default function AdminBlogEditPage() {
       <AdminSidebar />
       <main className="ml-64 flex-1 p-8">
         <h1 className="text-2xl font-light tracking-wider text-white mb-8">{isNew ? "New Blog Post" : "Edit Blog Post"}</h1>
-
         <div className="max-w-3xl space-y-6">
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value, slug: isNew ? e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-") : form.slug })}
             placeholder="Post Title" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-xl text-white font-light tracking-wide" />
-
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-silver/50">URL:</span>
             <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-") })}
@@ -140,10 +113,8 @@ export default function AdminBlogEditPage() {
               <span className="text-sm text-silver/60">Published</span>
             </label>
           </div>
-
           <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })}
             placeholder="Author" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white" />
-
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
             <h3 className="text-white tracking-wide mb-3">Cover Image</h3>
             {form.cover_image && (
@@ -158,11 +129,9 @@ export default function AdminBlogEditPage() {
                 placeholder="Or paste image URL" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono" />
             </div>
           </div>
-
           <textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={2}
             placeholder="Short excerpt for blog listing"
             className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white" />
-
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
             <h3 className="text-white tracking-wide mb-4">Content</h3>
             <div className="flex items-center gap-2 mb-3">
@@ -172,7 +141,6 @@ export default function AdminBlogEditPage() {
             </div>
             <RichTextEditor key={contentVersion} content={content} onSave={saveContent} />
           </div>
-
           <div className="flex gap-3 pt-4">
             <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Post"}</Button>
             <Button variant="outline" onClick={() => router.push("/admin/blog")}>Cancel</Button>
