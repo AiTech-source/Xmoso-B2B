@@ -67,37 +67,49 @@ export default function AdminBlogEditPage() {
     if (imgRef.current) imgRef.current.value = "";
   }
 
-    function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const html = reader.result as string;
-      const titleMatch = html.match(/<h1>([^<]*)<\/h1>/i);
-      if (titleMatch && !form.title) setForm((f) => ({ ...f, title: titleMatch[1].trim() }));
-      const styleTag = html.match(/<style>[\s\S]*?<\/style>/i);
-      const styleBlock = styleTag ? styleTag[0] : "";
-      const contentDiv = html.match(/<div class="blog-content">[\s\S]*?<\/div>/i);
-      let contentBlock = "";
-      if (contentDiv) {
-        contentBlock = contentDiv[0];
-      } else {
-        contentBlock = html
-          .replace(/<!DOCTYPE[\s\S]*?>/i, "")
-          .replace(/<html[\s\S]*?>/gi, "").replace(/<\/html>/gi, "")
-          .replace(/<head>[\s\S]*?<\/head>/gi, "")
-          .replace(/<body[^>]*>/gi, "").replace(/<\/body>/gi, "")
-          .replace(/<script[\s\S]*?<\/script>/gi, "")
-          .trim();
+    try {
+      const text = await file.text();
+      // Extract title from h1
+      const m = text.match(/<h1>([^<]*)<\/h1>/i);
+      if (m) {
+        const t = m[1].trim();
+        setForm((f) => ({
+          ...f,
+          title: f.title || t,
+          slug: f.slug || t.toLowerCase().replace(/[^a-z0-9一-龥]+/g, "-").replace(/^-|-$/g, "").replace(/[^\w-]/g, ""),
+        }));
       }
-      const fullHtml = (styleBlock ? styleBlock + "\n\n" : "") + contentBlock;
+      // Extract style tag content
+      let styleHtml = "";
+      const si = text.indexOf("<style>");
+      const se = text.indexOf("</style>");
+      if (si >= 0 && se > si) styleHtml = "<style>" + text.slice(si + 7, se).trim() + "</style>";
+      // Extract .blog-content div content
+      let bodyHtml = "";
+      const ci = text.indexOf('class="blog-content"');
+      if (ci >= 0) {
+        const di = text.indexOf(">", ci) + 1;
+        const depth = 1;
+        let pos = di;
+        let d = 1;
+        while (d > 0 && pos < text.length) {
+          if (text[pos] === "<" && text[pos + 1] === "/" && text.slice(pos + 2).startsWith("div>")) { d--; if (d === 0) break; }
+          else if (text[pos] === "<" && text.slice(pos).startsWith("<div")) d++;
+          pos++;
+        }
+        bodyHtml = text.slice(di, pos);
+      } else {
+        bodyHtml = text.replace(/<script[\s\S]*?<\/script>/gi, "").trim();
+      }
+      const fullHtml = (styleHtml ? styleHtml + "\n\n" : "") + bodyHtml;
       setContent({ blocks: [{ type: "raw-html", data: { html: fullHtml } }] });
       setContentVersion((v) => v + 1);
-    };
-    reader.readAsText(file);
+    } catch (e: any) { alert(e.message); }
     e.target.value = "";
   }
-
 
   if (loading) return (
     <div className="flex"><AdminSidebar /><main className="ml-64 flex-1 p-8"><p className="text-silver/40">Loading...</p></main></div>
@@ -110,19 +122,17 @@ export default function AdminBlogEditPage() {
         <h1 className="text-2xl font-light tracking-wider text-white mb-8">{isNew ? "New Blog Post" : "Edit Blog Post"}</h1>
 
         <div className="max-w-3xl space-y-6">
-          {/* Title */}
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value, slug: isNew ? e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-") : form.slug })}
             placeholder="Post Title" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-xl text-white font-light tracking-wide" />
 
-          {/* Slug + Locale + Published */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-silver/50">URL:</span>
             <input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-") })}
               placeholder="blog-post-url-slug" className="flex-1 bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white font-mono min-w-[200px]" />
-<span className="text-xs text-silver/40">/blog/</span>
+            <span className="text-xs text-silver/40">/blog/</span>
             <select value={form.locale} onChange={(e) => setForm({ ...form, locale: e.target.value })}
               className="bg-deep-dark border border-silver/10 rounded-lg px-3 py-2 text-sm text-white">
-              <option value="en">🇬🇧 English</option><option value="zh">🇨🇳 Chinese</option>
+              <option value="en">English</option><option value="zh">Chinese</option>
             </select>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })}
@@ -131,13 +141,11 @@ export default function AdminBlogEditPage() {
             </label>
           </div>
 
-          {/* Author */}
           <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })}
             placeholder="Author" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-2 text-sm text-white" />
 
-          {/* Cover image */}
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
-            <h3 className="text-white tracking-wide mb-3">🖼 Cover Image</h3>
+            <h3 className="text-white tracking-wide mb-3">Cover Image</h3>
             {form.cover_image && (
               <div className="mb-3 rounded-lg overflow-hidden border border-silver/10">
                 <img src={form.cover_image} alt="" className="w-full max-h-48 object-cover" />
@@ -145,31 +153,28 @@ export default function AdminBlogEditPage() {
             )}
             <div className="flex gap-2">
               <input ref={imgRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-              <Button size="sm" variant="outline" onClick={() => imgRef.current?.click()}>📁 Upload</Button>
+              <Button size="sm" variant="outline" onClick={() => imgRef.current?.click()}>Upload</Button>
               <input value={form.cover_image} onChange={(e) => setForm({ ...form, cover_image: e.target.value })}
                 placeholder="Or paste image URL" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono" />
             </div>
           </div>
 
-          {/* Excerpt */}
           <textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={2}
-            placeholder="Short excerpt / summary for blog listing"
+            placeholder="Short excerpt for blog listing"
             className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white" />
 
-          {/* Rich Content */}
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
-            <h3 className="text-white tracking-wide mb-4">📝 Content</h3>
+            <h3 className="text-white tracking-wide mb-4">Content</h3>
             <div className="flex items-center gap-2 mb-3">
-            <input ref={htmlInputRef} type="file" accept=".html" className="hidden" onChange={handleHtmlUpload} />
-            <Button size="sm" variant="outline" onClick={() => htmlInputRef.current?.click()}>📤 Upload HTML</Button>
-            <span className="text-xs text-silver/40">Upload a pre-made HTML file (auto-fills as RAW HTML block)</span>
-          </div>
+              <input ref={htmlInputRef} type="file" accept=".html" className="hidden" onChange={handleHtmlUpload} />
+              <Button size="sm" variant="outline" onClick={() => htmlInputRef.current?.click()}>Upload HTML</Button>
+              <span className="text-xs text-silver/40">Upload HTML file as RAW HTML block</span>
+            </div>
             <RichTextEditor key={contentVersion} content={content} onSave={saveContent} />
           </div>
 
-          {/* Save */}
           <div className="flex gap-3 pt-4">
-            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "💾 Save Post"}</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Post"}</Button>
             <Button variant="outline" onClick={() => router.push("/admin/blog")}>Cancel</Button>
           </div>
         </div>
