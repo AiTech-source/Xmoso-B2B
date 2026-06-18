@@ -79,7 +79,7 @@ export default function AdminBlogEditPage() {
         setForm((f) => ({
           ...f,
           title: f.title || t,
-          slug: f.slug || t.toLowerCase().replace(/[^a-z0-9一-龥]+/g, "-").replace(/^-|-$/g, "").replace(/[^\w-]/g, ""),
+          slug: f.slug || "blog-" + Date.now().toString(36),
         }));
       }
       // Extract style tag content
