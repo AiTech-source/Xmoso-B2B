@@ -14,7 +14,9 @@ export default function AdminBlogEditPage() {
   const [content, setContent] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!isNew);
+  const [contentVersion, setContentVersion] = useState(0);
   const imgRef = useRef<HTMLInputElement>(null);
+  const htmlInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isNew) return;
@@ -64,6 +66,38 @@ export default function AdminBlogEditPage() {
     } catch (e: any) { alert(e.message); }
     if (imgRef.current) imgRef.current.value = "";
   }
+
+    function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const html = reader.result as string;
+      const titleMatch = html.match(/<h1>([^<]*)<\/h1>/i);
+      if (titleMatch && !form.title) setForm((f) => ({ ...f, title: titleMatch[1].trim() }));
+      const styleTag = html.match(/<style>[\s\S]*?<\/style>/i);
+      const styleBlock = styleTag ? styleTag[0] : "";
+      const contentDiv = html.match(/<div class="blog-content">[\s\S]*?<\/div>/i);
+      let contentBlock = "";
+      if (contentDiv) {
+        contentBlock = contentDiv[0];
+      } else {
+        contentBlock = html
+          .replace(/<!DOCTYPE[\s\S]*?>/i, "")
+          .replace(/<html[\s\S]*?>/gi, "").replace(/<\/html>/gi, "")
+          .replace(/<head>[\s\S]*?<\/head>/gi, "")
+          .replace(/<body[^>]*>/gi, "").replace(/<\/body>/gi, "")
+          .replace(/<script[\s\S]*?<\/script>/gi, "")
+          .trim();
+      }
+      const fullHtml = (styleBlock ? styleBlock + "\n\n" : "") + contentBlock;
+      setContent({ blocks: [{ type: "raw-html", data: { html: fullHtml } }] });
+      setContentVersion((v) => v + 1);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
 
   if (loading) return (
     <div className="flex"><AdminSidebar /><main className="ml-64 flex-1 p-8"><p className="text-silver/40">Loading...</p></main></div>
@@ -125,7 +159,12 @@ export default function AdminBlogEditPage() {
           {/* Rich Content */}
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
             <h3 className="text-white tracking-wide mb-4">📝 Content</h3>
-            <RichTextEditor content={content} onSave={saveContent} />
+            <div className="flex items-center gap-2 mb-3">
+            <input ref={htmlInputRef} type="file" accept=".html" className="hidden" onChange={handleHtmlUpload} />
+            <Button size="sm" variant="outline" onClick={() => htmlInputRef.current?.click()}>📤 Upload HTML</Button>
+            <span className="text-xs text-silver/40">Upload a pre-made HTML file (auto-fills as RAW HTML block)</span>
+          </div>
+            <RichTextEditor key={contentVersion} content={content} onSave={saveContent} />
           </div>
 
           {/* Save */}
