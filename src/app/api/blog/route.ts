@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   const includeUnpublished = searchParams.get("all") === "true";
   let query = supabase.from("blog_posts").select("*").eq("locale", locale);
   if (!includeUnpublished) query = query.eq("published", true);
-  const { data } = await query.order("created_at", { ascending: false });
+  const { data } = await query.order("sort_order", { ascending: true }).order("created_at", { ascending: false });
 
   return Response.json({ posts: data || [] });
 }
@@ -40,11 +40,16 @@ export async function POST(req: Request) {
   const supabase = await createServerSupabaseClient();
   if (!supabase) return Response.json({ error: "No client" }, { status: 500 });
 
+  const { data: maxOrder } = await supabase
+    .from("blog_posts").select("sort_order").order("sort_order", { ascending: false }).limit(1);
+  const sort_order = (maxOrder?.[0]?.sort_order ?? 0) + 1;
+
   const { data, error } = await supabase.from("blog_posts").insert({
+
     title, slug: slug.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     excerpt: excerpt || "", content: content || { blocks: [] },
     author: author || "", cover_image: cover_image || "",
-    locale: locale || "en", published: published || false,
+    locale: locale || "en", sort_order, published: published || false,
   }).select().single();
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -53,7 +58,7 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const body = await req.json();
-  const { id, title, slug, excerpt, content, author, cover_image, locale, published } = body;
+  const { id, title, slug, excerpt, content, author, cover_image, locale, published, sort_order } = body;
   if (!id) return Response.json({ error: "ID required" }, { status: 400 });
 
   const supabase = await createServerSupabaseClient();
@@ -68,6 +73,7 @@ export async function PUT(req: Request) {
   if (cover_image !== undefined) updates.cover_image = cover_image;
   if (locale !== undefined) updates.locale = locale;
   if (published !== undefined) updates.published = published;
+  if (sort_order !== undefined) updates.sort_order = sort_order;
 
   const { error } = await supabase.from("blog_posts").update(updates).eq("id", id);
   if (error) return Response.json({ error: error.message }, { status: 500 });

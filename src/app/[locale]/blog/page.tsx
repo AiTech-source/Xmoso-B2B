@@ -21,7 +21,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
     const { data } = await supabase
       .from("blog_posts").select("*")
       .eq("locale", locale).eq("published", true)
-      .order("created_at", { ascending: false });
+      .order("sort_order", { ascending: true }).order("created_at", { ascending: false });
     posts = data || [];
   }
 
