@@ -35,16 +35,17 @@ export default function AdminBlogPage() {
     if (target < 0 || target >= posts.length) return;
     const a = posts[idx];
     const b = posts[target];
-    // Swap sort_order values
+    const aOrder = a.sort_order ?? idx + 1;
+    const bOrder = b.sort_order ?? target + 1;
     await fetch("/api/blog", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: a.id, sort_order: b.sort_order }),
+      body: JSON.stringify({ id: a.id, sort_order: bOrder }),
     });
     await fetch("/api/blog", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: b.id, sort_order: a.sort_order }),
+      body: JSON.stringify({ id: b.id, sort_order: aOrder }),
     });
     load();
   }
