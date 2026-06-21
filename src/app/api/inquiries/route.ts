@@ -9,6 +9,12 @@ export async function POST(req: Request) {
     return Response.json({ error: "Name and email required" }, { status: 400 });
   }
 
+  // Basic spam detection
+  const msgLower = (message || "").toLowerCase() + " " + (name || "").toLowerCase();
+  const isSpam = msgLower.includes("http://") || msgLower.includes("https://") ||
+    (msgLower.includes("buy") && msgLower.includes("visit")) ||
+    msgLower.split(/\s+/).filter(Boolean).length > 80;
+
   const supabase = await createServerSupabaseClient();
   if (!supabase) return Response.json({ error: "No client" }, { status: 500 });
 
@@ -18,7 +24,7 @@ export async function POST(req: Request) {
     .insert({
       name, email, company: company || "", phone: phone || "", message: message || "",
       product_id: product_id || null, locale: locale || "en", page_url: page_url || "",
-      utm_source: body.utm_source || "", utm_medium: body.utm_medium || "", utm_campaign: body.utm_campaign || "",
+      utm_source: body.utm_source || "", utm_medium: body.utm_medium || "", utm_campaign: body.utm_campaign || "", is_spam: isSpam,
     })
     .select()
     .single();

@@ -20,6 +20,8 @@ export default function FloatingInquiry({ locale, productName, productModel, pro
     setSending(true);
     setError("");
     const form = new FormData(e.currentTarget);
+    const honeypot = form.get("website_url") as string;
+    if (honeypot) { setSubmitted(true); setSending(false); return; }
     const params = new URLSearchParams(window.location.search);
     try {
       const res = await fetch("/api/inquiries", {
@@ -91,6 +93,7 @@ export default function FloatingInquiry({ locale, productName, productModel, pro
                       </div>
                     )}
 
+              <input name="website_url" type="text" tabIndex={-1} autoComplete="off" className="absolute left-[-9999px] opacity-0 h-0 w-0" />
                     <input name="name" required placeholder="Name *"
                       className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-sm text-[#0A0A0F] placeholder-gray-400 focus:border-forest focus:ring-1 focus:ring-forest focus:outline-none transition-colors" />
                     <input name="email" required type="email" placeholder="Email *"

@@ -13,6 +13,7 @@ export default function InquiryForm({ productId, locale }: InquiryFormProps) {
     e.preventDefault();
     setError("");
     const form = new FormData(e.currentTarget);
+    if (form.get("website_url")) { setSubmitted(true); return; }
     const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
     try {
       const res = await fetch("/api/inquiries", {
@@ -41,6 +42,7 @@ export default function InquiryForm({ productId, locale }: InquiryFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input name="website_url" type="text" tabIndex={-1} autoComplete="off" className="absolute left-[-9999px] opacity-0 h-0 w-0" />
         <input name="name" required placeholder="Name *" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none transition-colors" />
         <input name="email" required type="email" placeholder="Email *" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none transition-colors" />
         <input name="company" placeholder="Company" className="w-full bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white placeholder-silver/30 focus:border-forest/50 focus:outline-none transition-colors" />
