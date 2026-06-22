@@ -341,8 +341,30 @@ export default function AdminPagesPage() {
                 placeholder="Meta Title (leave empty for auto)" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white mb-2" />
               <textarea value={seoDesc} onChange={(e) => { setSeoDesc(e.target.value); markDirty(); }} rows={2}
                 placeholder="Meta Description" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white mb-2" />
+              <div className="flex gap-2 items-center">
               <input value={seoImage} onChange={(e) => { setSeoImage(e.target.value); markDirty(); }}
-                placeholder="OG Image URL" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono text-xs" />
+                placeholder="OG Image URL (leave empty for auto)" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono text-xs" />
+              <span
+                onClick={async () => {
+                  const input = document.createElement("input");
+                  input.type = "file"; input.accept = "image/*";
+                  input.onchange = async () => {
+                    const file = input.files?.[0]; if (!file) return;
+                    const { compressImage } = await import("@/lib/image/compress");
+                    const compressed = await compressImage(file, 1200, 0.85);
+                    const fd = new FormData();
+                    fd.append("file", compressed, "og/" + Date.now() + ".webp");
+                    fd.append("path", "og/" + Date.now() + ".webp");
+                    fd.append("bucket", "products");
+                    const res = await fetch("/api/upload", { method: "POST", body: fd });
+                    const result = await res.json();
+                    if (result.url) { setSeoImage(result.url); markDirty(); }
+                  };
+                  input.click();
+                }}
+                className="px-3 py-2 text-xs bg-ice/20 text-ice border border-ice/30 rounded hover:bg-ice/30 transition-colors cursor-pointer whitespace-nowrap"
+              >📁 Upload</span>
+            </div>
             </div>
 
             {/* Top save bar */}
