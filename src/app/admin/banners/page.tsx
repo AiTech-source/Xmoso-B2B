@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
-import { compressImage } from "@/lib/image/compress";
 
 const PAGES = [
   { key: "home", label: "🏠 Home" },
@@ -26,52 +25,32 @@ export default function AdminBannersPage() {
 
   useEffect(() => { loadBanners(pageKey); }, [pageKey]);
 
-  function detectOrientation(file: File): Promise<string> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(img.naturalWidth >= img.naturalHeight ? "landscape" : "portrait");
-      img.onerror = () => resolve("landscape");
-      img.src = URL.createObjectURL(file);
-    });
-  }
+  
 
   async function handleUpload(files: FileList | null) {
     if (!files || files.length === 0) return;
     setUploading(true);
     for (const file of Array.from(files)) {
       try {
-        const orientation = await detectOrientation(file);
-        const compressed = await compressImage(file, 1920, 0.85);
-        const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
-        const formData = new FormData();
-        formData.append("file", compressed, `banner.webp`);
-        formData.append("path", path);
-        formData.append("bucket", "products");
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
-        const result = await uploadRes.json();
-        if (result.error) { console.error(result.error); continue; }
-        if (result.url) {
-          await fetch("/api/banners", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              page_key: pageKey,
-              image_url: result.url,
-              alt_text: file.name.replace(/\.[^.]+$/, ""),
-              sort_order: banners.length + 1,
-              orientation,
-            }),
-          });
-        }
-      } catch (e) { console.error(e); }
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("page_key", pageKey);
+        const res = await fetch("/api/banners/upload", { method: "POST", body: fd });
+        const result = await res.json();
+        if (!res.ok) { alert("Upload failed: " + (result.error || res.statusText)); continue; }
+      } catch (e: any) { alert("Upload error: " + e.message); }
     }
     setUploading(false);
     loadBanners(pageKey);
   }
 
   async function deleteBanner(id: string) {
-    await fetch(`/api/banners?id=${id}`, { method: "DELETE" });
-    loadBanners(pageKey);
+    try {
+      const res = await fetch(`/api/banners?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { alert("Delete failed: " + (data.error || res.statusText)); return; }
+      loadBanners(pageKey);
+    } catch (e: any) { alert("Delete error: " + e.message); }
   }
 
   async function updateField(id: string, field: string, value: string) {
