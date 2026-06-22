@@ -83,6 +83,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         {faviconUrl && <link rel="icon" href={faviconUrl} sizes="any" />}
         {logoUrl && <link rel="preload" as="image" href={logoUrl} fetchPriority="high" />}
+        <link rel="preconnect" href="https://khauqgzdxkpejdoijzqf.supabase.co" />
+        <link rel="dns-prefetch" href="https://khauqgzdxkpejdoijzqf.supabase.co" />
         <link rel="stylesheet" href="/light-theme.css" />
         {gaId && (
           <>
