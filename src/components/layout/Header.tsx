@@ -48,7 +48,9 @@ export default function Header() {
         <nav className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
           <Link href={`/${locale}`} style={{ textDecoration: "none", display: "flex", alignItems: "center" }} className="text-xl font-bold tracking-widest text-white">
             {logoUrl ? (
-              <img src={logoUrl} fetchPriority="high" alt="Logo" height="32" style={{ height: "32px", maxWidth: "160px" }} className="object-contain" />
+              <div style={{ height: "32px", width: "160px", display: "flex", alignItems: "center" }}>
+              <img src={logoUrl} fetchPriority="high" alt="Logo" height="32" style={{ height: "32px", maxWidth: "160px", width: "auto" }} className="object-contain" />
+            </div>
             ) : null}
           </Link>
 
