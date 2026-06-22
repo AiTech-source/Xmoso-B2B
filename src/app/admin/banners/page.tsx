@@ -19,12 +19,9 @@ export default function AdminBannersPage() {
   const loadId = useRef(0);
 
   function loadBanners(page: string) {
-    const id = ++loadId.current;
-    fetch(`/api/banners?page=${page}&_=${Date.now()}`, { cache: "no-store" })
+    fetch(`/api/banners?page=${page}&_=${Date.now()}&${Math.random()}`, { cache: "no-store", headers: { "Pragma": "no-cache" } })
       .then((r) => r.json())
-      .then((data) => {
-        if (id === loadId.current) setBanners(data.banners || []);
-      });
+      .then((data) => setBanners(data.banners || []));
   }
 
   useEffect(() => { loadBanners(pageKey); }, [pageKey]);
