@@ -76,7 +76,7 @@ export default function ProductCard({ slug, name, image, locale, highlights, pro
         {/* Image */}
         <div className="aspect-[4/3] overflow-hidden rounded-sm border border-silver/10 group-hover:border-forest/30 transition-colors">
           {image ? (
-            <img src={image} alt={name} className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700" />
+            <img src={image} alt={name} loading="lazy" className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-700" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-deep-blue/20">
               <span className="text-silver/20 text-6xl">🍷</span>

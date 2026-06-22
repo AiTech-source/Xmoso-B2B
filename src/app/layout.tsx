@@ -82,7 +82,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en" className={inter.className} data-theme={defaultTheme === "light" ? "light" : undefined}>
       <head>
         {faviconUrl && <link rel="icon" href={faviconUrl} sizes="any" />}
-        {logoUrl && <link rel="preload" as="image" href={logoUrl} />}
+        {logoUrl && <link rel="preload" as="image" href={logoUrl} fetchPriority="high" />}
         <link rel="stylesheet" href="/light-theme.css" />
         {gaId && (
           <>

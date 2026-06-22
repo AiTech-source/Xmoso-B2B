@@ -49,7 +49,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                 <Link href={`/${locale}/blog/${post.slug}`} className="block md:flex">
                   {post.cover_image && (
                     <div className="md:w-72 shrink-0 bg-[#f5f0e8] overflow-hidden">
-                      <img src={post.cover_image} alt={post.title} className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <img src={post.cover_image} loading="lazy" alt={post.title} className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     </div>
                   )}
                   <div className="p-6 flex flex-col justify-center">

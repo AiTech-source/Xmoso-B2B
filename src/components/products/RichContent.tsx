@@ -59,7 +59,7 @@ export default function RichContent({ content }: RichContentProps) {
                   borderRadius: "12px",
                   maxHeight: imgMaxH,
                 }}>
-                  <img src={block.data.url} alt={block.data.alt || ""} className="w-full" style={{ maxHeight: imgMaxH, display: "block" }} />
+                  <img src={block.data.url} loading="lazy" alt={block.data.alt || ""} className="w-full" style={{ maxHeight: imgMaxH, display: "block" }} />
                   {block.data.overlay?.text && (
                     <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8" style={{ background: "linear-gradient(transparent 0%, rgba(10,10,15,0.8) 100%)" }}>
                       <span style={{

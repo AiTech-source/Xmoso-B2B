@@ -100,7 +100,7 @@ export default function ComparePage() {
               <div key={p.id} className="flex-1 min-w-0 text-center">
                 <Link href={`/${locale}/products/${p.slug}`}>
                   <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 flex items-center justify-center">
-                    <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
+                    <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-contain p-4" />
                   </div>
                 </Link>
                 <p className="text-sm mt-2" style={{color:"#ffffff"}}>{p.name}</p>
@@ -115,7 +115,7 @@ export default function ComparePage() {
                 <div key={p.id} className="snap-center shrink-0 w-[85vw]">
                   <Link href={`/${locale}/products/${p.slug}`}>
                     <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden flex items-center justify-center border border-silver/10">
-                      <img src={p.image} alt={p.name} className="w-full h-full object-contain p-4" />
+                      <img src={p.image} alt={p.name} loading="lazy" className="w-full h-full object-contain p-4" />
                     </div>
                   </Link>
                   <p className="text-center text-sm mt-2" style={{color:"#ffffff"}}>{p.name}</p>

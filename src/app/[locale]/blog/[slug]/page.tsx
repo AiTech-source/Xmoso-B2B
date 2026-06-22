@@ -65,7 +65,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ loc
         <article className="max-w-3xl mx-auto px-4 py-8">
           {post.cover_image && (
             <div className="rounded-xl overflow-hidden mb-8 bg-[#f5f0e8]">
-              <img src={post.cover_image} alt={post.title} className="w-full max-h-96 object-cover" />
+              <img src={post.cover_image} loading="lazy" alt={post.title} className="w-full max-h-96 object-cover" />
             </div>
           )}
 
