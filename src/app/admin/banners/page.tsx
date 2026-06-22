@@ -16,11 +16,15 @@ export default function AdminBannersPage() {
   const [uploading, setUploading] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const loadId = useRef(0);
 
   function loadBanners(page: string) {
-    fetch(`/api/banners?page=${page}&t=${Date.now()}`)
+    const id = ++loadId.current;
+    fetch(`/api/banners?page=${page}&_=${Date.now()}`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => setBanners(data.banners || []));
+      .then((data) => {
+        if (id === loadId.current) setBanners(data.banners || []);
+      });
   }
 
   useEffect(() => { loadBanners(pageKey); }, [pageKey]);
@@ -31,27 +35,16 @@ export default function AdminBannersPage() {
     const errs: string[] = [];
     for (const file of Array.from(files)) {
       try {
-        const path = "banners/" + Date.now() + "-" + Math.random().toString(36).slice(2) + ".webp";
         const fd = new FormData();
         fd.append("file", file);
-        fd.append("path", path);
-        fd.append("bucket", "products");
-        const r = await fetch("/api/upload", { method: "POST", body: fd });
-        const d = await r.json();
-        if (!r.ok) { errs.push("Upload: " + (d.error || r.statusText)); continue; }
-        const r2 = await fetch("/api/banners", {
+        fd.append("page_key", pageKey);
+        const res = await fetch("/api/banner-upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            page_key: pageKey,
-            image_url: d.url,
-            alt_text: file.name.replace(/\.[^.]+$/, ""),
-            sort_order: banners.length + 1,
-            orientation: "landscape",
-          }),
+          body: fd,
+          cache: "no-store",
         });
-        const d2 = await r2.json();
-        if (!r2.ok) { errs.push("Create: " + (d2.error || r2.statusText)); }
+        const d = await res.json();
+        if (!res.ok) { errs.push(d.error || "Upload failed"); }
       } catch (e: any) { errs.push(e.message); }
     }
     setUploading(false);
@@ -61,30 +54,25 @@ export default function AdminBannersPage() {
 
   async function deleteBanner(id: string) {
     try {
-      const res = await fetch(`/api/banners?id=${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) { alert("Delete failed: " + (data.error || "Unknown")); return; }
-      loadBanners(pageKey);
-    } catch (e: any) { alert("Delete error: " + e.message); }
-  }
-
-  async function updateField(id: string, field: string, value: string) {
-    await fetch("/api/banners", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, [field]: value }),
-    });
+      const res = await fetch(`/api/banners?id=${id}&_=${Date.now()}`, {
+        method: "DELETE",
+        cache: "no-store",
+      });
+      if (res.ok) { loadBanners(pageKey); return; }
+      const d = await res.json();
+      alert("Delete failed: " + (d.error || res.statusText));
+    } catch (e: any) { alert("Error: " + e.message); }
   }
 
   function handleDragStart(i: number) { setDragIdx(i); }
   function handleDragOver(e: React.DragEvent, i: number) {
     e.preventDefault();
     if (dragIdx === null || dragIdx === i) return;
-    const reordered = [...banners];
-    const [moved] = reordered.splice(dragIdx, 1);
-    reordered.splice(i, 0, moved);
-    reordered.forEach((b, idx) => b.sort_order = idx + 1);
-    setBanners(reordered);
+    const r = [...banners];
+    const [m] = r.splice(dragIdx, 1);
+    r.splice(i, 0, m);
+    r.forEach((b, idx) => b.sort_order = idx + 1);
+    setBanners(r);
     setDragIdx(i);
   }
   async function handleDragEnd() {
@@ -94,6 +82,7 @@ export default function AdminBannersPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: b.id, sort_order: b.sort_order }),
+        cache: "no-store",
       });
     }
   }
@@ -116,7 +105,7 @@ export default function AdminBannersPage() {
             className="border-2 border-dashed border-silver/20 rounded-xl py-6 text-center cursor-pointer hover:border-forest/50 transition-colors">
             {uploading ? <p className="text-silver/60 text-sm">Uploading...</p> : (
               <><p className="text-silver/60 text-sm">Click to upload images</p>
-              <p className="text-xs text-silver/40 mt-1">PNG, JPG, WebP</p></>
+              <p className="text-xs text-silver/40 mt-1">PNG, JPG, WebP supported</p></>
             )}
             <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleUpload(e.target.files)} />
           </div>
@@ -132,20 +121,18 @@ export default function AdminBannersPage() {
                 onDragStart={() => handleDragStart(i)}
                 onDragOver={(e) => handleDragOver(e, i)}
                 onDragEnd={handleDragEnd}
-                className={`flex gap-4 bg-deep-blue/30 border rounded-xl p-4 transition-all cursor-grab active:cursor-grabbing ${
+                className={`flex gap-4 bg-deep-blue/30 border rounded-xl p-4 transition-all cursor-grab ${
                   dragIdx === i ? "border-forest/50" : "border-silver/10"}`}>
                 <div className="w-48 h-28 rounded-lg overflow-hidden bg-deep-dark flex-shrink-0">
                   {b.image_url ? <img src={b.image_url} alt={b.alt_text} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-silver/20 text-2xl">?</div>}
+                  : <div className="w-full h-full flex items-center justify-center text-silver/20" />}
                 </div>
                 <div className="flex-1 space-y-2">
                   <input value={b.alt_text || ""} onChange={(e) => {
                     const s = [...banners]; s[i].alt_text = e.target.value; setBanners(s);
                   }} placeholder="Alt text" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => deleteBanner(b.id)}
-                      className="text-red-400/60 hover:text-red-400 text-xs">Delete</button>
-                  </div>
+                  <button onClick={() => deleteBanner(b.id)}
+                    className="text-red-400/60 hover:text-red-400 text-xs">Delete</button>
                 </div>
               </div>
             ))}
