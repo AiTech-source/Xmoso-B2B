@@ -27,11 +27,19 @@ export default function PageBannerCarousel({ pageKey, vignette = true }: PageBan
       .catch(() => {});
   }, [pageKey]);
 
-  // Filter banners for current device: landscape on desktop, portrait on mobile
-  const visibleBanners = banners.filter((b) => {
+  // Filter banners for current device
+  let visibleBanners = banners.filter((b) => {
     if (!b.orientation) return true;
     return isMobile ? b.orientation === "portrait" : b.orientation === "landscape";
   });
+  // Fallback: if no portrait banners on mobile, show landscape
+  if (isMobile && visibleBanners.length === 0) {
+    visibleBanners = banners.filter((b) => b.orientation === "landscape" || !b.orientation);
+  }
+  // Fallback: if no landscape on desktop, show portrait
+  if (!isMobile && visibleBanners.length === 0) {
+    visibleBanners = banners.filter((b) => b.orientation === "portrait" || !b.orientation);
+  }
 
   const safeActive = visibleBanners.length > 0 ? active % visibleBanners.length : 0;
 
@@ -64,7 +72,7 @@ export default function PageBannerCarousel({ pageKey, vignette = true }: PageBan
       >
         {current.image_url ? (
           <img src={current.image_url} alt={current.alt_text || ""}
-            className={`w-full h-full ${isMobile ? "object-cover" : "object-contain"} ${vignette ? "img-vignette-strong" : ""}`} />
+            className={`w-full h-full object-cover ${vignette ? "img-vignette-strong" : ""}`} />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-deep-blue/60 to-deep-dark">
             <span className="text-6xl opacity-20">🖼</span>
