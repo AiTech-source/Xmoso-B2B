@@ -128,6 +128,7 @@ export default function AdminBannersPage() {
                   <input value={b.alt_text || ""} onChange={(e) => {
                     const s = [...banners]; s[i].alt_text = e.target.value; setBanners(s);
                   }} placeholder="Alt text" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                  {b.orientation === "portrait" ? <span className="text-[10px] px-2 py-0.5 rounded bg-ice/20 text-ice mr-2">竖版</span> : <span className="text-[10px] px-2 py-0.5 rounded bg-forest/20 text-forest mr-2">横版</span>}
                   <button onClick={() => deleteBanner(b.id)}
                     className="text-red-400/60 hover:text-red-400 text-xs">Delete</button>
                 </div>

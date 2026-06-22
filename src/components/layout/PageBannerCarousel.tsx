@@ -27,7 +27,10 @@ export default function PageBannerCarousel({ pageKey, vignette = true }: PageBan
       .catch(() => {});
   }, [pageKey]);
 
-    const visibleBanners = banners;
+    // Preferred orientation first, fallback to all
+  let visibleBanners = banners;
+  const preferred = banners.filter((b) => b.orientation === (isMobile ? "portrait" : "landscape"));
+  if (preferred.length > 0) visibleBanners = preferred;
   const safeActive = visibleBanners.length > 0 ? active % visibleBanners.length : 0;
 
   const next = useCallback(() => {

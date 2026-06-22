@@ -2,6 +2,41 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
+// Detect orientation from image buffer by reading PNG/JPG/WebP headers
+function detectOrientation(buffer: ArrayBuffer): "landscape" | "portrait" {
+  const view = new DataView(buffer);
+  let width = 0, height = 0;
+
+  // PNG
+  if (view.getUint32(0) === 0x89504E47) {
+    width = view.getUint32(16);
+    height = view.getUint32(20);
+  }
+  // JPEG
+  else if (view.getUint16(0) === 0xFFD8) {
+    let offset = 2;
+    while (offset < view.byteLength) {
+      if (view.getUint16(offset) === 0xFFC0) {
+        height = view.getUint16(offset + 5);
+        width = view.getUint16(offset + 7);
+        break;
+      }
+      offset += 2 + view.getUint16(offset + 2);
+    }
+  }
+  // WebP
+  else if (view.getUint32(0) === 0x52494646) {
+    width = view.getUint16(26) | (view.getUint8(28) << 16);
+    height = view.getUint16(28) | (view.getUint8(30) << 16);
+  }
+
+  if (width > 0 && height > 0) {
+    return width >= height ? "landscape" : "portrait";
+  }
+  // Default to landscape
+  return "landscape";
+}
+
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
@@ -10,23 +45,23 @@ export async function POST(req: Request) {
 
     if (!file || !pageKey) {
       return Response.json({ error: "File and page_key required" }, {
-        status: 400,
-        headers: { "Cache-Control": "no-store" },
+        status: 400, headers: { "Cache-Control": "no-store" },
       });
     }
 
     const supabase = await createServerSupabaseClient();
     if (!supabase) {
       return Response.json({ error: "DB unavailable" }, {
-        status: 500,
-        headers: { "Cache-Control": "no-store" },
+        status: 500, headers: { "Cache-Control": "no-store" },
       });
     }
 
-    // 1. Upload file to storage
     const ext = file.name.match(/\.(png|jpg|jpeg|webp)$/i)?.[0] || ".webp";
     const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     const buffer = await file.arrayBuffer();
+
+    // Detect orientation from image dimensions
+    const orientation = detectOrientation(buffer);
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("products")
@@ -37,14 +72,12 @@ export async function POST(req: Request) {
 
     if (uploadError) {
       return Response.json({ error: uploadError.message }, {
-        status: 500,
-        headers: { "Cache-Control": "no-store" },
+        status: 500, headers: { "Cache-Control": "no-store" },
       });
     }
 
     const { data: { publicUrl } } = supabase.storage.from("products").getPublicUrl(uploadData.path);
 
-    // 2. Insert banner record
     const { data: banner, error: insertError } = await supabase
       .from("page_banners")
       .insert({
@@ -52,15 +85,14 @@ export async function POST(req: Request) {
         image_url: publicUrl,
         alt_text: file.name.replace(/\.[^.]+$/, ""),
         sort_order: 0,
-        orientation: "landscape",
+        orientation,
       })
       .select()
       .single();
 
     if (insertError) {
       return Response.json({ error: insertError.message }, {
-        status: 500,
-        headers: { "Cache-Control": "no-store" },
+        status: 500, headers: { "Cache-Control": "no-store" },
       });
     }
 
@@ -69,8 +101,7 @@ export async function POST(req: Request) {
     });
   } catch (err: any) {
     return Response.json({ error: err.message || "Upload failed" }, {
-      status: 500,
-      headers: { "Cache-Control": "no-store" },
+      status: 500, headers: { "Cache-Control": "no-store" },
     });
   }
 }
