@@ -27,20 +27,7 @@ export default function PageBannerCarousel({ pageKey, vignette = true }: PageBan
       .catch(() => {});
   }, [pageKey]);
 
-  // Filter banners for current device
-  let visibleBanners = banners.filter((b) => {
-    if (!b.orientation) return true;
-    return isMobile ? b.orientation === "portrait" : b.orientation === "landscape";
-  });
-  // Fallback: if no portrait banners on mobile, show landscape
-  if (isMobile && visibleBanners.length === 0) {
-    visibleBanners = banners.filter((b) => b.orientation === "landscape" || !b.orientation);
-  }
-  // Fallback: if no landscape on desktop, show portrait
-  if (!isMobile && visibleBanners.length === 0) {
-    visibleBanners = banners.filter((b) => b.orientation === "portrait" || !b.orientation);
-  }
-
+    const visibleBanners = banners;
   const safeActive = visibleBanners.length > 0 ? active % visibleBanners.length : 0;
 
   const next = useCallback(() => {
