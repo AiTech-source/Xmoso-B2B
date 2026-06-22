@@ -54,14 +54,14 @@ export default function AdminBannersPage() {
 
   async function deleteBanner(id: string) {
     try {
-      const res = await fetch(`/api/banners?id=${id}&_=${Date.now()}`, {
+      const res = await fetch(`/api/banners?id=${id}&r=${Math.random()}`, {
         method: "DELETE",
         cache: "no-store",
       });
       if (res.ok) { loadBanners(pageKey); return; }
       const d = await res.json();
-      alert("Delete failed: " + (d.error || res.statusText));
-    } catch (e: any) { alert("Error: " + e.message); }
+      alert("Delete HTTP " + res.status + ": " + (d.error || "Unknown"));
+    } catch (e: any) { alert("Delete error: " + e.message); }
   }
 
   function handleDragStart(i: number) { setDragIdx(i); }
