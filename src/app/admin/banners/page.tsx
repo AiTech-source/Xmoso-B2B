@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { compressImage } from "@/lib/image/compress";
 
@@ -18,7 +17,6 @@ export default function AdminBannersPage() {
   const [uploading, setUploading] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
 
   function loadBanners(page: string) {
     fetch(`/api/banners?page=${page}`)
@@ -38,7 +36,7 @@ export default function AdminBannersPage() {
   }
 
   async function handleUpload(files: FileList | null) {
-    if (!files || files.length === 0 || !supabase) return;
+    if (!files || files.length === 0) return;
     setUploading(true);
     for (const file of Array.from(files)) {
       try {
@@ -53,12 +51,16 @@ export default function AdminBannersPage() {
         const result = await uploadRes.json();
         if (result.error) { console.error(result.error); continue; }
         if (result.url) {
-          await supabase.from("page_banners").insert({
-            page_key: pageKey,
-            image_url: result.url,
-            alt_text: file.name.replace(/\.[^.]+$/, ""),
-            sort_order: banners.length + 1,
-            orientation,
+          await fetch("/api/banners", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              page_key: pageKey,
+              image_url: result.url,
+              alt_text: file.name.replace(/\.[^.]+$/, ""),
+              sort_order: banners.length + 1,
+              orientation,
+            }),
           });
         }
       } catch (e) { console.error(e); }
@@ -68,14 +70,16 @@ export default function AdminBannersPage() {
   }
 
   async function deleteBanner(id: string) {
-    if (!supabase) return;
-    await supabase.from("page_banners").delete().eq("id", id);
+    await fetch(`/api/banners?id=${id}`, { method: "DELETE" });
     loadBanners(pageKey);
   }
 
   async function updateField(id: string, field: string, value: string) {
-    if (!supabase) return;
-    await supabase.from("page_banners").update({ [field]: value }).eq("id", id);
+    await fetch("/api/banners", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, [field]: value }),
+    });
   }
 
   function handleDragStart(i: number) { setDragIdx(i); }
@@ -91,9 +95,12 @@ export default function AdminBannersPage() {
   }
   async function handleDragEnd() {
     setDragIdx(null);
-    if (!supabase) return;
     for (const b of banners) {
-      await supabase.from("page_banners").update({ sort_order: b.sort_order }).eq("id", b.id);
+      await fetch("/api/banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: b.id, sort_order: b.sort_order }),
+      });
     }
   }
 
@@ -103,7 +110,6 @@ export default function AdminBannersPage() {
       <main className="ml-64 flex-1 p-8">
         <h1 className="text-2xl font-light tracking-wider text-white mb-6">🎠 Page Banners</h1>
 
-        {/* Page selector */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {PAGES.map((p) => (
             <button key={p.key} onClick={() => setPageKey(p.key)}
@@ -113,7 +119,6 @@ export default function AdminBannersPage() {
           ))}
         </div>
 
-        {/* Upload */}
         <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6 mb-6">
           <div onClick={() => inputRef.current?.click()}
             className="border-2 border-dashed border-silver/20 rounded-xl py-6 text-center cursor-pointer hover:border-forest/50 transition-colors">
@@ -129,7 +134,6 @@ export default function AdminBannersPage() {
           </div>
         </div>
 
-        {/* Banner list */}
         {banners.length === 0 ? (
           <div className="bg-deep-blue/20 border border-silver/10 rounded-xl p-12 text-center">
             <span className="text-4xl text-silver/20">🖼</span>
