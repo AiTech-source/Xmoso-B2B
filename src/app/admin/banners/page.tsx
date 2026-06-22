@@ -32,12 +32,27 @@ export default function AdminBannersPage() {
     setUploading(true);
     for (const file of Array.from(files)) {
       try {
+        const path = "banners/" + Date.now() + "-" + Math.random().toString(36).slice(2) + ".webp";
         const fd = new FormData();
         fd.append("file", file);
-        fd.append("page_key", pageKey);
-        const res = await fetch("/api/banners/upload", { method: "POST", body: fd });
+        fd.append("path", path);
+        fd.append("bucket", "products");
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+        const uploadResult = await uploadRes.json();
+        if (!uploadRes.ok) { alert("Upload failed: " + (uploadResult.error || "Unknown")); continue; }
+        const res = await fetch("/api/banners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            page_key: pageKey,
+            image_url: uploadResult.url,
+            alt_text: file.name.replace(/.[^.]+$/, ""),
+            sort_order: banners.length + 1,
+            orientation: "landscape",
+          }),
+        });
         const result = await res.json();
-        if (!res.ok) { alert("Upload failed: " + (result.error || res.statusText)); continue; }
+        if (!res.ok) { alert("Create banner failed: " + (result.error || "Unknown")); }
       } catch (e: any) { alert("Upload error: " + e.message); }
     }
     setUploading(false);
