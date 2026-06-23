@@ -138,17 +138,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
   }
 
-  // Determine if we're showing fallback content (reserved for future use)
-  // const isFallback = displayLocale !== locale;
-
-  // B2B FAQ — fetch from DB, fallback to built-in if empty
+  // B2B FAQ — fetch from DB by locale (fallback to EN), fallback to built-in if all empty
   const pt = category?.product_type || null;
-  const { data: genericFaqs } = await supabase
-    .from("product_faqs").select("*").eq("product_type", "").eq("locale", "en").order("sort_order", { ascending: true });
-  const { data: typeFaqs } = pt
-    ? await supabase.from("product_faqs").select("*").eq("product_type", pt).eq("locale", "en").order("sort_order", { ascending: true })
-    : { data: [] };
-  const dbFaqs = [...(genericFaqs || []), ...(typeFaqs || [])];
+  const fetchFaqs = async (l: string, type: string | null) => {
+    const { data: g } = await supabase.from("product_faqs").select("*").eq("product_type", "").eq("locale", l).order("sort_order", { ascending: true });
+    const { data: t } = type ? await supabase.from("product_faqs").select("*").eq("product_type", type).eq("locale", l).order("sort_order", { ascending: true }) : { data: [] };
+    return [...(g || []), ...(t || [])];
+  };
+  let dbFaqs = (locale !== "en" ? await fetchFaqs(locale, pt) : []);
+  if (dbFaqs.length === 0) dbFaqs = await fetchFaqs("en", pt);
 
   // Hardcoded fallback questions (used when DB has no entries)
   function getFallbackFaqs(productType: string | null): { question: string; answer: string }[] {
@@ -196,7 +194,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
         <Breadcrumbs items={[
           { label: locale === "zh" ? "产品中心" : "Products", href: `/${locale}/products` },
-          // Only show product_type breadcrumb if it differs from category name (avoid duplication)
           ...(category?.product_type && category.product_type !== category?.name
             ? [{ label: category.product_type, href: `/${locale}/products?type=${encodeURIComponent(category.product_type)}` }]
             : []),
@@ -228,7 +225,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           }}
         />
 
-        {/* FAQ Schema for B2B buyers — helps AI search results */}
+        {/* FAQ Schema for B2B buyers */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -266,7 +263,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          {/* Installation Media — below SPEC, above Counters */}
+          {/* Installation Media */}
           {product.installation_media?.length > 0 && (
             <InstallationMedia media={product.installation_media} />
           )}
@@ -280,7 +277,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          {/* Rich Content — per-locale if available (_zh/_en key), else shared */}
+          {/* Rich Content */}
           {(product.content?.[`_${locale}`]?.blocks?.length > 0 ? product.content[`_${locale}`] : product.content) && (
             <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
               <h3 className="text-xl text-white tracking-wide mb-6">📖 Details</h3>
@@ -317,7 +314,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          {/* Inquiry — scrolls naturally with content */}
+          {/* Inquiry */}
           <div className="max-w-xs mx-auto pb-8">
             <FloatingInquiry locale={locale} productName={translation.name} productModel={product.model_number} productId={product.id} />
           </div>

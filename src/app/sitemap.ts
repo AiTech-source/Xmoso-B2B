@@ -5,7 +5,7 @@ export default async function sitemap() {
   const supabase = await createServerSupabaseClient();
 
   const locales = ["en", "zh"];
-  const staticPages = ["", "products", "about", "contact", "faq"];
+  const staticPages = ["", "products", "about", "contact", "faq", "sourcing"];
   const staticEntries = locales.flatMap((locale) =>
     staticPages.map((page) => ({
       url: `${baseUrl}/${locale}${page ? `/${page}` : ""}`,

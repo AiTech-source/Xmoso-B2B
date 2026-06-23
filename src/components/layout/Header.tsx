@@ -33,6 +33,7 @@ export default function Header() {
     { href: `/${locale}`, label: isZh ? "首页" : "Home" },
     { href: `/${locale}/products`, label: isZh ? "产品中心" : "Products" },
     { href: `/${locale}/blog`, label: isZh ? "新闻" : "Blog" },
+    { href: `/${locale}/sourcing`, label: isZh ? "采购" : "Sourcing" },
     { href: `/${locale}/about`, label: isZh ? "关于我们" : "About Us" },
     { href: `/${locale}/contact`, label: isZh ? "联系我们" : "Contact Us" },
     { href: `/${locale}/faq`, label: isZh ? "常见问题" : "FAQ" },
