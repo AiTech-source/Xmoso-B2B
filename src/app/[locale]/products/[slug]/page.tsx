@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       title: translation.meta_title || translation.name,
       description: translation.meta_description || translation.description || undefined,
-      images: [{ url: ogUrl, width: 1200, height: 630 }],
+      images: [{ url: productImage || ogUrl, width: 1200, height: 630 }],
     },
     other: {
       "twitter:card": "summary_large_image",
