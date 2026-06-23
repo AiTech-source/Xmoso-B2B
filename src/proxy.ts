@@ -36,6 +36,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(`https://xmoso.com${prefix}/products`, 301);
   }
 
+  // Bypass Cloudflare cache for Next.js RSC payloads (text/x-component)
+  const accept = request.headers.get("accept") || "";
+  if (accept.includes("text/x-component")) {
+    const response = NextResponse.next();
+    response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+    response.headers.set("CDN-Cache-Control", "no-store");
+    return response;
+  }
+
   if (pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
