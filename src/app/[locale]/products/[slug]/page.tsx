@@ -11,6 +11,7 @@ import SpecTabs from "@/components/products/SpecTabs";
 import FloatingInquiry from "@/components/products/FloatingInquiry";
 import ShareButton from "@/components/social/ShareButton";
 import SpecSheetButton from "@/components/products/SpecSheetButton";
+import FaqAccordion from "@/components/products/FaqAccordion";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { productSchema, breadcrumbListSchema, faqPageSchema, renderJsonLd } from "@/lib/seo/json-ld";
@@ -140,99 +141,52 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   // Determine if we're showing fallback content (reserved for future use)
   // const isFallback = displayLocale !== locale;
 
-  // B2B FAQ questions based on product type
-  function getB2bFaqs(productType: string | null, productName: string) {
+  // B2B FAQ — fetch from DB, fallback to built-in if empty
+  const pt = category?.product_type || null;
+  const { data: genericFaqs } = await supabase
+    .from("product_faqs").select("*").eq("product_type", "").eq("locale", "en").order("sort_order", { ascending: true });
+  const { data: typeFaqs } = pt
+    ? await supabase.from("product_faqs").select("*").eq("product_type", pt).eq("locale", "en").order("sort_order", { ascending: true })
+    : { data: [] };
+  const dbFaqs = [...(genericFaqs || []), ...(typeFaqs || [])];
+
+  // Hardcoded fallback questions (used when DB has no entries)
+  function getFallbackFaqs(productType: string | null): { question: string; answer: string }[] {
     const type = (productType || "").toLowerCase();
     const isCigar = type.includes("cigar") || type.includes("humid");
     const isWine = type.includes("wine");
     const isBeverage = type.includes("beverage") || type.includes("drink");
     const isBar = type.includes("bar") || type.includes("cabinet") || type.includes("liquor");
 
-    const genericQ = [
-      {
-        question: "What is the minimum order quantity (MOQ) for this product?",
-        answer: "Our standard MOQ is 50–100 units per model for OEM orders. We also offer sample orders of 1–5 units for quality evaluation before bulk commitment. Contact our sales team for specific MOQ details.",
-      },
-      {
-        question: "What certifications do your products have?",
-        answer: "Our products are certified with CE, RoHS, and ERP for European markets, and ETL/UL for North American markets. We maintain ISO9001 quality management standards across our production facilities.",
-      },
-      {
-        question: "Do you offer OEM/ODM services?",
-        answer: "Yes, we provide full OEM and ODM services including custom logo printing, RAL/Pantone color matching, custom packaging design, temperature range configuration, and multilingual labeling. Share your specifications and our engineering team will provide a tailored solution.",
-      },
-      {
-        question: "What is the warranty period?",
-        answer: "We offer a standard 1–2 year warranty on all products covering manufacturing defects. Extended warranty options are available for bulk orders and long-term partnerships.",
-      },
-      {
-        question: "What payment terms do you accept?",
-        answer: "We accept T/T (wire transfer), L/C (letter of credit), and other mutually agreed payment terms. Typical terms are 30% deposit with 70% balance before shipment. Flexible terms are available for established partnerships.",
-      },
+    const qs: { question: string; answer: string }[] = [
+      { question: "What is the minimum order quantity (MOQ) for this product?", answer: "Our standard MOQ is 50–100 units per model for OEM orders. We also offer sample orders of 1–5 units for quality evaluation before bulk commitment. Contact our sales team for specific MOQ details." },
+      { question: "What certifications do your products have?", answer: "Our products are certified with CE, RoHS, and ERP for European markets, and ETL/UL for North American markets. We maintain ISO9001 quality management standards across our production facilities." },
+      { question: "Do you offer OEM/ODM services?", answer: "Yes, we provide full OEM and ODM services including custom logo printing, RAL/Pantone color matching, custom packaging design, temperature range configuration, and multilingual labeling." },
+      { question: "What is the warranty period?", answer: "We offer a standard 1–2 year warranty on all products covering manufacturing defects. Extended warranty options are available for bulk orders and long-term partnerships." },
+      { question: "What payment terms do you accept?", answer: "We accept T/T (wire transfer), L/C (letter of credit), and other mutually agreed payment terms. Typical terms are 30% deposit with 70% balance before shipment." },
     ];
-
-    const typeSpecificQ: { question: string; answer: string }[] = [];
-
     if (isWine) {
-      typeSpecificQ.push(
-        {
-          question: "What temperature range does this wine cooler support?",
-          answer: "Our compressor wine coolers typically support a temperature range of 5°C–22°C (41°F–72°F), perfect for storing both red and white wines at optimal serving temperatures. Dual-zone models allow independent temperature control for different wine varieties.",
-        },
-        {
-          question: "Compressor vs thermoelectric wine cooler — which is better for commercial use?",
-          answer: "For commercial applications, we recommend compressor-based wine coolers. They provide consistent cooling regardless of ambient temperature, support lower temperatures, and are available in larger capacities (up to 320+ bottles). Thermoelectric models are quieter and more energy-efficient but are better suited for small residential use in climate-controlled environments.",
-        },
-      );
+      qs.push({ question: "What temperature range does this wine cooler support?", answer: "Our compressor wine coolers support a range of 5°C–22°C (41°F–72°F). Dual-zone models allow independent temperature control for different wine varieties." });
+      qs.push({ question: "Compressor vs thermoelectric — which is better for commercial use?", answer: "For commercial use, compressor wine coolers are recommended. They handle higher ambient temperatures and are available in larger capacities (up to 320+ bottles)." });
     }
-
     if (isCigar) {
-      typeSpecificQ.push(
-        {
-          question: "What type of wood is used for the cabinet interior?",
-          answer: "Our cigar cabinets feature Spanish cedar interiors, the industry standard for cigar humidors. Spanish cedar naturally helps maintain proper humidity levels, resists mold and pests, and enhances the aging process of cigars with its aromatic properties.",
-        },
-        {
-          question: "What humidity control system do you use?",
-          answer: "Our electric cigar humidors feature advanced thermoelectric cooling with active humidification systems. The digital control panel maintains precise temperature (54°F–74°F) and humidity (65%–75% RH) levels, ensuring optimal conditions for cigar preservation and aging.",
-        },
-      );
+      qs.push({ question: "What type of wood is used for the cabinet interior?", answer: "Our cigar cabinets feature Spanish cedar interiors, the industry standard. Spanish cedar maintains proper humidity, resists mold, and enhances cigar aging." });
+      qs.push({ question: "What humidity levels does this cabinet maintain?", answer: "Our electric humidors maintain 54°F–74°F temperature and 65%–75% RH humidity for optimal cigar preservation." });
     }
-
     if (isBeverage) {
-      typeSpecificQ.push(
-        {
-          question: "What is the temperature range for beverage cooling?",
-          answer: "Our beverage coolers operate in a range of 2°C–18°C (35°F–65°F), suitable for beers, wines, soft drinks, and other beverages. Digital thermostats allow precise temperature control to match your specific beverage requirements.",
-        },
-        {
-          question: "Can this beverage cooler be used as both built-in and freestanding?",
-          answer: "Many of our beverage cooler models are designed for both built-in and freestanding installation. Built-in models feature front-ventilation that allows flush installation under counters. Please check the specific model specifications or consult our sales team for installation recommendations.",
-        },
-      );
+      qs.push({ question: "What temperature range does this beverage cooler support?", answer: "Our beverage coolers operate at 2°C–18°C (35°F–65°F), suitable for beers, wines, sodas, and more." });
+      qs.push({ question: "Built-in or freestanding installation?", answer: "Many models support both. Built-in models feature front-ventilation for flush under-counter installation." });
     }
-
     if (isBar) {
-      typeSpecificQ.push(
-        {
-          question: "What materials and finishes are available?",
-          answer: "Our bar cabinets are available in a variety of materials including solid wood, engineered wood with veneer finishes, stainless steel, and tempered glass. Custom RAL colors, Pantone matching, and bespoke finishes are available for hospitality and hotel projects.",
-        },
-        {
-          question: "Can bar cabinets be customized for hotel or hospitality projects?",
-          answer: "Yes, we specialize in custom bar cabinet solutions for hotels, resorts, and hospitality projects. We can customize dimensions, materials, finishes, integrated refrigeration, lockable doors, LED lighting, and more to match your design specifications and brand requirements.",
-        },
-      );
+      qs.push({ question: "What materials and finishes are available?", answer: "We offer solid wood, engineered wood veneers, stainless steel, and tempered glass. Custom RAL colors are available for hospitality projects." });
+      qs.push({ question: "Can bar cabinets be customized for hotel projects?", answer: "Yes, we specialize in custom solutions for hotels and hospitality — dimensions, finishes, integrated refrigeration, lockable doors, and LED lighting." });
     }
-
-    // Add general type question
-    typeSpecificQ.push({
-      question: `How long does shipping take for ${(productType || "this product").toLowerCase()} orders?`,
-      answer: "Typical production lead time is 25–40 days after deposit confirmation. Shipping time depends on destination: 15–25 days to North America, 20–30 days to Europe by sea freight. Air freight and express shipping options are available for urgent orders. We coordinate logistics including FOB, CIF, and door-to-door delivery.",
-    });
-
-    return [...genericQ, ...typeSpecificQ];
+    qs.push({ question: `How long does shipping take for ${(productType || "this product").toLowerCase()} orders?`, answer: "Production lead time is 25–40 days after deposit. Shipping: 15–25 days to North America, 20–30 days to Europe by sea. Air freight available." });
+    return qs;
   }
+
+  const faqs = dbFaqs.length > 0 ? dbFaqs : getFallbackFaqs(pt);
+  const faqTitle = locale === "zh" ? "❓ 常见问题 (B2B)" : "❓ B2B FAQ";
 
   return (
     <>
@@ -278,7 +232,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: renderJsonLd(faqPageSchema(getB2bFaqs(category?.product_type || null, translation.name)))
+            __html: renderJsonLd(faqPageSchema(faqs.map((f: any) => ({ question: f.question, answer: f.answer }))))
           }}
         />
 
@@ -353,6 +307,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* FAQ Section */}
+          {faqs.length > 0 && (
+            <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
+              <FaqAccordion faqs={faqs} title={faqTitle} />
             </div>
           )}
 

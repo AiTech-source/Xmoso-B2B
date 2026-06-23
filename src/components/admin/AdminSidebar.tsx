@@ -14,7 +14,7 @@ const links = [
   { href: "/admin/products", label: "📦 Products" },
   { href: "/admin/translations", label: "🌐 Translations" },
   { href: "/admin/spec-templates", label: "📋 Spec Templates" },
-  { href: "/admin/faq", label: "📋 FAQ" },
+  { href: "/admin/faqs", label: "📋 FAQ" },
   { href: "/admin/inquiries", label: "📨 Inquiries" },
   { href: "/admin/analytics", label: "📈 Analytics" },
   { href: "/admin/settings", label: "⚙️ Settings" },
