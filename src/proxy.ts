@@ -15,8 +15,9 @@ const VALID_LOCALES = ["en", "zh"];
 // Cloudflare must NOT cache Next.js page responses (HTML or RSC payload),
 // because RSC builds are tied to a specific deployment build ID.
 // Cached old RSC data causes "0:{"f":.." rendering errors on navigation.
+// Note: Cache-Control is handled by next.config.ts headers (runs post-response);
+// we only set CDN-Cache-Control here as a hint.
 function preventCdnCache(response: NextResponse) {
-  response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
   response.headers.set("CDN-Cache-Control", "no-store");
   return response;
 }
