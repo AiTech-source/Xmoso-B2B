@@ -94,20 +94,23 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
             </AnimateSection>
           )}
 
-          {/* ====== CAPABILITIES ====== */}
+          {/* ====== CAPABILITIES (editable via admin /pages) ====== */}
           <section className="py-16 border-b border-silver/10">
             <h2 className="text-2xl font-light tracking-wider text-white text-center mb-12">
               {isZh ? "制造能力" : "Manufacturing Capabilities"}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { icon: "🏭", title: isZh ? "工厂实力" : "Factory Strength", desc: isZh ? "现代化生产基地，年产量超10万台，支持大规模订单和快速交付。" : "Modern production base with 100,000+ units annual capacity. Large-scale orders with fast turnaround." },
-                { icon: "🔧", title: isZh ? "OEM/ODM 定制" : "OEM/ODM Customization", desc: isZh ? "Logo 印刷、颜色匹配（RAL/Pantone）、包装设计、温区配置、多语言标签全方位定制。" : "Full customization: logo, RAL/Pantone colors, packaging design, temperature zone config, multilingual labels." },
-                { icon: "✅", title: isZh ? "质量认证" : "Quality Certifications", desc: isZh ? "CE, RoHS, ERP（欧洲市场）、ETL/UL（北美市场），ISO9001 质量体系。" : "CE, RoHS, ERP for EU; ETL/UL for North America; ISO9001 quality management." },
-                { icon: "📦", title: isZh ? "灵活起订量" : "Flexible MOQ", desc: isZh ? "标准 OEM 50-100台起订。可提供 1-5 台样品订单，确认质量后再批量下单。" : "Standard MOQ 50-100 units. Sample orders of 1-5 units available for quality evaluation." },
-                { icon: "🌍", title: isZh ? "全球出口" : "Global Export", desc: isZh ? "出口至北美、欧洲、澳大利亚、中东、东南亚。交期 15-40 天（取决于目的地）。" : "Exporting to North America, Europe, Australia, Middle East, SE Asia. Lead time 15-40 days." },
-                { icon: "🛡️", title: isZh ? "售后服务" : "After-Sales Support", desc: isZh ? "1-2 年质保，大批量订单可延长质保期。提供技术支持和配件供应。" : "1-2 year warranty, extendable for bulk orders. Technical support and spare parts available." },
-              ].map((item, i) => (
+              {(pageData?.content?.capabilities?.length
+                ? pageData.content.capabilities
+                : [
+                    { icon: "🏭", title: "Factory Strength", desc: "" },
+                    { icon: "🔧", title: "OEM/ODM Customization", desc: "" },
+                    { icon: "✅", title: "Quality Certifications", desc: "" },
+                    { icon: "📦", title: "Flexible MOQ", desc: "" },
+                    { icon: "🌍", title: "Global Export", desc: "" },
+                    { icon: "🛡️", title: "After-Sales Support", desc: "" },
+                  ]
+              ).map((item: any, i: number) => (
                 <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 text-center hover:border-forest/30 transition-colors">
                   <span className="text-3xl">{item.icon}</span>
                   <h3 className="text-white text-sm font-medium mt-4 mb-2">{item.title}</h3>

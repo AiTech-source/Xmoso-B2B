@@ -61,6 +61,14 @@ export default function AdminPagesPage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [showPreviews, setShowPreviews] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [capabilities, setCapabilities] = useState<{ icon: string; title: string; desc: string }[]>([
+    { icon: "🏭", title: "Factory Strength", desc: "" },
+    { icon: "🔧", title: "OEM/ODM Customization", desc: "" },
+    { icon: "✅", title: "Quality Certifications", desc: "" },
+    { icon: "📦", title: "Flexible MOQ", desc: "" },
+    { icon: "🌍", title: "Global Export", desc: "" },
+    { icon: "🛡️", title: "After-Sales Support", desc: "" },
+  ]);
 
   function togglePreview(i: number) {
     const s = new Set(showPreviews);
@@ -109,6 +117,19 @@ export default function AdminPagesPage() {
           setContactInfo(defaults);
         }
         setBlocks(data.content?.blocks || []);
+        // Load capabilities from content (sourcing page)
+        if (data.content?.capabilities?.length) {
+          setCapabilities(data.content.capabilities);
+        } else {
+          setCapabilities([
+            { icon: "🏭", title: "Factory Strength", desc: "" },
+            { icon: "🔧", title: "OEM/ODM Customization", desc: "" },
+            { icon: "✅", title: "Quality Certifications", desc: "" },
+            { icon: "📦", title: "Flexible MOQ", desc: "" },
+            { icon: "🌍", title: "Global Export", desc: "" },
+            { icon: "🛡️", title: "After-Sales Support", desc: "" },
+          ]);
+        }
         setDirty(false);
         setLoading(false);
       })
@@ -202,7 +223,7 @@ export default function AdminPagesPage() {
       vignette_enabled: vignetteEnabled,
       slogan_font_size: sloganSize,
       subtitle_font_size: subtitleSize,
-      content: { blocks },
+      content: { blocks, ...(pageKey === "sourcing" ? { capabilities } : {}) },
       contact_info: contactInfo,
       seo_title: seoTitle || null,
       seo_description: seoDesc || null,
@@ -367,6 +388,32 @@ export default function AdminPagesPage() {
               >📁 Upload</span>
             </div>
             </div>
+
+            {/* Capabilities Editor (only for Sourcing page) */}
+            {pageKey === "sourcing" && (
+              <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">🏭 Capability Cards</p>
+                <p className="text-[10px] text-silver/40 mb-4">Edit the 6 capability cards displayed on the Sourcing page.</p>
+                <div className="space-y-4">
+                  {capabilities.map((cap, i) => (
+                    <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-lg p-4">
+                      <div className="flex gap-3 items-start mb-2">
+                        <input value={cap.icon} onChange={(e) => {
+                          const s = [...capabilities]; s[i] = { ...s[i], icon: e.target.value }; setCapabilities(s); markDirty();
+                        }} className="w-10 text-center bg-deep-dark border border-silver/10 rounded px-1 py-1.5 text-sm" />
+                        <input value={cap.title} onChange={(e) => {
+                          const s = [...capabilities]; s[i] = { ...s[i], title: e.target.value }; setCapabilities(s); markDirty();
+                        }} className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-medium" />
+                      </div>
+                      <textarea value={cap.desc} onChange={(e) => {
+                        const s = [...capabilities]; s[i] = { ...s[i], desc: e.target.value }; setCapabilities(s); markDirty();
+                      }} rows={3} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white resize-y"
+                        placeholder="Describe this capability..." />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Top save bar */}
             <div className="sticky top-0 z-20 -mx-8 px-8 py-3 bg-deep-blue/90 backdrop-blur-md border-b border-silver/10 flex items-center justify-between">
