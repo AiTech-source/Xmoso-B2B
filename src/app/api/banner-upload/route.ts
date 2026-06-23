@@ -1,39 +1,16 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import sharp from "sharp";
 
 export const runtime = "nodejs";
 
-// Detect orientation from image buffer by reading PNG/JPG/WebP headers
-function detectOrientation(buffer: ArrayBuffer): "landscape" | "portrait" {
-  const view = new DataView(buffer);
-  let width = 0, height = 0;
-
-  // PNG
-  if (view.getUint32(0) === 0x89504E47) {
-    width = view.getUint32(16);
-    height = view.getUint32(20);
-  }
-  // JPEG
-  else if (view.getUint16(0) === 0xFFD8) {
-    let offset = 2;
-    while (offset < view.byteLength) {
-      if (view.getUint16(offset) === 0xFFC0) {
-        height = view.getUint16(offset + 5);
-        width = view.getUint16(offset + 7);
-        break;
-      }
-      offset += 2 + view.getUint16(offset + 2);
+// Detect orientation from image buffer using sharp
+async function detectOrientation(buffer: ArrayBuffer): Promise<"landscape" | "portrait"> {
+  try {
+    const metadata = await sharp(Buffer.from(buffer)).metadata();
+    if (metadata.width && metadata.height) {
+      return metadata.width >= metadata.height ? "landscape" : "portrait";
     }
-  }
-  // WebP
-  else if (view.getUint32(0) === 0x52494646) {
-    width = view.getUint16(26) | (view.getUint8(28) << 16);
-    height = view.getUint16(28) | (view.getUint8(30) << 16);
-  }
-
-  if (width > 0 && height > 0) {
-    return width >= height ? "landscape" : "portrait";
-  }
-  // Default to landscape
+  } catch {}
   return "landscape";
 }
 
@@ -60,8 +37,8 @@ export async function POST(req: Request) {
     const path = `banners/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     const buffer = await file.arrayBuffer();
 
-    // Detect orientation from image dimensions
-    const orientation = detectOrientation(buffer);
+    // Detect orientation from image dimensions using sharp
+    const orientation = await detectOrientation(buffer);
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("products")
