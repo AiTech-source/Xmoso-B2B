@@ -25,6 +25,10 @@ export default function AdminSettingsPage() {
   const [smtpPass, setSmtpPass] = useState("");
   const [smtpSecure, setSmtpSecure] = useState(false);
   const [notifEmail, setNotifEmail] = useState("");
+  const [passCurrent, setPassCurrent] = useState("");
+  const [passNew, setPassNew] = useState("");
+  const [passConfirm, setPassConfirm] = useState("");
+  const [passMsg, setPassMsg] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -253,6 +257,36 @@ export default function AdminSettingsPage() {
                 <input value={gaId} onChange={(e) => setGaId(e.target.value)}
                   placeholder="G-XXXXXXXXXX" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white font-mono" />
                 <Button size="sm" onClick={async () => { await saveSetting("ga_id", gaId); }}>Save</Button>
+              </div>
+            </div>
+
+            {/* Change Password */}
+            <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
+              <h3 className="text-white tracking-wide mb-4">🔑 Change Password</h3>
+              <p className="text-xs text-silver/50 mb-4">Update your admin account password.</p>
+              <div className="space-y-3">
+                <input value={passCurrent} onChange={(e) => setPassCurrent(e.target.value)} type="password"
+                  placeholder="Current password" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                <input value={passNew} onChange={(e) => setPassNew(e.target.value)} type="password"
+                  placeholder="New password" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                <input value={passConfirm} onChange={(e) => setPassConfirm(e.target.value)} type="password"
+                  placeholder="Confirm new password" className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                {passMsg && <p className={`text-xs ${passMsg.startsWith("✅") ? "text-forest" : "text-red-400"}`}>{passMsg}</p>}
+                <Button size="sm" onClick={async () => {
+                  setPassMsg("");
+                  if (!passCurrent) { setPassMsg("Current password is required"); return; }
+                  if (!passNew || passNew.length < 6) { setPassMsg("New password must be at least 6 characters"); return; }
+                  if (passNew !== passConfirm) { setPassMsg("Passwords do not match"); return; }
+                  const res = await fetch("/api/admin/profile", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ current_password: passCurrent, new_password: passNew }),
+                  });
+                  const d = await res.json();
+                  if (d.error) { setPassMsg(d.error); return; }
+                  setPassMsg("✅ Password updated successfully");
+                  setPassCurrent(""); setPassNew(""); setPassConfirm("");
+                }}>Update Password</Button>
               </div>
             </div>
 
