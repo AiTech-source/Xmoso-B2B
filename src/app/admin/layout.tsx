@@ -3,5 +3,5 @@ import { ReactNode } from "react";
 export const dynamic = "force-dynamic";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen">{children}</div>;
+  return <div className="min-h-screen" suppressHydrationWarning>{children}</div>;
 }
