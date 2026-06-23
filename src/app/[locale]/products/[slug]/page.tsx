@@ -79,11 +79,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       description: translation.meta_description || translation.description || undefined,
       images: [{ url: productImage || ogUrl, width: 1200, height: 630 }],
     },
-    other: {
-      "twitter:card": "summary_large_image",
-      "twitter:title": translation.meta_title || translation.name,
-      "twitter:description": translation.meta_description || translation.description || undefined,
-      "twitter:image": productImage || ogUrl,
+    twitter: {
+      card: "summary_large_image",
+      title: translation.meta_title || translation.name,
+      description: translation.meta_description || translation.description || undefined,
+      images: [productImage || ogUrl],
     },
   };
 }
