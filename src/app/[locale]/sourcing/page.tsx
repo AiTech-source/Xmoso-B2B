@@ -2,6 +2,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import PageBannerCarousel from "@/components/layout/PageBannerCarousel";
+import PageContentRenderer from "@/components/layout/PageContentRenderer";
+import AnimateSection from "@/components/layout/AnimateSection";
 import FloatingInquiry from "@/components/products/FloatingInquiry";
 import FaqAccordion from "@/components/products/FaqAccordion";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -13,12 +15,21 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const supabase = await createServerSupabaseClient();
   const ogSettings = await getOgSettings(supabase);
-  const ogUrl = ogImageUrl({ title: "Premium Wine Cooler & Bar Cabinet Manufacturer", subtitle: "Direct from China Factory", type: "product", brand: ogSettings.brand });
+  let title = locale === "zh" ? "红酒柜、雪茄柜、饮料柜制造商 | 厂家直供 OEM/ODM" : "Wine Cooler Manufacturer & OEM Supplier | XMOSO Factory Direct";
+  let desc = locale === "zh" ? "XMOSO 是专业红酒柜、雪茄柜、饮料柜、吧台柜制造商。CE/UL/ETL认证，OEM/ODM定制。" : "XMOSO is a professional manufacturer of wine coolers, cigar cabinets, beverage coolers & bar cabinets. CE/UL/ETL certified, OEM/ODM available.";
+
+  if (supabase) {
+    const { data } = await supabase.from("page_contents")
+      .select("seo_title, seo_description").eq("page_key", "sourcing").eq("locale", locale).maybeSingle();
+    if (data?.seo_title) title = data.seo_title;
+    if (data?.seo_description) desc = data.seo_description;
+  }
+
+  const ogUrl = ogImageUrl({ title, type: "page", brand: ogSettings.brand });
   return {
-    title: locale === "zh" ? "红酒柜、雪茄柜、饮料柜制造商 | 厂家直供 OEM/ODM" : "Wine Cooler Manufacturer & OEM Supplier | XMOSO Factory Direct",
-    description: locale === "zh" ? "XMOSO 是专业红酒柜、雪茄柜、饮料柜、吧台柜制造商。CE/UL/ETL认证，OEM/ODM定制，50-100台起订，欢迎全球B2B采购商联系。" : "XMOSO is a professional manufacturer of wine coolers, cigar cabinets, beverage coolers & bar cabinets. CE/UL/ETL certified, OEM/ODM available, MOQ 50-100 units. Global B2B buyers welcome.",
+    title, description: desc,
     alternates: { canonical: locale === "en" ? "/sourcing" : `/${locale}/sourcing` },
-    openGraph: { type: "website", title: "XMOSO Manufacturer", description: "Premium wine cooler & bar cabinet manufacturer — direct from factory.", images: [{ url: ogUrl }] },
+    openGraph: { type: "website", title, description: desc, images: [{ url: ogUrl }] },
   };
 }
 
@@ -28,9 +39,15 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
   const ogSettings = await getOgSettings(supabase);
   const isZh = locale === "zh";
 
-  const ogUrl = ogImageUrl({ title: "Premium Wine Cooler & Bar Cabinet Manufacturer", subtitle: "Direct from China Factory", type: "product", brand: ogSettings.brand });
+  // Fetch page content from DB (editable via admin)
+  let pageData: any = null;
+  if (supabase) {
+    const { data } = await supabase.from("page_contents").select("*")
+      .eq("page_key", "sourcing").eq("locale", locale).maybeSingle();
+    pageData = data;
+  }
 
-  // Fetch FAQs for Sourcing page (generic B2B FAQs)
+  // Fetch FAQs
   const { data: genericFaqs } = await supabase
     .from("product_faqs").select("*").eq("product_type", "").eq("locale", "en").order("sort_order", { ascending: true });
   const { data: zhFaqs } = await supabase
@@ -43,12 +60,9 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
       <main style={{ paddingTop: "64px" }}>
         <PageBannerCarousel pageKey="about" vignette />
 
-        <Breadcrumbs items={[
-          { label: isZh ? "采购" : "Sourcing", href: `/${locale}/sourcing` },
-        ]} />
+        <Breadcrumbs items={[{ label: isZh ? "采购" : "Sourcing", href: `/${locale}/sourcing` }]} />
 
-        {/* Schema */}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("XMOSO", "https://xmoso.com", undefined)) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("XMOSO", "https://xmoso.com")) }} />
         {faqData?.length && (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(faqPageSchema(faqData.map((f: any) => ({ question: f.question, answer: f.answer })))) }} />
         )}
@@ -59,12 +73,12 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
           {/* ====== HERO ====== */}
           <section className="py-16 md:py-24 text-center border-b border-silver/10">
             <h1 className="text-3xl md:text-5xl font-light tracking-wider text-white leading-tight">
-              {isZh ? "专业酒柜、雪茄柜、饮料柜制造商" : "Premium Wine Cooler & Bar Cabinet Manufacturer"}
+              {pageData?.title || (isZh ? "专业酒柜、雪茄柜、饮料柜制造商" : "Premium Wine Cooler & Bar Cabinet Manufacturer")}
             </h1>
             <p className="text-silver/50 text-sm md:text-base mt-4 max-w-2xl mx-auto leading-relaxed">
-              {isZh
+              {pageData?.subtitle || (isZh
                 ? "XMOSO 是一家专业的高端酒柜、雪茄柜、饮料柜和吧台柜制造商。我们为全球酒店、餐厅、零售商和品牌商提供 OEM/ODM 服务。"
-                : "XMOSO is a professional manufacturer of high-end wine coolers, cigar cabinets, beverage coolers, and bar cabinets. We serve hotels, restaurants, retailers, and brands worldwide with OEM/ODM solutions."}
+                : "XMOSO is a professional manufacturer of high-end wine coolers, cigar cabinets, beverage coolers, and bar cabinets. We serve hotels, restaurants, retailers, and brands worldwide with OEM/ODM solutions.")}
             </p>
             <div className="flex flex-wrap justify-center gap-3 mt-8">
               {["CE", "RoHS", "ERP", "ETL/UL", "ISO9001"].map((cert) => (
@@ -72,6 +86,13 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
               ))}
             </div>
           </section>
+
+          {/* ====== EDITABLE CONTENT (added via admin /pages?key=sourcing) ====== */}
+          {pageData?.content?.blocks?.length > 0 && (
+            <AnimateSection className="py-16 border-b border-silver/10" id="sourcing-editable">
+              <PageContentRenderer content={pageData.content} />
+            </AnimateSection>
+          )}
 
           {/* ====== CAPABILITIES ====== */}
           <section className="py-16 border-b border-silver/10">
@@ -131,17 +152,17 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
           {/* ====== WHY CHOOSE XMOSO ====== */}
           <section className="py-16 border-b border-silver/10">
             <h2 className="text-2xl font-light tracking-wider text-white text-center mb-4">
-              {isZh ? "为什么选择 XMOSO？" : "Why Choose XMOSO?"}
+              {isZh ? "合作优势" : "Why Choose XMOSO?"}
             </h2>
             <p className="text-silver/50 text-sm text-center max-w-xl mx-auto mb-10">
-              {isZh ? "我们有超过 X 年的出口经验，服务全球客户，以质量和服务赢得信任。" : "With years of export experience, we serve global clients with quality products and reliable service."}
+              {isZh ? "以品质、创新和可靠服务赢得全球客户的信任。" : "Trusted by global clients for quality, innovation, and reliable service."}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {[
-                { q: isZh ? "品质至上" : "Quality First", a: isZh ? "每批次出货前经过严格质量检测，支持第三方验货（SGS/Bureau Veritas）。" : "Rigorous quality inspection before each shipment. Third-party inspection (SGS/Bureau Veritas) welcome." },
-                { q: isZh ? "价格透明" : "Competitive Pricing", a: isZh ? "工厂直供，无中间商差价。中国制造的成本优势直接传递给客户。" : "Factory-direct pricing, no middlemen. China manufacturing cost advantage passed to you." },
-                { q: isZh ? "交期准时" : "On-Time Delivery", a: isZh ? "15-25天产能周转，95%+准时交付率，减少您的库存压力。" : "15-25 day production cycle, 95%+ on-time delivery rate." },
-                { q: isZh ? "定制灵活" : "Flexible Customization", a: isZh ? "从颜色、材质到功能配置，按需定制。可小批量试单后再扩量。" : "From colors and materials to functional specs, customize as needed. Trial orders accepted." },
+                { q: isZh ? "品质保障" : "Quality Assured", a: isZh ? "每批次出货前经过严格质量检测，支持第三方验货（SGS/Bureau Veritas）。" : "Rigorous quality inspection before each shipment. Third-party inspection (SGS/Bureau Veritas) welcome." },
+                { q: isZh ? "工厂直供" : "Factory Direct", a: isZh ? "去除中间环节，中国制造的成本优势直接传递给客户。同行无法匹敌的性价比。" : "Factory-direct pricing, eliminating middlemen. Unbeatable value from China manufacturing." },
+                { q: isZh ? "交期保障" : "On-Time Delivery", a: isZh ? "标准化生产流程，95%+准时交付率，降低客户库存压力。" : "Standardized production, 95%+ on-time delivery rate. Reduced inventory risk for clients." },
+                { q: isZh ? "灵活定制" : "Flexible Customization", a: isZh ? "从颜色、材质到功能配置全程定制支持。支持小批量试单，确认品质后再扩量。" : "Full customization from colors to functional specs. Trial orders accepted before scaling." },
               ].map((item, i) => (
                 <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6">
                   <h3 className="text-white text-sm font-medium mb-2">{item.q}</h3>

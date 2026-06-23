@@ -15,6 +15,7 @@ const PAGES = [
   { key: "product-detail", label: "📄 Product Detail" },
   { key: "about", label: "ℹ️ About Us" },
   { key: "contact", label: "✉️ Contact Us" },
+  { key: "sourcing", label: "🏭 Sourcing" },
 ];
 
 const FONT_SIZES = ["12", "14", "16", "18", "20", "22", "24", "28", "32", "36", "40", "48"];
