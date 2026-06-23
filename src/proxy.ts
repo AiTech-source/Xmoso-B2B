@@ -12,6 +12,15 @@ const REDIRECTS: Record<string, string> = {
 
 const VALID_LOCALES = ["en", "zh"];
 
+// Cloudflare must NOT cache Next.js page responses (HTML or RSC payload),
+// because RSC builds are tied to a specific deployment build ID.
+// Cached old RSC data causes "0:{"f":.." rendering errors on navigation.
+function preventCdnCache(response: NextResponse) {
+  response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  response.headers.set("CDN-Cache-Control", "no-store");
+  return response;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const firstSeg = pathname.split("/")[1] || "";
@@ -36,19 +45,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(`https://xmoso.com${prefix}/products`, 301);
   }
 
-  // Bypass Cloudflare cache for Next.js RSC payloads (text/x-component)
-  const accept = request.headers.get("accept") || "";
-  if (accept.includes("text/x-component")) {
-    const response = NextResponse.next();
-    response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
-    response.headers.set("CDN-Cache-Control", "no-store");
-    return response;
-  }
-
   if (pathname.startsWith("/admin")) {
-    return NextResponse.next();
+    return preventCdnCache(NextResponse.next());
   }
-  return intlMiddleware(request);
+  return preventCdnCache(intlMiddleware(request));
 }
 
 export const config = {
