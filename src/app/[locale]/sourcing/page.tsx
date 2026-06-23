@@ -120,29 +120,30 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
             </div>
           </section>
 
-          {/* ====== PRODUCT LINES ====== */}
+          {/* ====== PRODUCT LINES (editable via admin /pages) ====== */}
+          {(pageData?.content?.productLines?.length > 0) && (
           <section className="py-16 border-b border-silver/10">
             <h2 className="text-2xl font-light tracking-wider text-white text-center mb-12">
               {isZh ? "产品线" : "Product Lines"}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { title: "🍷 " + (isZh ? "红酒柜" : "Wine Coolers"), items: [isZh ? "压缩机制冷" : "Compressor cooling", isZh ? "单温区/双温区" : "Single/dual zone", isZh ? "6-320 瓶容量" : "6-320 bottle capacity", isZh ? "嵌入式/独立式" : "Built-in/Freestanding"] },
-                { title: "🚬 " + (isZh ? "雪茄柜" : "Cigar Cabinets"), items: [isZh ? "西班牙雪松木内衬" : "Spanish cedar interior", isZh ? "恒温恒湿控制" : "Temp & humidity control", isZh ? "200-1000 支容量" : "200-1000 cigar capacity", isZh ? "热电冷系统" : "Thermoelectric cooling"] },
-                { title: "🥤 " + (isZh ? "饮料柜" : "Beverage Coolers"), items: [isZh ? "台下式/独立式" : "Under-counter/Freestanding", isZh ? "玻璃门/实心门" : "Glass/Solid door", isZh ? "30-300 罐容量" : "30-300 can capacity", isZh ? "数字温控" : "Digital thermostat"] },
-                { title: "🍸 " + (isZh ? "吧台柜" : "Bar Cabinets"), items: [isZh ? "酒店项目定制" : "Hotel project custom", isZh ? "多种材质饰面" : "Multiple materials", isZh ? "集成冷藏" : "Integrated refrigeration", isZh ? "LED 照明/门锁" : "LED lighting/locks"] },
-              ].map((line, i) => (
-                <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 hover:border-forest/30 transition-colors">
-                  <h3 className="text-white text-base font-medium mb-4">{line.title}</h3>
-                  <ul className="space-y-2">
-                    {line.items.map((item, j) => (
-                      <li key={j} className="text-silver/50 text-xs flex items-center gap-2">
-                        <span className="text-forest">▸</span>{item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              {pageData.content.productLines.map((line: any, i: number) => {
+                const icons = ["🍷", "🚬", "🥤", "🍸"];
+                return (
+                  <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 hover:border-forest/30 transition-colors">
+                    <h3 className="text-white text-base font-medium mb-4">{icons[i] || "📦"} {line.title}</h3>
+                    {(line.items || []).length > 0 && (
+                      <ul className="space-y-2">
+                        {line.items.map((item: string, j: number) => (
+                          <li key={j} className="text-silver/50 text-xs flex items-center gap-2">
+                            <span className="text-forest">▸</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             <div className="text-center mt-10">
               <a href={`/${locale}/products`}
@@ -151,22 +152,16 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
               </a>
             </div>
           </section>
+          )}
 
-          {/* ====== WHY CHOOSE XMOSO ====== */}
+          {/* ====== WHY CHOOSE XMOSO (editable via admin /pages) ====== */}
+          {(pageData?.content?.whyChoose?.length > 0) && (
           <section className="py-16 border-b border-silver/10">
             <h2 className="text-2xl font-light tracking-wider text-white text-center mb-4">
               {isZh ? "合作优势" : "Why Choose XMOSO?"}
             </h2>
-            <p className="text-silver/50 text-sm text-center max-w-xl mx-auto mb-10">
-              {isZh ? "以品质、创新和可靠服务赢得全球客户的信任。" : "Trusted by global clients for quality, innovation, and reliable service."}
-            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {[
-                { q: isZh ? "品质保障" : "Quality Assured", a: isZh ? "每批次出货前经过严格质量检测，支持第三方验货（SGS/Bureau Veritas）。" : "Rigorous quality inspection before each shipment. Third-party inspection (SGS/Bureau Veritas) welcome." },
-                { q: isZh ? "工厂直供" : "Factory Direct", a: isZh ? "去除中间环节，中国制造的成本优势直接传递给客户。同行无法匹敌的性价比。" : "Factory-direct pricing, eliminating middlemen. Unbeatable value from China manufacturing." },
-                { q: isZh ? "交期保障" : "On-Time Delivery", a: isZh ? "标准化生产流程，95%+准时交付率，降低客户库存压力。" : "Standardized production, 95%+ on-time delivery rate. Reduced inventory risk for clients." },
-                { q: isZh ? "灵活定制" : "Flexible Customization", a: isZh ? "从颜色、材质到功能配置全程定制支持。支持小批量试单，确认品质后再扩量。" : "Full customization from colors to functional specs. Trial orders accepted before scaling." },
-              ].map((item, i) => (
+              {pageData.content.whyChoose.map((item: any, i: number) => (
                 <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6">
                   <h3 className="text-white text-sm font-medium mb-2">{item.q}</h3>
                   <p className="text-silver/50 text-xs leading-relaxed">{item.a}</p>
@@ -174,6 +169,7 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
               ))}
             </div>
           </section>
+          )}
 
           {/* ====== CONTACT / INQUIRY ====== */}
           <section className="py-16 text-center border-b border-silver/10">

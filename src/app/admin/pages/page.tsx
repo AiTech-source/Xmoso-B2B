@@ -69,6 +69,8 @@ export default function AdminPagesPage() {
     { icon: "🌍", title: "Global Export", desc: "" },
     { icon: "🛡️", title: "After-Sales Support", desc: "" },
   ]);
+  const [productLines, setProductLines] = useState<{ title: string; items: string[] }[]>([]);
+  const [whyChoose, setWhyChoose] = useState<{ q: string; a: string }[]>([]);
 
   function togglePreview(i: number) {
     const s = new Set(showPreviews);
@@ -130,6 +132,8 @@ export default function AdminPagesPage() {
             { icon: "🛡️", title: "After-Sales Support", desc: "" },
           ]);
         }
+        setProductLines(data.content?.productLines || []);
+        setWhyChoose(data.content?.whyChoose || []);
         setDirty(false);
         setLoading(false);
       })
@@ -223,7 +227,7 @@ export default function AdminPagesPage() {
       vignette_enabled: vignetteEnabled,
       slogan_font_size: sloganSize,
       subtitle_font_size: subtitleSize,
-      content: { blocks, ...(pageKey === "sourcing" ? { capabilities } : {}) },
+      content: { blocks, ...(pageKey === "sourcing" ? { capabilities, productLines, whyChoose } : {}) },
       contact_info: contactInfo,
       seo_title: seoTitle || null,
       seo_description: seoDesc || null,
@@ -411,6 +415,63 @@ export default function AdminPagesPage() {
                         placeholder="Describe this capability..." />
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Product Lines Editor (only for Sourcing page) */}
+            {pageKey === "sourcing" && (
+              <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">📦 Product Lines</p>
+                <p className="text-[10px] text-silver/40 mb-4">Each line has a title and bullet points. The first line title will be prefixed with 🍷, second 🚬, third 🥤, fourth 🍸.</p>
+                <div className="space-y-4">
+                  {productLines.map((line, i) => (
+                    <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-lg p-4">
+                      <input value={line.title} onChange={(e) => {
+                        const s = [...productLines]; s[i] = { ...s[i], title: e.target.value }; setProductLines(s); markDirty();
+                      }} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white mb-2" placeholder="Title (e.g. Wine Coolers)" />
+                      <div className="space-y-1">
+                        {line.items.map((item, j) => (
+                          <div key={j} className="flex gap-2 items-center">
+                            <input value={item} onChange={(e) => {
+                              const s = [...productLines]; s[i] = { ...s[i], items: s[i].items.map((it, k) => k === j ? e.target.value : it) }; setProductLines(s); markDirty();
+                            }} className="flex-1 bg-deep-dark border border-silver/10 rounded px-2 py-1.5 text-xs text-white" placeholder="Bullet point..." />
+                            <button onClick={() => {
+                              const s = [...productLines]; s[i] = { ...s[i], items: s[i].items.filter((_, k) => k !== j) }; setProductLines(s); markDirty();
+                            }} className="text-red-400/60 text-xs">×</button>
+                          </div>
+                        ))}
+                        <button onClick={() => {
+                          const s = [...productLines]; s[i] = { ...s[i], items: [...s[i].items, ""] }; setProductLines(s); markDirty();
+                        }} className="text-xs text-ice/60 hover:text-ice">+ Item</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={() => {
+                    setProductLines([...productLines, { title: "", items: [""] }]); markDirty();
+                  }} className="text-xs text-ice/60 hover:text-ice">+ Product Line</button>
+                </div>
+              </div>
+            )}
+
+            {/* Why Choose XMOSO Editor (only for Sourcing page) */}
+            {pageKey === "sourcing" && (
+              <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">💡 Why Choose XMOSO</p>
+                <p className="text-[10px] text-silver/40 mb-4">Edit the Q&A pairs in the "Why Choose XMOSO?" section.</p>
+                <div className="space-y-4">
+                  {whyChoose.map((item, i) => (
+                    <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-lg p-4">
+                      <input value={item.q} onChange={(e) => {
+                        const s = [...whyChoose]; s[i] = { ...s[i], q: e.target.value }; setWhyChoose(s); markDirty();
+                      }} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white mb-2" placeholder="Question / heading..." />
+                      <textarea value={item.a} onChange={(e) => {
+                        const s = [...whyChoose]; s[i] = { ...s[i], a: e.target.value }; setWhyChoose(s); markDirty();
+                      }} rows={2} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white resize-y" placeholder="Answer..." />
+                    </div>
+                  ))}
+                  <button onClick={() => { setWhyChoose([...whyChoose, { q: "", a: "" }]); markDirty(); }}
+                    className="text-xs text-ice/60 hover:text-ice">+ Item</button>
                 </div>
               </div>
             )}
