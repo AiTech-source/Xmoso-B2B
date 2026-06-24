@@ -58,7 +58,7 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
     <>
       <Header />
       <main style={{ paddingTop: "64px" }}>
-        <PageBannerCarousel pageKey="about" vignette />
+        <PageBannerCarousel pageKey="sourcing" vignette />
 
         <Breadcrumbs items={[{ label: isZh ? "采购" : "Sourcing", href: `/${locale}/sourcing` }]} />
 
