@@ -33,7 +33,7 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
   const initialized = useRef(false);
-  const [customColor, setCustomColor] = useState("#2a7d4e");
+  const [customColor, setCustomColor] = useState("#009f4b");
 
   useEffect(() => {
     if (typeof window === "undefined") return;

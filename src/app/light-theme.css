@@ -36,8 +36,8 @@ html[data-theme="light"] .rounded-full { color: #333 !important; border-color: r
 html[data-theme="light"] .hover\:text-white:hover,
 html[data-theme="light"] .hover\:text-silver:hover { color: #333 !important; }
 html[data-theme="light"] .text-ice { color: #3a8ba8 !important; }
-html[data-theme="light"] .text-forest { color: #2a7d4e !important; }
-html[data-theme="light"] .bg-forest\/20 { background-color: rgba(42,125,78,0.15) !important; }
+html[data-theme="light"] .text-forest { color: #009f4b !important; }
+html[data-theme="light"] .bg-forest\/20 { background-color: rgba(0,159,75,0.15) !important; }
 html[data-theme="light"] main [class*="aspect-square"] { background-color: #FFF !important; }
 html[data-theme="light"] table thead .bg-deep-blue\/40 { background-color: #e8e6e0 !important; }
 html[data-theme="light"] table tbody .text-white { color: #111 !important; }

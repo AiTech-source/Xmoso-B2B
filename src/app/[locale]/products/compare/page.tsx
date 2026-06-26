@@ -168,7 +168,7 @@ export default function ComparePage() {
                       } else cs.color = "#0A0A0F";
                       return (
                         <td key={p.id} className="p-3 text-center align-middle border-b border-silver/5 min-w-[180px]" style={cs}>
-                          <span className="md:hidden block text-[11px] font-medium text-[#2a7d4e] mb-0.5">{label}</span>
+                          <span className="md:hidden block text-[11px] font-medium text-[#009f4b] mb-0.5">{label}</span>
                           {spec?.value || <span className="text-gray-400">—</span>}
                         </td>
                       );
