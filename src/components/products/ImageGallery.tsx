@@ -41,10 +41,12 @@ export default function ImageGallery({ images }: { images: GalleryImage[] }) {
         onMouseLeave={() => setZooming(false)}
         onMouseMove={handleMouseMove}
       >
-        {/* Thumbnail version shown to user */}
+        {/* Thumbnail version shown to user — explicit width/height for CLS */}
         <img
           src={img.url}
           alt={img.alt || "Product image"}
+          width={600}
+          height={600}
           className="w-full h-full object-contain p-4"
         />
 
@@ -100,7 +102,7 @@ export default function ImageGallery({ images }: { images: GalleryImage[] }) {
                 i === activeIndex ? "border-forest" : "border-transparent opacity-60 hover:opacity-100"
               }`}
             >
-              <img src={img.url} alt="" className="w-full h-full object-cover" />
+              <img src={img.url} alt="" width={80} height={80} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>

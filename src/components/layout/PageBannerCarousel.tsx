@@ -61,7 +61,7 @@ export default function PageBannerCarousel({ pageKey, vignette = true }: PageBan
         className="absolute inset-0 flex items-center justify-center"
       >
         {current.image_url ? (
-          <img src={current.image_url} alt={current.alt_text || ""}
+          <img src={current.image_url} alt={current.alt_text || ""} width={1920} height={640}
             className={`w-full h-full object-cover ${vignette ? "img-vignette-strong" : ""}`} />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-deep-blue/60 to-deep-dark">
