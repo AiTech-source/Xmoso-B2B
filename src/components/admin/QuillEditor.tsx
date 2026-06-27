@@ -139,8 +139,13 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
           background: #0A0A0F !important;
           color: rgba(255,255,255,0.85) !important;
         }
-        .ql-editor * {
+        /* Default text color — only apply where no inline color is set */
+        .ql-editor p, .ql-editor h1, .ql-editor h2, .ql-editor h3, .ql-editor li, .ql-editor ul, .ql-editor ol {
           color: rgba(255,255,255,0.85) !important;
+        }
+        /* Preserve user-chosen colors (spans/em/strong with inline styles) */
+        .ql-editor span, .ql-editor em, .ql-editor strong {
+          /* Do NOT force color — let inline styles from Quill color picker win */
         }
         .ql-toolbar {
           background: #14142a !important;
