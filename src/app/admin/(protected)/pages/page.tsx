@@ -489,12 +489,77 @@ export default function AdminPagesPage() {
               </div>
             )}
 
-            {pageKey === "sustainable" && <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
-              <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-2">🌱 Sustainable Data (JSON)</p>
-              {sustainableJsonError && <p className="text-red-400 text-xs mb-2">{sustainableJsonError}</p>}
-              <textarea value={sustainableJson} onChange={(e) => { setSustainableJson(e.target.value); markDirty(); }}
-                className="w-full bg-deep-dark border border-silver/10 rounded-lg px-3 py-2 text-xs text-white font-mono" style={{minHeight:"400px"}} />
-            </div>}
+            {pageKey === "sustainable" && <>
+              {/* Published toggle */}
+              <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg mb-4">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-2">🌱 Page Visibility</p>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={(() => { try { const j = JSON.parse(sustainableJson); return j.published !== false; } catch { return true; } })()} onChange={(e) => {
+                    try {
+                      const j = JSON.parse(sustainableJson);
+                      j.published = e.target.checked;
+                      setSustainableJson(JSON.stringify(j, null, 2));
+                      markDirty();
+                    } catch {}
+                  }} className="w-4 h-4 rounded accent-forest" />
+                  <span className="text-sm text-silver/80">Published (visible to visitors)</span>
+                </label>
+              </div>
+
+              {/* PDF Upload */}
+              <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg mb-4">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-2">📄 Upload EPD PDF</p>
+                <p className="text-[10px] text-silver/40 mb-3">Upload PDF files for EPD documents. After uploading, paste the URL into the JSON below under epdDocs[].url</p>
+                <label className="inline-block px-4 py-2 text-xs bg-ice/20 text-ice border border-ice/30 rounded hover:bg-ice/30 transition-colors cursor-pointer">
+                  📁 Upload PDF
+                  <input type="file" accept=".pdf" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      fd.append("path", `epd/${Date.now()}-${file.name}`);
+                      fd.append("bucket", "products");
+                      const res = await fetch("/api/upload", { method: "POST", body: fd });
+                      const result = await res.json();
+                      if (result.url) {
+                        alert("PDF uploaded!\nURL: " + result.url + "\n\nPaste this into the JSON epdDocs[].url field.");
+                      } else {
+                        alert("Upload failed: " + (result.error || "Unknown"));
+                      }
+                    } catch (err: any) {
+                      alert("Upload error: " + err.message);
+                    }
+                    e.target.value = "";
+                  }} />
+                </label>
+                {(() => {
+                  try {
+                    const j = JSON.parse(sustainableJson);
+                    const docs = j.epdDocs || [];
+                    return docs.length > 0 && <div className="mt-3 space-y-1">
+                      <p className="text-[10px] text-silver/40">Current EPD files:</p>
+                      {docs.map((d: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-xs">
+                          <span className="text-silver/60">{d.icon || "📄"}</span>
+                          <span className="text-white flex-1 truncate">{d.title}</span>
+                          {d.url ? <span className="text-forest text-[10px]">✅ uploaded</span> : <span className="text-silver/40 text-[10px]">no file</span>}
+                        </div>
+                      ))}
+                    </div>;
+                  } catch { return null; }
+                })()}
+              </div>
+
+              {/* JSON editor */}
+              <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-2">🌱 Sustainable Data (JSON)</p>
+                <p className="text-[10px] text-silver/40 mb-2">Edit all page content here. Find epdDocs[].url field to paste PDF URLs.</p>
+                {sustainableJsonError && <p className="text-red-400 text-xs mb-2">{sustainableJsonError}</p>}
+                <textarea value={sustainableJson} onChange={(e) => { setSustainableJson(e.target.value); markDirty(); }}
+                  className="w-full bg-deep-dark border border-silver/10 rounded-lg px-3 py-2 text-xs text-white font-mono" style={{minHeight:"400px"}} />
+              </div>
+            </>}
             {/* Top save bar */}
             <div className="sticky top-0 z-20 -mx-8 px-8 py-3 bg-deep-blue/90 backdrop-blur-md border-b border-silver/10 flex items-center justify-between">
               <span className="text-xs text-silver/40">{dirty ? "⚠️ Unsaved changes" : "✅ All saved"}</span>

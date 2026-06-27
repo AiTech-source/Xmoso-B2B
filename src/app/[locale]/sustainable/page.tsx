@@ -38,7 +38,18 @@ export default async function SustainablePage({ params }: { params: Promise<{ lo
   }
   const sd = pageData?.content?.sustainableData || {};
 
-  function val(obj: any, key: string, fallback: string) { return obj?.[key] ? obj[key] : fallback; }
+  // Page toggle — hidden redirects to not-found
+  if (sd.published === false) {
+    return (
+      <>
+        <Header />
+        <main style={{ paddingTop: "64px" }} className="min-h-screen flex items-center justify-center">
+          <div className="text-center"><p className="text-silver/40 text-sm">{isZh ? "该页面暂未发布" : "This page is not published yet."}</p></div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
