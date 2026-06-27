@@ -72,6 +72,8 @@ export default function AdminPagesPage() {
   ]);
   const [productLines, setProductLines] = useState<{ title: string; items: string[] }[]>([]);
   const [whyChoose, setWhyChoose] = useState<{ q: string; a: string }[]>([]);
+  const [sustainableJson, setSustainableJson] = useState("{}");
+  const [sustainableJsonError, setSustainableJsonError] = useState("");
 
   function togglePreview(i: number) {
     const s = new Set(showPreviews);
@@ -135,6 +137,8 @@ export default function AdminPagesPage() {
         }
         setProductLines(data.content?.productLines || []);
         setWhyChoose(data.content?.whyChoose || []);
+        const sd = data.content?.sustainableData;
+        setSustainableJson(sd ? JSON.stringify(sd, null, 2) : "{}");
         setDirty(false);
         setLoading(false);
       })
@@ -231,7 +235,12 @@ export default function AdminPagesPage() {
       vignette_enabled: vignetteEnabled,
       slogan_font_size: sloganSize,
       subtitle_font_size: subtitleSize,
-      content: { blocks, ...(pageKey === "sourcing" ? { capabilities, productLines, whyChoose } : {}) },
+      content: ((pk, blk, cap, pl, wc, sj) => {
+        const c: any = { blocks: blk };
+        if (pk === "sourcing") { c.capabilities = cap; c.productLines = pl; c.whyChoose = wc; }
+        if (pk === "sustainable") { try { c.sustainableData = JSON.parse(sj); setSustainableJsonError(""); } catch(e) { setSustainableJsonError("Invalid JSON: " + (e as Error).message); } }
+        return c;
+      })(pageKey, blocks, capabilities, productLines, whyChoose, sustainableJson),
       contact_info: contactInfo,
       seo_title: seoTitle || null,
       seo_description: seoDesc || null,
@@ -480,6 +489,12 @@ export default function AdminPagesPage() {
               </div>
             )}
 
+            {pageKey === "sustainable" && <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
+              <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-2">🌱 Sustainable Data (JSON)</p>
+              {sustainableJsonError && <p className="text-red-400 text-xs mb-2">{sustainableJsonError}</p>}
+              <textarea value={sustainableJson} onChange={(e) => { setSustainableJson(e.target.value); markDirty(); }}
+                className="w-full bg-deep-dark border border-silver/10 rounded-lg px-3 py-2 text-xs text-white font-mono" style={{minHeight:"400px"}} />
+            </div>}
             {/* Top save bar */}
             <div className="sticky top-0 z-20 -mx-8 px-8 py-3 bg-deep-blue/90 backdrop-blur-md border-b border-silver/10 flex items-center justify-between">
               <span className="text-xs text-silver/40">{dirty ? "⚠️ Unsaved changes" : "✅ All saved"}</span>
