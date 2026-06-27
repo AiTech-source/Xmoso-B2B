@@ -523,14 +523,8 @@ export default function AdminPagesPage() {
                       const res = await fetch("/api/upload", { method: "POST", body: fd });
                       const result = await res.json();
                       if (result.url) {
-                        const ta = document.createElement("textarea");
-                        ta.value = result.url;
-                        ta.style.position = "fixed"; ta.style.left = "-9999px";
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand("copy");
-                        document.body.removeChild(ta);
-                        alert("✅ PDF uploaded! URL copied to clipboard:\n\n" + result.url + "\n\nPaste it into the JSON epdDocs[].url field.");
+                        // Show the URL in a prompt so user can copy it
+                        prompt("✅ PDF uploaded! Copy this URL and paste it into the JSON epdDocs[].url field:", result.url);
                       } else {
                         alert("Upload failed: " + (result.error || "Unknown"));
                       }
