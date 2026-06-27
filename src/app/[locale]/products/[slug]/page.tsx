@@ -186,6 +186,23 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const faqs = dbFaqs.length > 0 ? dbFaqs : getFallbackFaqs(pt);
   const faqTitle = locale === "zh" ? "❓ 常见问题 (B2B)" : "❓ B2B FAQ";
 
+  // Related Products — same category, same locale, exclude self
+  const { data: relatedProducts } = product.category_id
+    ? await supabase.from("product_translations")
+        .select("slug, name, product:products(model_number, image_gallery, id)")
+        .eq("locale", locale)
+        .eq("product.category_id", product.category_id)
+        .neq("product_id", product.id)
+        .limit(6)
+    : { data: [] };
+  const relatedProductsMapped = (relatedProducts || []).map((t: any) => ({
+    id: t.product?.id,
+    slug: t.slug,
+    name: t.name,
+    model_number: t.product?.model_number || "",
+    image: t.product?.image_gallery?.[0]?.url || "",
+  }));
+
   return (
     <>
       <Header />
@@ -306,6 +323,33 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             </div>
           )}
+
+          {/* Related Products — same category */}
+          {(() => {
+            const related = relatedProducts?.filter((p: any) => p.slug !== slug).slice(0, 4);
+            if (!related?.length) return null;
+            return (
+              <div className="mb-16">
+                <h3 className="text-xl text-white tracking-wide mb-6">{locale === "zh" ? "🔗 相关产品" : "🔗 Related Products"}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {related.map((p: any) => (
+                    <a key={p.id} href={`/${locale}/products/${p.slug}`}
+                      className="group block bg-deep-blue/20 border border-silver/10 rounded-xl p-4 hover:border-forest/30 hover:bg-deep-blue/40 transition-all">
+                      <div className="aspect-square bg-deep-dark/40 rounded-lg overflow-hidden mb-3 flex items-center justify-center">
+                        {p.image ? (
+                          <img src={p.image} alt={p.name} className="w-full h-full object-contain p-3" width={200} height={200} loading="lazy" />
+                        ) : (
+                          <span className="text-3xl text-silver/20">🍷</span>
+                        )}
+                      </div>
+                      <p className="text-white text-xs font-medium leading-snug group-hover:text-forest transition-colors line-clamp-2">{p.name}</p>
+                      <p className="text-[10px] text-silver/40 mt-1">{p.model_number}</p>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* FAQ Section */}
           {faqs.length > 0 && (
