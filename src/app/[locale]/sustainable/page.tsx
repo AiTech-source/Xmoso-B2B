@@ -60,6 +60,21 @@ export default async function SustainablePage({ params }: { params: Promise<{ lo
             </p>
           </section>
 
+          {/* INTUITIVE HIGHLIGHT — factory gate offset */}
+          <section className="py-16 border-b border-silver/10 bg-gradient-to-r from-deep-blue/40 to-transparent">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="bg-deep-dark/60 border border-forest/20 rounded-2xl p-8 md:p-12">
+                <span className="text-5xl block mb-4">🏭</span>
+                <p className="text-xl md:text-2xl font-light text-white leading-relaxed" dangerouslySetInnerHTML={{
+                  __html: isZh
+                    ? "型号 145DB：在出厂前即安全抵消了 <span class='text-forest font-medium'>60.6 kg</span> 的二氧化碳当量。"
+                    : "Model 145DB: Safely Offsets <span class='text-forest font-medium'>60.6 kg</span> of CO₂e Before Leaving the Factory Gate."
+                }} />
+                <p className="text-silver/50 text-sm mt-4">{isZh ? "材料固碳 + 清洁生产 = 出厂即负碳" : "Material sequestration + clean manufacturing = carbon-negative from day one"}</p>
+              </div>
+            </div>
+          </section>
+
           {/* METRICS */}
           <section className="py-16 border-b border-silver/10">
             <h2 className="text-2xl font-light tracking-wider text-forest text-center mb-12">{isZh ? "核心环保指标" : "Environmental Impact Metrics"}</h2>
@@ -80,21 +95,38 @@ export default async function SustainablePage({ params }: { params: Promise<{ lo
             </div>
           </section>
 
-          {/* STORY */}
+          {/* STORY — Forest equivalent + project scale */}
           <section className="py-16 border-b border-silver/10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
               <div>
-                <h2 className="text-2xl font-light tracking-wider text-white mb-6">{isZh ? "毛竹固碳 — 从竹林到酒柜" : "Moso Bamboo — From Forest to Wine Cooler"}</h2>
-                <p className="text-silver/60 text-sm leading-relaxed mb-4">
-                  {isZh ? "每一台 XMOSO 145DB 使用 0.0551 m³ 的优质 HD 毛竹生物基材，替代高达 80% 的结构塑料。毛竹在生长过程中吸收大气中的 CO₂，并将其永久锁在材料中——即使在产品生命周期结束后，这些碳也不会释放。" : "Each XMOSO 145DB utilizes 0.0551 m³ of premium HD Moso bio-materials, replacing up to 80% of structural plastics. During growth, Moso bamboo absorbs atmospheric CO₂ and permanently locks it into the material matrix — carbon that stays sequestered even after the product's useful life."}
-                </p>
-                <p className="text-silver/60 text-sm leading-relaxed mb-4">{isZh ? "结果是 -48.30 kg CO₂e 的全生命周期碳抵消。不是购买的碳信用，而是材料科学带来的真实负碳足迹。" : "The result: -48.30 kg CO₂e landed carbon offset. Not purchased carbon credits — real negative emissions through material science."}</p>
-                <p className="text-silver/60 text-sm leading-relaxed">{isZh ? "相当于每年种植 2.3 棵成年树木的固碳量。" : "Equivalent to the annual carbon capture of 2.3 mature trees."}</p>
+                <h2 className="text-2xl font-light tracking-wider text-white mb-6">{isZh ? "森林等效故事" : "Forest Equivalent Story"}</h2>
+                <div className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 mb-6">
+                  <span className="text-3xl block mb-3">🌳</span>
+                  <p className="text-white text-sm font-medium mb-2">{isZh ? "每台 145DB 酒柜" : "Each 145DB Wine Cooler"}</p>
+                  <p className="text-silver/60 text-sm leading-relaxed" dangerouslySetInnerHTML={{
+                    __html: isZh
+                      ? "其材料储存的 91.56 kg 生物碳（Biogenic CO₂），相当于为地球锁定了近 <strong class='text-forest'>4.5 棵</strong> 成熟树木一整年吸收的碳量。"
+                      : "The 91.56 kg of biogenic CO₂ stored in its materials equals the annual carbon capture of nearly <strong class='text-forest'>4.5</strong> mature trees."
+                  }} />
+                </div>
+                <div className="bg-deep-blue/20 border border-forest/20 rounded-xl p-6">
+                  <span className="text-3xl block mb-3">🏗️</span>
+                  <p className="text-white text-sm font-medium mb-2">{isZh ? "大型项目减碳奇迹" : "Large Project Carbon Impact"}</p>
+                  <p className="text-silver/60 text-sm leading-relaxed" dangerouslySetInnerHTML={{
+                    __html: isZh
+                      ? "如果北欧某个高档公寓或连锁酒店项目采购 <strong class='text-forest'>200 台</strong> 145DB 型号，将直接为该项目的 Scope 3 采购指标净减碳 <strong class='text-forest'>12.1 吨</strong>（12,124 kg CO₂e）！"
+                      : "A 200-unit order of 145DB for a Nordic apartment or hotel project directly reduces Scope 3 procurement emissions by <strong class='text-forest'>12.1 tonnes</strong> (12,124 kg CO₂e)!"
+                  }} />
+                </div>
               </div>
-              <div className="bg-deep-blue/20 border border-silver/10 rounded-xl p-8 text-center">
+              <div className="bg-deep-blue/20 border border-silver/10 rounded-xl p-8 text-center md:mt-0 mt-6">
                 <span className="text-7xl block mb-4">🎋</span>
                 <p className="text-forest text-lg font-light tracking-wide">{isZh ? "负碳材料" : "Carbon-Negative Material"}</p>
                 <p className="text-silver/50 text-xs mt-2">{isZh ? "EN 16485 认证可再生生物基材" : "EN 16485 Certified Renewable Bio-Material"}</p>
+                <div className="mt-6 pt-6 border-t border-silver/10">
+                  <p className="text-xs text-silver/50">{isZh ? "毛竹生长过程中吸收大气 CO₂" : "Moso bamboo absorbs atmospheric CO₂ during growth"}</p>
+                  <p className="text-xs text-silver/50 mt-1">{isZh ? "永久锁在材料中，即使产品废弃也不会释放" : "Permanently locked in material — never re-enters the atmosphere"}</p>
+                </div>
               </div>
             </div>
           </section>
