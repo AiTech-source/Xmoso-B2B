@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import Script from "next/script";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -101,7 +101,7 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
           border-bottom: none;
         }
         .quill-wrapper .ql-container {
-          background: #0A0A0F;
+          background: #0A0A0F !important;
           border: 1px solid rgba(192,192,192,0.1);
           border-radius: 0 0 8px 8px;
           font-family: 'Inter', sans-serif;
@@ -112,6 +112,7 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
         .quill-wrapper .ql-editor {
           min-height: ${minHeight}px;
           color: rgba(255,255,255,0.85);
+          background: #0A0A0F !important;
         }
         .quill-wrapper .ql-editor.ql-blank::before {
           color: rgba(192,192,192,0.3);

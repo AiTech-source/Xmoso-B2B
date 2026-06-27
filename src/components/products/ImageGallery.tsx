@@ -102,7 +102,7 @@ export default function ImageGallery({ images }: { images: GalleryImage[] }) {
                 i === activeIndex ? "border-forest" : "border-transparent opacity-60 hover:opacity-100"
               }`}
             >
-              <img src={img.url} alt="" width={80} height={80} className="w-full h-full object-cover" />
+              <img src={img.url} alt={img.alt || "Product thumbnail"} width={80} height={80} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>

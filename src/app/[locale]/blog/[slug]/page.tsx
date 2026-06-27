@@ -54,6 +54,38 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ loc
 
   return (
     <>
+      {/* Light mode: convert blog inline colors to match site theme (black text, #009f4b green) */}
+      <style>{`
+        html[data-theme="light"] .blog-content-wrap p,
+        html[data-theme="light"] .blog-content-wrap li,
+        html[data-theme="light"] .blog-content-wrap div,
+        html[data-theme="light"] .blog-content-wrap ul,
+        html[data-theme="light"] .blog-content-wrap .rich-text-display,
+        html[data-theme="light"] .blog-content-wrap td {
+          color: #2A2A2A !important;
+        }
+        html[data-theme="light"] .blog-content-wrap h1,
+        html[data-theme="light"] .blog-content-wrap h2,
+        html[data-theme="light"] .blog-content-wrap h3 {
+          color: #1A1A1A !important;
+        }
+        /* White/light-colored inline strong/span → dark in light mode */
+        html[data-theme="light"] .blog-content-wrap [style*="color:#fff"],
+        html[data-theme="light"] .blog-content-wrap [style*="color: #fff"],
+        html[data-theme="light"] .blog-content-wrap [style*="color:#ffffff"],
+        html[data-theme="light"] .blog-content-wrap [style*="color: #ffffff"],
+        html[data-theme="light"] .blog-content-wrap [style*="color:rgba(255,255,255"],
+        html[data-theme="light"] .blog-content-wrap [style*="color: rgba(255,255,255"] {
+          color: #1A1A1A !important;
+        }
+        /* Green #8BC8A0 → #009f4b */
+        html[data-theme="light"] .blog-content-wrap [style*="color:#8BC8A0"],
+        html[data-theme="light"] .blog-content-wrap [style*="color: #8BC8A0"],
+        html[data-theme="light"] .blog-content-wrap [style*="color:rgba(139,200,160"],
+        html[data-theme="light"] .blog-content-wrap [style*="color: rgba(139,200,160"] {
+          color: #009f4b !important;
+        }
+      `}</style>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(schema) }} />
       <Header />
       <main style={{ paddingTop: "64px" }}>
@@ -62,7 +94,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ loc
           { label: post.title },
         ]} />
 
-        <article className="max-w-3xl mx-auto px-4 py-8">
+        <article className="max-w-3xl mx-auto px-4 py-8 blog-content-wrap">
           {post.cover_image && (
             <div className="rounded-xl overflow-hidden mb-8 bg-[#f5f0e8]">
               <img src={post.cover_image} loading="lazy" alt={post.title} className="w-full max-h-96 object-cover" />
