@@ -50,6 +50,8 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [contentLocale, setContentLocale] = useState("shared");
   const [localeContent, setLocaleContent] = useState<Record<string, any>>({});
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [relatedIds, setRelatedIds] = useState<string[]>([]);
 
   useUnsavedWarning(dirty);
   const markDirty = useCallback(() => setDirty(true), []);
@@ -133,6 +135,20 @@ export default function EditProductPage() {
       });
   }, [params.id]);
 
+  // Load all products for Related Products picker
+  useEffect(() => {
+    supabase?.from("products").select("id, model_number").order("model_number").then(({ data }: any) => setAllProducts(data || []));
+  }, []);
+
+  // Extract relatedProductIds from content when loaded
+  useEffect(() => {
+    if (params.id) {
+      supabase?.from("products").select("content").eq("id", params.id).single().then(({ data }: any) => {
+        if (data?.content?.relatedProductIds) setRelatedIds(data.content.relatedProductIds);
+      });
+    }
+  }, [params.id]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setSaving(true);
 
@@ -153,11 +169,10 @@ export default function EditProductPage() {
       installation_media: installMedia,
     };
 
-    // Preserve DB content exactly as-is — handleSubmit should never change content
-    // (use Save Content in RichTextEditor for content changes)
+    // Preserve DB content and add relatedProductIds
     const { data: cur } = await supabase
       ?.from("products").select("content").eq("id", params.id).single();
-    payload.content = cur?.content || null;
+    payload.content = { ...(cur?.content || {}), relatedProductIds: relatedIds };
 
     await supabase?.from("products").update(payload).eq("id", params.id);
     setDirty(false);
@@ -300,6 +315,28 @@ export default function EditProductPage() {
             <input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
               placeholder="Sort Order" className="bg-deep-dark border border-silver/10 rounded-lg px-4 py-3 text-sm text-white" />
             <div></div>
+          </div>
+
+          {/* Related Products */}
+          <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
+            <h3 className="text-white tracking-wide mb-4">🔗 Related Products</h3>
+            <p className="text-xs text-silver/50 mb-3">Select products that appear as "Related" on this product page. Leave empty for auto-suggest.</p>
+            <div className="flex flex-wrap gap-2">
+              {allProducts.filter((p: any) => p.id !== params.id).map((p: any) => {
+                const selected = relatedIds.includes(p.id);
+                return (
+                  <button key={p.id} type="button" onClick={() => {
+                    setRelatedIds(selected ? relatedIds.filter((id) => id !== p.id) : [...relatedIds, p.id]);
+                    markDirty();
+                  }}
+                    className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                      selected ? "bg-forest/20 text-forest border-forest/30" : "bg-deep-dark text-silver/50 border-silver/20 hover:text-white"
+                    }`}>
+                    {p.model_number}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Images */}

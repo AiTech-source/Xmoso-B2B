@@ -186,22 +186,39 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const faqs = dbFaqs.length > 0 ? dbFaqs : getFallbackFaqs(pt);
   const faqTitle = locale === "zh" ? "❓ 常见问题 (B2B)" : "❓ B2B FAQ";
 
-  // Related Products — same category, same locale, exclude self
-  const { data: relatedProducts } = product.category_id
-    ? await supabase.from("product_translations")
-        .select("slug, name, product:products(model_number, image_gallery, id)")
-        .eq("locale", locale)
-        .eq("product.category_id", product.category_id)
-        .neq("product_id", product.id)
-        .limit(6)
-    : { data: [] };
-  const relatedProductsMapped = (relatedProducts || []).map((t: any) => ({
-    id: t.product?.id,
-    slug: t.slug,
-    name: t.name,
-    model_number: t.product?.model_number || "",
-    image: t.product?.image_gallery?.[0]?.url || "",
-  }));
+  // Related Products — manual from DB (relatedProductIds), fallback to auto by category
+  const manualIds = product.content?.relatedProductIds || [];
+  let relatedProductsMapped: any[] = [];
+  if (manualIds.length > 0) {
+    const { data: manualTrans } = await supabase
+      .from("product_translations")
+      .select("slug, name, product_id, product:products(id, model_number, image_gallery)")
+      .eq("locale", locale)
+      .in("product_id", manualIds);
+    relatedProductsMapped = (manualTrans || []).filter((t: any) => t.product?.id !== product.id).map((t: any) => ({
+      id: t.product?.id,
+      slug: t.slug,
+      name: t.name,
+      model_number: t.product?.model_number || "",
+      image: t.product?.image_gallery?.[0]?.url || "",
+    }));
+  } else if (product.category_id) {
+    // Auto fallback: same category
+    const { data: autoTrans } = await supabase
+      .from("product_translations")
+      .select("slug, name, product:products(id, model_number, image_gallery)")
+      .eq("locale", locale)
+      .eq("product.category_id", product.category_id)
+      .neq("product_id", product.id)
+      .limit(6);
+    relatedProductsMapped = (autoTrans || []).map((t: any) => ({
+      id: t.product?.id,
+      slug: t.slug,
+      name: t.name,
+      model_number: t.product?.model_number || "",
+      image: t.product?.image_gallery?.[0]?.url || "",
+    }));
+  }
 
   return (
     <>
@@ -324,9 +341,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          {/* Related Products — same category */}
+          {/* Related Products */}
           {(() => {
-            const related = relatedProducts?.filter((p: any) => p.slug !== slug).slice(0, 4);
+            const related = relatedProductsMapped?.slice(0, 4);
             if (!related?.length) return null;
             return (
               <div className="mb-16">
