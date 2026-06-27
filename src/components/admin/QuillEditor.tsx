@@ -134,6 +134,20 @@ export default function QuillEditor({ value, onChange, placeholder = "Type here.
           margin: 1px !important;
           border-radius: 3px !important;
         }
+        /* Force dark editor area regardless of page theme */
+        .ql-container, .ql-editor {
+          background: #0A0A0F !important;
+          color: rgba(255,255,255,0.85) !important;
+        }
+        .ql-editor * {
+          color: rgba(255,255,255,0.85) !important;
+        }
+        .ql-toolbar {
+          background: #14142a !important;
+        }
+        .ql-snow .ql-picker-options {
+          background: #1A1A2E !important;
+        }
       `}</style>
       <div ref={editorRef} />
 
