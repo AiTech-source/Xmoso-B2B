@@ -156,6 +156,9 @@ export default function AdminPagesPage() {
       case "rich-html":
         newBlock = { type, data: { html: "" }, style: {} };
         break;
+      case "raw-html":
+        newBlock = { type, data: { html: "" }, style: {} };
+        break;
       default:
         newBlock = { type, data: "", style: {} };
     }
@@ -493,6 +496,7 @@ export default function AdminPagesPage() {
               <button type="button" onClick={() => addBlock("multirow")} className="px-3 py-1.5 text-xs bg-deep-blue border border-silver/20 rounded text-silver hover:text-white">+ Card Grid</button>
               <button type="button" onClick={() => addBlock("rich-text")} className="px-3 py-1.5 text-xs bg-deep-blue border border-silver/20 rounded text-silver hover:text-white">+ Rich Text</button>
               <button type="button" onClick={() => addBlock("rich-html")} className="px-3 py-1.5 text-xs bg-forest/20 text-forest border border-forest/30 rounded hover:bg-forest/30 transition-colors">🎨 HTML Rich</button>
+              <button type="button" onClick={() => addBlock("raw-html")} className="px-3 py-1.5 text-xs bg-amber-400/20 text-amber-400 border border-amber-400/30 rounded hover:bg-amber-400/30 transition-colors">📝 Raw HTML</button>
               <button type="button" onClick={() => addBlock("divider")} className="px-3 py-1.5 text-xs bg-deep-blue border border-silver/20 rounded text-silver hover:text-white">+ Divider</button>
               <label className="px-3 py-1.5 text-xs bg-deep-blue border border-silver/20 rounded text-silver hover:text-white cursor-pointer">
                 📤 Upload Image
@@ -626,6 +630,15 @@ export default function AdminPagesPage() {
                   {block.type === "rich-html" && (
                     <div className="rich-html-editor" key={i}>
                       <QuillEditor value={block.data.html || ""} onChange={(html) => updateBlock(i, { html })} minHeight={250} />
+                    </div>
+                  )}
+                  {block.type === "raw-html" && (
+                    <div className="space-y-2">
+                      <p className="text-[10px] text-silver/40">Paste Figma/ChatGPT/any HTML here. Rendered as-is with no style sanitization.</p>
+                      <textarea value={block.data.html || ""} onChange={(e) => updateBlock(i, { html: e.target.value })}
+                        className="w-full bg-deep-dark border border-silver/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                        style={{ minHeight: "300px" }}
+                        placeholder={`<div style="display:flex; gap:20px;">\n  <div style="flex:1;">\n    <h3>Feature Title</h3>\n    <p>Description here...</p>\n  </div>\n</div>`} />
                     </div>
                   )}
                   {block.type === "rich-text" && (
@@ -774,6 +787,8 @@ function BlockPreview({ block }: { block: Block }) {
     }
     case "rich-html":
       return <div className="text-sm leading-relaxed prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: block.data?.html || "" }} />;
+    case "raw-html":
+      return <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: block.data?.html || "" }} />;
     case "rich-text": {
       const segs = block.data?.segments || [];
       return (
