@@ -1,0 +1,238 @@
+<style>
+  .nordic-eco-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+    color: #2c3e50;
+    line-height: 1.6;
+  }
+  .nordic-eco-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .nordic-eco-header h2 {
+    font-size: 2.2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: #1c2d1f;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+  }
+  .nordic-eco-header p {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  /* 互動切換按鈕樣式 */
+  .nordic-switcher-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 35px;
+  }
+  .nordic-tab-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8e2;
+    color: #5a6b5c;
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+  }
+  .nordic-tab-btn:hover {
+    border-color: #a3b8a3;
+    color: #1c2d1f;
+  }
+  .nordic-tab-btn.active {
+    background: #1c2d1f;
+    border-color: #1c2d1f;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(28,45,31,0.15);
+  }
+
+  /* 顯示/隱藏控制 */
+  .nordic-eco-grid {
+    display: none;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+    animation: fadeIn 0.4s ease forwards;
+  }
+  .nordic-eco-grid.active-view {
+    display: grid;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .nordic-eco-card {
+    background: #fcfdfc;
+    border: 1px solid #e2e8e2;
+    border-radius: 4px;
+    padding: 35px 25px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .nordic-eco-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(28,45,31,0.05);
+    border-color: #a3b8a3;
+  }
+  .nordic-eco-icon {
+    font-size: 40px;
+    margin-bottom: 20px;
+    display: inline-block;
+  }
+  .nordic-eco-card h3 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #1c2d1f;
+    margin-bottom: 15px;
+  }
+  .nordic-eco-card p {
+    font-size: 0.95rem;
+    color: #5a6b5c;
+    margin-bottom: 20px;
+  }
+  .nordic-eco-badge {
+    display: inline-block;
+    background: #eef3ee;
+    color: #2e5a36;
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .nordic-eco-footer {
+    background: #1c2d1f;
+    color: #ffffff;
+    padding: 30px;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 50px;
+  }
+  .nordic-eco-footer h4 {
+    font-size: 1.4rem;
+    font-weight: 400;
+    margin-bottom: 10px;
+    color: #eef3ee;
+  }
+  .nordic-eco-footer p {
+    font-size: 0.95rem;
+    color: #b3c2b5;
+    max-width: 800px;
+    margin: 0 auto 20px auto;
+  }
+  .nordic-eco-btn {
+    display: inline-block;
+    background: #ffffff;
+    color: #1c2d1f;
+    padding: 12px 30px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
+  .nordic-eco-btn:hover {
+    background: #eef3ee;
+  }
+  @media (max-width: 768px) {
+    .nordic-eco-header h2 { font-size: 1.8rem; }
+    .nordic-eco-grid { grid-template-columns: 1fr; }
+    .nordic-tab-btn { padding: 10px 20px; font-size: 0.9rem; }
+  }
+</style>
+
+<div class="nordic-eco-container">
+  
+  <!-- 頂部標題區 -->
+  <div class="nordic-eco-header">
+    <h2>Preserving Wine. Protecting the Planet.</h2>
+    <p>We bridge modern refrigeration technology with premium circular architecture. Backed by rigorous EN 15804 auditing, our bio-material cooling systems meet the strictest Nordic ESG standards.</p>
+  </div>
+
+  <!-- 互動切換按鈕 -->
+  <div class="nordic-switcher-tabs">
+    <button class="nordic-tab-btn active" onclick="switchNordicView('view-145db')">Model 145DB</button>
+    <button class="nordic-tab-btn" onclick="switchNordicView('view-90db')">Model 90DB</button>
+  </div>
+
+  <!-- 視圖 1: 145DB 規格與數據 -->
+  <div id="view-145db" class="nordic-eco-grid active-view">
+    <div class="nordic-eco-card">
+      <span class="nordic-eco-icon">🪵</span>
+      <h3>Carbon-Negative Asset</h3>
+      <p>Utilizing 0.0551 m³ of premium HD Moso bio-materials to replace up to 80% of structural plastics. Safely locks 91.56 kg of biogenic CO₂ permanently inside the furniture.</p>
+      <span class="nordic-eco-badge">-48.30 kg CO₂e Landed Offset</span>
+    </div>
+    <div class="nordic-eco-card">
+      <span class="nordic-eco-icon">📏</span>
+      <h3>Dimensions & Build</h3>
+      <p>Product Size: W592 x D568 x H715 mm. Engineered with hybrid material thickness (5mm and 8mm) for maximized thermal sealing, optimal structural integrity, and custom kitchen integration.</p>
+      <span class="nordic-eco-badge">Built-In / Freestanding Ready</span>
+    </div>
+    <div class="nordic-eco-card">
+      <span class="nordic-eco-icon">🔊</span>
+      <h3>Acoustic Comfort</h3>
+      <p>Fully certified under VDE ErP energy standards. Advanced compressor dampening delivers a whisper-quiet 36 dB rating, perfectly tailored for Scandinavian open-plan living spaces.</p>
+      <span class="nordic-eco-badge">36 dB Ultra-Quiet</span>
+    </div>
+  </div>
+
+  <!-- 視圖 2: 90DB 規格與數據 -->
+  <div id="view-90db" class="nordic-eco-grid">
+    <div class="nordic-eco-card">
+      <span class="nordic-eco-icon">🌱</span>
+      <h3>Eco-Aesthetics Asset</h3>
+      <p>Engineered with 3.13 m² (5mm thickness) of negative-carbon bio-linings for zero toxic outgassing. Safely captures 25.93 kg of atmospheric CO₂ during plant growth.</p>
+      <span class="nordic-eco-badge">-12.25 kg CO₂e Landed Offset</span>
+    </div>
+    <div class="nordic-eco-card">
+      <span class="nordic-eco-icon">📏</span>
+      <h3>Dimensions & Style</h3>
+      <p>Product Size: W450 x D515 x H1395 mm. High-capacity vertical layout. The exterior bio-material delivers the exact warm tactile premium feel and stylistic workability of real solid oak wood.</p>
+      <span class="nordic-eco-badge">Slim Vertical Design</span>
+    </div>
+    <div class="nordic-eco-card">
+      <span class="nordic-eco-icon">🔊</span>
+      <h3>Pure Performance</h3>
+      <p>Maintains a rigorous 36 dB quiet runtime signature backed by VDE testing. Provides a food-contact safe and chemical-free cellaring environment for premium wine collections.</p>
+      <span class="nordic-eco-badge">VDE ErP & CE Certified</span>
+    </div>
+  </div>
+
+  <!-- 底部 2B 詢盤導流區 -->
+  <div class="nordic-eco-footer">
+    <h4>Architects, Designers & B2B Procurement Partners</h4>
+    <p>Looking to satisfy Scope 3 decarbonization targets or specify green appliances for high-end residential projects? Access our verified Life Cycle Assessment (LCA) data packs and wholesale pricing matrices.</p>
+    <a href="/pages/contact" class="nordic-eco-btn">Request B2B Whitepaper</a>
+  </div>
+
+</div>
+
+<script>
+  function switchNordicView(viewId) {
+    // 移除所有視圖的 active 狀態
+    document.querySelectorAll('.nordic-eco-grid').forEach(function(grid) {
+      grid.classList.remove('active-view');
+    });
+    // 移除所有按鈕的 active 狀態
+    document.querySelectorAll('.nordic-tab-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+    
+    // 激活當前選擇的視圖與按鈕
+    document.getElementById(viewId).classList.add('active-view');
+    event.currentTarget.classList.add('active');
+  }
+</script>

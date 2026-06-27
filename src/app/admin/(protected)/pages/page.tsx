@@ -16,6 +16,7 @@ const PAGES = [
   { key: "about", label: "ℹ️ About Us" },
   { key: "contact", label: "✉️ Contact Us" },
   { key: "sourcing", label: "🏭 Sourcing" },
+  { key: "sustainable", label: "🌱 Sustainable" },
 ];
 
 const FONT_SIZES = ["12", "14", "16", "18", "20", "22", "24", "28", "32", "36", "40", "48"];

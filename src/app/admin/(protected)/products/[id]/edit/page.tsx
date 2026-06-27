@@ -26,7 +26,7 @@ export default function EditProductPage() {
   const [form, setForm] = useState({ model_number: "", energy_rating: "", category_id: "", sort_order: 0, product_style: "" });
   const [categories, setCategories] = useState<any[]>([]);
   const [specs, setSpecs] = useState<SpecRow[]>([]);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{url: string; alt: string}[]>([]);
   const [content, setContent] = useState<any>(null);
   const [highlights, setHighlights] = useState<string[]>([]);
   const [paramCounters, setParamCounters] = useState<any[]>([
@@ -97,7 +97,7 @@ export default function EditProductPage() {
               color: s.color || "",
             })));
           });
-        setImages(data.image_gallery?.map((g: any) => g.url || g) || data.images || []);
+        setImages(data.image_gallery?.map((g: any) => ({ url: g.url || g, alt: g.alt || "" })) || (data.images || []).map((u: string) => ({ url: u, alt: "" })));
         // Extract locale keys from DB content. The shape is:
         //   { blocks: [shared], _zh: { blocks: [...] }, _en: { blocks: [...] } }
         const dbContent = data.content || {};
@@ -161,7 +161,7 @@ export default function EditProductPage() {
 
     const payload: any = {
       ...form,
-      image_gallery: images.map((url: string) => ({ url, alt: form.model_number })),
+      image_gallery: images,
       highlights,
       param_counters: paramCounters,
       eco_features: ecoFeatures,
@@ -342,7 +342,20 @@ export default function EditProductPage() {
           {/* Images */}
           <div className="bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
             <h3 className="text-white tracking-wide mb-4">📸 Images</h3>
-            <ImageUploader existing={images} onUploaded={setImages}  />
+            <ImageUploader existing={images.map((i: any) => i.url || i)} onUploaded={(urls: string[]) => setImages(urls.map(u => ({ url: u, alt: "" })))}  />
+            {images.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-[10px] text-silver/40 uppercase tracking-wider">Alt Text (SEO)</p>
+                {images.map((img: any, i: number) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <img src={img.url || img} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
+                    <input value={img.alt || ""} onChange={(e) => {
+                      const s = [...images]; s[i] = { ...s[i], alt: e.target.value }; setImages(s); markDirty();
+                    }} placeholder="Alt text for search engines" className="flex-1 bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Highlights */}

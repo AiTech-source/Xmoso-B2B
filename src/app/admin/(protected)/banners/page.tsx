@@ -9,6 +9,7 @@ const PAGES = [
   { key: "about", label: "About" },
   { key: "contact", label: "Contact" },
   { key: "sourcing", label: "Sourcing" },
+  { key: "sustainable", label: "Sustainable" },
 ];
 
 export default function AdminBannersPage() {
