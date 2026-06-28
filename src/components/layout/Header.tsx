@@ -5,16 +5,26 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-// Read logo directly from localStorage — runs synchronously before first render
+// Read logo + sustainable visibility synchronously from localStorage
 function getInitialLogo(): string {
   if (typeof window === "undefined") return "";
   try { return localStorage.getItem("logo_url") || ""; } catch { return ""; }
+}
+function getInitialSustainable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const v = localStorage.getItem("sustainable_published");
+    if (v === "false") return false;
+    if (v === "true") return true;
+    return false; // no cache → hide until fetch confirms
+  } catch { return false; }
 }
 
 export default function Header() {
   const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState(getInitialLogo);
+  const [showSustainable, setShowSustainable] = useState(getInitialSustainable());
   const isZh = locale === "zh";
 
   useEffect(() => {
@@ -27,6 +37,17 @@ export default function Header() {
         }
       })
       .catch(() => {});
+
+    // Check if sustainable page is published
+    fetch("/api/page-content?page=sustainable&locale=en")
+      .then((r) => r.json())
+      .then((data) => {
+        const sd = data?.content?.sustainableData;
+        const published = sd?.published !== false;
+        setShowSustainable(published);
+        try { localStorage.setItem("sustainable_published", String(published)); } catch {}
+      })
+      .catch(() => {});
   }, []);
 
   const links = [
@@ -34,7 +55,7 @@ export default function Header() {
     { href: `/${locale}/products`, label: isZh ? "产品中心" : "Products" },
     { href: `/${locale}/blog`, label: isZh ? "新闻" : "Blog" },
     { href: `/${locale}/sourcing`, label: isZh ? "采购" : "Sourcing" },
-    { href: `/${locale}/sustainable`, label: isZh ? "可持续发展" : "Sustainable" },
+    ...(showSustainable ? [{ href: `/${locale}/sustainable`, label: isZh ? "可持续发展" : "Sustainable" }] : []),
     { href: `/${locale}/about`, label: isZh ? "关于我们" : "About Us" },
     { href: `/${locale}/contact`, label: isZh ? "联系我们" : "Contact Us" },
     { href: `/${locale}/faq`, label: isZh ? "常见问题" : "FAQ" },
