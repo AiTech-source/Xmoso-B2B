@@ -138,15 +138,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
   }
 
-  // B2B FAQ — fetch from DB by locale (fallback to EN), fallback to built-in if all empty
+  // B2B FAQ — fetch via API (more reliable than direct DB in production)
   const pt = category?.product_type || null;
-  const fetchFaqs = async (l: string, type: string | null) => {
-    const { data: g } = await supabase.from("product_faqs").select("*").eq("product_type", "").eq("locale", l).order("sort_order", { ascending: true });
-    const { data: t } = type ? await supabase.from("product_faqs").select("*").eq("product_type", type).eq("locale", l).order("sort_order", { ascending: true }) : { data: [] };
-    return [...(g || []), ...(t || [])];
-  };
-  let dbFaqs = (locale !== "en" ? await fetchFaqs(locale, pt) : []);
-  if (dbFaqs.length === 0) dbFaqs = await fetchFaqs("en", pt);
+  async function fetchFaqsApi(l: string, type: string | null) {
+    try {
+      const params = new URLSearchParams();
+      if (type) params.set("product_type", type);
+      params.set("locale", l);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "https://xmoso.com"}/api/faqs?${params}`, { cache: "no-store" });
+      const data = await res.json();
+      return data.faqs || [];
+    } catch { return []; }
+  }
+  let dbFaqs = (locale !== "en" ? await fetchFaqsApi(locale, pt) : []);
+  if (dbFaqs.length === 0) dbFaqs = await fetchFaqsApi("en", pt);
 
   // Hardcoded fallback questions (used when DB has no entries)
   function getFallbackFaqs(productType: string | null): { question: string; answer: string }[] {
