@@ -187,13 +187,11 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
           </section>
 
           {/* ====== FAQ ====== */}
-          {faqData?.length > 0 && (
-            <section className="py-16">
+          <section className="py-16">
               <div className="p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
-                <FaqAccordion faqs={faqData} title={isZh ? "❓ 常见采购问题" : "❓ Sourcing FAQ"} />
+                <FaqAccordion locale={locale} title={isZh ? "❓ 常见采购问题" : "❓ Sourcing FAQ"} />
               </div>
             </section>
-          )}
 
         </div>
       </main>

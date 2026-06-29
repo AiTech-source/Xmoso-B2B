@@ -138,57 +138,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
   }
 
-  // B2B FAQ — fetch via API (more reliable than direct DB in production)
+  // B2B FAQ title — component fetches data client-side via API
   const pt = category?.product_type || null;
-  async function fetchFaqsApi(l: string, type: string | null) {
-    try {
-      const params = new URLSearchParams();
-      if (type) params.set("product_type", type);
-      params.set("locale", l);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "https://xmoso.com"}/api/faqs?${params}`, { cache: "no-store" });
-      const data = await res.json();
-      return data.faqs || [];
-    } catch { return []; }
-  }
-  let dbFaqs = (locale !== "en" ? await fetchFaqsApi(locale, pt) : []);
-  if (dbFaqs.length === 0) dbFaqs = await fetchFaqsApi("en", pt);
-
-  // Hardcoded fallback questions (used when DB has no entries)
-  function getFallbackFaqs(productType: string | null): { question: string; answer: string }[] {
-    const type = (productType || "").toLowerCase();
-    const isCigar = type.includes("cigar") || type.includes("humid");
-    const isWine = type.includes("wine");
-    const isBeverage = type.includes("beverage") || type.includes("drink");
-    const isBar = type.includes("bar") || type.includes("cabinet") || type.includes("liquor");
-
-    const qs: { question: string; answer: string }[] = [
-      { question: "What is the minimum order quantity (MOQ) for this product?", answer: "Our standard MOQ is 50–100 units per model for OEM orders. We also offer sample orders of 1–5 units for quality evaluation before bulk commitment. Contact our sales team for specific MOQ details." },
-      { question: "What certifications do your products have?", answer: "Our products are certified with CE, RoHS, and ERP for European markets, and ETL/UL for North American markets. We maintain ISO9001 quality management standards across our production facilities." },
-      { question: "Do you offer OEM/ODM services?", answer: "Yes, we provide full OEM and ODM services including custom logo printing, RAL/Pantone color matching, custom packaging design, temperature range configuration, and multilingual labeling." },
-      { question: "What is the warranty period?", answer: "We offer a standard 1–2 year warranty on all products covering manufacturing defects. Extended warranty options are available for bulk orders and long-term partnerships." },
-      { question: "What payment terms do you accept?", answer: "We accept T/T (wire transfer), L/C (letter of credit), and other mutually agreed payment terms. Typical terms are 30% deposit with 70% balance before shipment." },
-    ];
-    if (isWine) {
-      qs.push({ question: "What temperature range does this wine cooler support?", answer: "Our compressor wine coolers support a range of 5°C–22°C (41°F–72°F). Dual-zone models allow independent temperature control for different wine varieties." });
-      qs.push({ question: "Compressor vs thermoelectric — which is better for commercial use?", answer: "For commercial use, compressor wine coolers are recommended. They handle higher ambient temperatures and are available in larger capacities (up to 320+ bottles)." });
-    }
-    if (isCigar) {
-      qs.push({ question: "What type of wood is used for the cabinet interior?", answer: "Our cigar cabinets feature Spanish cedar interiors, the industry standard. Spanish cedar maintains proper humidity, resists mold, and enhances cigar aging." });
-      qs.push({ question: "What humidity levels does this cabinet maintain?", answer: "Our electric humidors maintain 54°F–74°F temperature and 65%–75% RH humidity for optimal cigar preservation." });
-    }
-    if (isBeverage) {
-      qs.push({ question: "What temperature range does this beverage cooler support?", answer: "Our beverage coolers operate at 2°C–18°C (35°F–65°F), suitable for beers, wines, sodas, and more." });
-      qs.push({ question: "Built-in or freestanding installation?", answer: "Many models support both. Built-in models feature front-ventilation for flush under-counter installation." });
-    }
-    if (isBar) {
-      qs.push({ question: "What materials and finishes are available?", answer: "We offer solid wood, engineered wood veneers, stainless steel, and tempered glass. Custom RAL colors are available for hospitality projects." });
-      qs.push({ question: "Can bar cabinets be customized for hotel projects?", answer: "Yes, we specialize in custom solutions for hotels and hospitality — dimensions, finishes, integrated refrigeration, lockable doors, and LED lighting." });
-    }
-    qs.push({ question: `How long does shipping take for ${(productType || "this product").toLowerCase()} orders?`, answer: "Production lead time is 25–40 days after deposit. Shipping: 15–25 days to North America, 20–30 days to Europe by sea. Air freight available." });
-    return qs;
-  }
-
-  const faqs = dbFaqs.length > 0 ? dbFaqs : getFallbackFaqs(pt);
   const faqTitle = locale === "zh" ? "❓ 常见问题 (B2B)" : "❓ B2B FAQ";
 
   // Related Products — manual from DB (relatedProductIds), fallback to auto by category
@@ -264,11 +215,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           }}
         />
 
-        {/* FAQ Schema for B2B buyers */}
+        {/* FAQ Schema for B2B buyers — simple generic schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: renderJsonLd(faqPageSchema(faqs.map((f: any) => ({ question: f.question, answer: f.answer }))))
+            __html: renderJsonLd(faqPageSchema([
+              { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50–100 units per model. Sample orders of 1–5 units available." },
+              { question: "What certifications do your products have?", answer: "CE, RoHS, ERP, ETL/UL, ISO9001." },
+              { question: "Do you offer OEM/ODM services?", answer: "Yes, full OEM/ODM services including custom logo, colors, packaging, and configuration." },
+            ]))
           }}
         />
 
@@ -374,11 +329,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           })()}
 
           {/* FAQ Section */}
-          {faqs.length > 0 && (
-            <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
-              <FaqAccordion faqs={faqs} title={faqTitle} />
-            </div>
-          )}
+          <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
+            <FaqAccordion locale={locale} productType={pt} title={faqTitle} />
+          </div>
 
           {/* Inquiry */}
           <div className="max-w-xs mx-auto pb-8">
