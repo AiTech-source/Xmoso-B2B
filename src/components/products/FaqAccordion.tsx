@@ -64,32 +64,23 @@ function getFallbackFaqs(productType: string): { id: string; question: string; a
 }
 
 export default function FaqAccordion({ locale, productType, title }: { locale: string; productType?: string | null; title?: string }) {
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Start with fallback immediately, replace when API returns
+  const [faqs, setFaqs] = useState<FaqItem[]>(() => getFallbackFaqs(productType || ""));
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
     const params = new URLSearchParams({ locale });
     if (productType) params.set("product_type", productType);
     fetch(`/api/faqs?${params}`)
       .then((r) => r.json())
       .then((data) => {
         const items: FaqItem[] = (data.faqs || []).map((f: any) => ({ id: f.id, question: f.question, answer: f.answer }));
-        if (items.length > 0) {
-          setFaqs(items);
-        } else {
-          setFaqs(getFallbackFaqs(productType || ""));
-        }
-        setLoading(false);
+        if (items.length > 0) setFaqs(items);
       })
-      .catch(() => {
-        setFaqs(getFallbackFaqs(productType || ""));
-        setLoading(false);
-      });
+      .catch(() => {});
   }, [locale, productType]);
 
-  if (loading || faqs.length === 0) return null;
+  if (faqs.length === 0) return null;
 
   return (
     <div>
