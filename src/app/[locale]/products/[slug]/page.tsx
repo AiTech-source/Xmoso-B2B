@@ -329,9 +329,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           })()}
 
           {/* FAQ Section */}
-          <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
-            <FaqAccordion locale={locale} productType={pt} title={faqTitle} />
-          </div>
+            <div className="mb-16 p-8 bg-deep-blue/20 border border-silver/10 rounded-xl">
+              <FaqAccordion locale={locale} productType={category?.product_type || null} title={faqTitle} />
+            </div>
 
           {/* Inquiry */}
           <div className="max-w-xs mx-auto pb-8">

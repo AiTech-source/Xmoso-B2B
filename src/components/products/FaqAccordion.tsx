@@ -1,114 +1,90 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface FaqItem {
-  id: string;
-  question: string;
-  answer: string;
-}
-
-// Hardcoded fallback — shown when API is unreachable or DB empty
-const FALLBACK_FAQS: Record<string, { question: string; answer: string }[]> = {
-  wine: [
-    { question: "What is the minimum order quantity (MOQ) for this product?", answer: "Our standard MOQ is 50–100 units per model for OEM orders. Sample orders of 1–5 units available." },
-    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP for EU; ETL/UL for North America; ISO9001 quality management." },
-    { question: "Do you offer OEM/ODM services?", answer: "Yes — full OEM/ODM: custom logo, RAL/Pantone colors, packaging, temperature config." },
-    { question: "What temperature range does this wine cooler support?", answer: "5°C–22°C (41°F–72°F). Dual-zone models allow independent temperature control." },
-    { question: "Compressor vs thermoelectric — which is better?", answer: "For commercial use: compressor. It handles higher ambient temps and larger capacities (up to 320+ bottles). Thermoelectric is quieter, suited for small residential use." },
-    { question: "How long does shipping take?", answer: "25–40 days production. 15–25 days to NA, 20–30 days to Europe by sea. Air freight available." },
+// Static FAQ data — no API calls, works reliably in all environments
+const FAQS: Record<string, { question: string; answer: string }[]> = {
+  "en-bar": [
+    { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50-100 units per model. Sample orders of 1-5 units available for quality evaluation before bulk commitment." },
+    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP for European markets; ETL/UL for North America. ISO9001 quality management across our production facilities." },
+    { question: "Do you offer OEM/ODM services?", answer: "Yes — full OEM/ODM services: custom logo printing, RAL/Pantone color matching, custom packaging design, temperature zone configuration, and multilingual labeling." },
+    { question: "What materials and finishes are available?", answer: "Solid wood, engineered wood veneers, stainless steel, and tempered glass. Custom RAL colors and Pantone matching available for hospitality projects." },
+    { question: "Can bar cabinets be customized for hotel projects?", answer: "Yes — we specialize in custom solutions for hotels and hospitality. Dimensions, finishes, integrated refrigeration, lockable doors, and LED lighting can all be customized." },
+    { question: "Can a bar cabinet cooler be built into existing cabinetry?", answer: "Yes — our patented front-bottom self-ventilation system requires no rear clearance for heat dissipation. Flush installation against walls or inside cabinetry." },
+    { question: "How long does shipping take?", answer: "Production lead time is 25-40 days after deposit confirmation. Shipping: 15-25 days to North America, 20-30 days to Europe by sea. Air freight available." },
   ],
-  cigar: [
-    { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50–100 units. Sample orders of 1–5 units available." },
-    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP, ETL/UL, ISO9001." },
-    { question: "Do you offer OEM/ODM services?", answer: "Yes — full customization including Spanish cedar interiors, finishes, branding." },
-    { question: "What type of wood is used for the cabinet interior?", answer: "Spanish cedar — the industry standard for humidity regulation and cigar aging." },
-    { question: "What humidity levels does this cabinet maintain?", answer: "54°F–74°F temperature, 65%–75% RH humidity." },
-    { question: "How long does shipping take?", answer: "25–40 days production. 15–25 days to NA, 20–30 days to Europe by sea." },
+  "zh-bar": [
+    { question: "这款产品的最低起订量（MOQ）是多少？", answer: "OEM 标准起订量为每款 50-100 台。可提供 1-5 台样品订单供质量评估，确认后再批量下单。" },
+    { question: "你们的产品有哪些认证？", answer: "CE、RoHS、ERP（欧洲市场）；ETL/UL（北美市场）。生产工厂通过 ISO9001 质量管理体系认证。" },
+    { question: "你们提供 OEM/ODM 服务吗？", answer: "是的，提供完整 OEM/ODM 服务：Logo 印刷、RAL/Pantone 颜色匹配、定制包装设计、温区配置和多语言标签。" },
+    { question: "有哪些材质和饰面可供选择？", answer: "实木、工程木贴面、不锈钢、钢化玻璃。可定制 RAL 颜色和 Pantone 配色，适用于酒店和商业项目。" },
+    { question: "吧台柜可以针对酒店项目定制吗？", answer: "可以 — 我们专为酒店和商业项目提供定制服务。尺寸、材质、饰面、集成制冷、门锁、LED 灯光均可定制。" },
+    { question: "恒温餐边柜可以嵌入现有柜体吗？", answer: "可以 — 我们的专利前底部自通风系统无需背部散热空间，可紧贴墙壁或嵌入柜体安装。" },
+    { question: "运输时间需要多久？", answer: "确认定金后生产周期 25-40 天。海运到北美 15-25 天，到欧洲 20-30 天。可安排空运。" },
   ],
-  beverage: [
-    { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50–100 units. Sample orders available." },
-    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP, ETL/UL, ISO9001." },
-    { question: "Do you offer OEM/ODM services?", answer: "Yes — full customization." },
-    { question: "What temperature range does this beverage cooler support?", answer: "2°C–18°C (35°F–65°F). Digital thermostat for precise control." },
-    { question: "Built-in or freestanding installation?", answer: "Many models support both. Built-in models feature front-ventilation." },
-    { question: "How long does shipping take?", answer: "25–40 days production. 15–25 days to NA, 20–30 days to Europe by sea." },
+  "en-wine": [
+    { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50-100 units per model. Sample orders of 1-5 units available for quality evaluation." },
+    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP for European markets; ETL/UL for North America. ISO9001 quality management." },
+    { question: "Do you offer OEM/ODM services?", answer: "Yes — full OEM/ODM: custom logo, RAL/Pantone colors, packaging design, temperature config, multilingual labels." },
+    { question: "What temperature range does this wine cooler support?", answer: "5-22 degrees C (41-72 degrees F). Dual-zone models allow independent temperature control for different wine varieties." },
+    { question: "Compressor vs thermoelectric which is better for commercial use?", answer: "For commercial applications, compressor-based wine coolers are recommended. They provide consistent cooling regardless of ambient temperature and are available in larger capacities (up to 320+ bottles)." },
+    { question: "How much ventilation clearance does a wine cooler need?", answer: "Our patented self-ventilation system eliminates the need for rear clearance. Traditional designs typically need 4-6 inches at the back." },
+    { question: "How long does shipping take?", answer: "25-40 days production. 15-25 days to North America, 20-30 days to Europe by sea." },
   ],
-  bar: [
-    { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50–100 units. Sample orders of 1–5 units available." },
-    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP, ETL/UL, ISO9001." },
-    { question: "Do you offer OEM/ODM services?", answer: "Yes — full OEM/ODM: custom logo, RAL/Pantone colors, packaging." },
-    { question: "What materials and finishes are available?", answer: "Solid wood, engineered wood veneers, stainless steel, tempered glass. Custom RAL colors available." },
-    { question: "Can bar cabinets be customized for hotel projects?", answer: "Yes — dimensions, finishes, refrigeration, lockable doors, LED lighting." },
-    { question: "How long does shipping take?", answer: "25–40 days production. 15–25 days to NA, 20–30 days to Europe by sea." },
-  ],
-  generic: [
-    { question: "What is the minimum order quantity (MOQ)?", answer: "Standard MOQ 50–100 units per model. Sample orders of 1–5 units available." },
-    { question: "What certifications do your products have?", answer: "CE, RoHS, ERP, ETL/UL, ISO9001." },
-    { question: "Do you offer OEM/ODM services?", answer: "Yes — full OEM/ODM including custom logo, colors, packaging, and labeling." },
-    { question: "What is the warranty period?", answer: "1–2 year warranty. Extended options for bulk orders." },
-    { question: "What payment terms do you accept?", answer: "T/T, L/C. Typical: 30% deposit, 70% before shipment." },
-    { question: "How long does shipping take?", answer: "25–40 days production. 15–25 days to NA, 20–30 days to Europe by sea." },
+  "zh-wine": [
+    { question: "最低起订量（MOQ）是多少？", answer: "OEM 标准起订量为每款 50-100 台。可提供 1-5 台样品订单。" },
+    { question: "有哪些认证？", answer: "CE、RoHS、ERP（欧洲）、ETL/UL（北美）、ISO9001。" },
+    { question: "提供 OEM/ODM 服务吗？", answer: "是的，包括 Logo、配色、包装、温区配置、多语言标签等。" },
+    { question: "这款酒柜支持什么温度范围？", answer: "5-22度。双温区型号可独立控制不同温度。" },
+    { question: "压缩机和热电冷酒柜商用选哪种更好？", answer: "商用建议压缩机制冷。制冷稳定，不受环境温度影响，容量可达 320 瓶以上。" },
+    { question: "红酒柜需要多少散热空间？", answer: "我们的自通风专利技术无需背部散热空间。" },
+    { question: "运输时间多久？", answer: "生产 25-40 天。海运到北美 15-25 天，到欧洲 20-30 天。" },
   ],
 };
 
-function getFallbackFaqs(productType: string): { id: string; question: string; answer: string }[] {
-  const type = (productType || "").toLowerCase();
+function getFaqs(locale: string, productType: string | null | undefined) {
+  const t = (productType || "").toLowerCase();
   const key =
-    type.includes("cigar") || type.includes("humid") ? "cigar" :
-    type.includes("wine") ? "wine" :
-    type.includes("beverage") || type.includes("drink") ? "beverage" :
-    type.includes("bar") || type.includes("cabinet") || type.includes("liquor") ? "bar" :
-    "generic";
-  return (FALLBACK_FAQS[key] || FALLBACK_FAQS.generic).map((f, i) => ({ ...f, id: `fb-${key}-${i}` }));
+    t.includes("cigar") || t.includes("humid") ? "cigar" :
+    t.includes("wine") ? "wine" :
+    t.includes("beverage") || t.includes("drink") ? "beverage" :
+    t.includes("bar") || t.includes("cabinet") || t.includes("liquor") ? "bar" :
+    "wine";
+  const lang = locale === "zh" ? "zh" : "en";
+  // Fallback to wine or en if key not found
+  const data = FAQS[lang + "-" + key] || FAQS["en-wine"];
+  return data.map((f, i) => ({ ...f, id: "faq-" + i }));
 }
 
-export default function FaqAccordion({ locale, productType, title }: { locale: string; productType?: string | null; title?: string }) {
-  // Start with fallback immediately, replace when API returns
-  const [faqs, setFaqs] = useState<FaqItem[]>(() => getFallbackFaqs(productType || ""));
+export default function FaqAccordion({ locale, productType, title }: { locale: string; productType?: string | null | undefined; title?: string }) {
+  const faqs = getFaqs(locale, productType);
   const [open, setOpen] = useState<string | null>(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams({ locale });
-    if (productType) params.set("product_type", productType);
-    fetch(`/api/faqs?${params}`)
-      .then((r) => r.json())
-      .then((data) => {
-        const items: FaqItem[] = (data.faqs || []).map((f: any) => ({ id: f.id, question: f.question, answer: f.answer }));
-        if (items.length > 0) setFaqs(items);
-      })
-      .catch(() => {});
-  }, [locale, productType]);
-
-  if (faqs.length === 0) return null;
+  if (!faqs.length) return null;
 
   return (
     <div>
       {title && <h3 className="text-xl text-white tracking-wide mb-6">{title}</h3>}
       <div className="space-y-3">
-        {faqs.map((faq) => {
-          const isOpen = open === faq.id;
-          return (
-            <div key={faq.id} className="border border-silver/10 rounded-xl overflow-hidden">
-              <button
-                onClick={() => setOpen(isOpen ? null : faq.id)}
-                className="w-full flex items-center justify-between px-6 py-4 text-left bg-deep-blue/20 hover:bg-deep-blue/40 transition-colors"
-              >
-                <span className="text-white text-sm font-medium pr-4">{faq.question}</span>
-                <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="text-silver/40 text-lg flex-shrink-0">▾</motion.span>
-              </button>
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div key="answer" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: "easeInOut" }} className="overflow-hidden">
-                    <div className="px-6 py-4 bg-deep-dark/30 border-t border-silver/10">
-                      <p className="text-silver/60 text-sm leading-relaxed">{faq.answer}</p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
+        {faqs.map((faq) => (
+          <div key={faq.id} className="border border-silver/10 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setOpen(open === faq.id ? null : faq.id)}
+              className="w-full flex items-center justify-between px-6 py-4 text-left bg-deep-blue/20 hover:bg-deep-blue/40 transition-colors"
+            >
+              <span className="text-white text-sm font-medium pr-4">{faq.question}</span>
+              <motion.span animate={{ rotate: open === faq.id ? 180 : 0 }} transition={{ duration: 0.2 }} className="text-silver/40 text-lg flex-shrink-0">▾</motion.span>
+            </button>
+            <AnimatePresence>
+              {open === faq.id && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
+                  <div className="px-6 py-4 bg-deep-dark/30 border-t border-silver/10">
+                    <p className="text-silver/60 text-sm leading-relaxed">{faq.answer}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
       </div>
     </div>
   );
