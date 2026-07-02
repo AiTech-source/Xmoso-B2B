@@ -139,7 +139,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
 
   // B2B FAQ title — component fetches data client-side via API
-  const pt = category?.product_type || null;
   const faqTitle = locale === "zh" ? "❓ 常见问题 (B2B)" : "❓ B2B FAQ";
 
   // Related Products — manual from DB (relatedProductIds), fallback to auto by category
