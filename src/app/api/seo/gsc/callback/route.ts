@@ -27,6 +27,9 @@ export async function GET(req: NextRequest) {
     if (!url || !key) return new Response("DB env missing", { status: 500 });
     const supabase = createClient(url, key);
 
+    // Delete old tokens first to ensure the new auth takes effect
+    await supabase.from("site_settings").delete().or("key.eq.gsc_refresh_token,key.eq.gsc_access_token,key.eq.gsc_token_expiry");
+
     await supabase.from("site_settings").upsert({ key: "gsc_refresh_token", value: tokens.refresh_token }, { onConflict: "key" });
     if (tokens.access_token) {
       const exp = Date.now() + (tokens.expires_in || 3600) * 1000;
