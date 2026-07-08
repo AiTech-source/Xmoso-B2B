@@ -25,16 +25,23 @@ export async function GET() {
 
     const now = new Date().toISOString().split("T")[0];
     const past = new Date(Date.now() - 28 * 86400000).toISOString().split("T")[0];
-    const siteUrl = "https://xmoso.com";
-const gscRes = await fetch(`https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${oaBody.access_token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ startDate: past, endDate: now, dimensions: ["query"], rowLimit: 25 }),
-    });
-    if (!gscRes.ok) {
-      const t = await gscRes.text().catch(() => "");
-      return NextResponse.json({ error: `gsc ${gscRes.status}`, detail: t.slice(0, 300) });
+
+    // Try all possible site URL formats
+    const candidates = ["sc_domain:xmoso.com", "https://xmoso.com", "https://xmoso.com/", "https://www.xmoso.com"];
+    let gscRes = null;
+    let tried = "";
+    for (const c of candidates) {
+      const enc = encodeURIComponent(c);
+      const r = await fetch(`https://searchconsole.googleapis.com/v1/sites/${enc}/searchAnalytics/query`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${oaBody.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate: past, endDate: now, dimensions: ["query"], rowLimit: 25 }),
+      });
+      if (r.ok) { gscRes = r; break; }
+      tried += ` ${c}=${r.status}`;
     }
+    if (!gscRes) return NextResponse.json({ error: "no GSC site matched", tried }, { status: 404 });
+
     const d = await gscRes.json();
     const qs = (d.rows || []).map((r: any) => ({ query: r.keys?.[0] || "", impressions: r.impressions || 0, clicks: r.clicks || 0, ctr: r.ctr || 0, position: Math.round((r.position || 0) * 10) / 10 }));
     return NextResponse.json({
