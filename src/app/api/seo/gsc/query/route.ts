@@ -25,34 +25,34 @@ export async function GET() {
 
     const token = oaBody.access_token;
 
-    // List sites + query analytics
-    const listRes = await fetch("https://searchconsole.googleapis.com/v1/sites", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!listRes.ok) return NextResponse.json({ error: `GSC list error: ${listRes.status}` });
-    const listData = await listRes.json();
-    const sites = (listData.siteEntry || []).map((s: any) => s.siteUrl);
-    if (!sites.length) return NextResponse.json({ error: "No GSC sites" });
+    // Try both known GSC property URLs
+    const candidates = ["sc_domain:xmoso.com", "https://xmoso.com/"];
+    const endDate = new Date().toISOString().split("T")[0];
+    const startDate = new Date(Date.now() - 28 * 86400000).toISOString().split("T")[0];
+    let result = null;
+    let tried = "";
 
-    const siteUrl = sites[0];
-    const [endDate, startDate] = [new Date().toISOString().split("T")[0], new Date(Date.now() - 28 * 86400000).toISOString().split("T")[0]];
-    const gscRes = await fetch(`https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ startDate, endDate, dimensions: ["query"], rowLimit: 25 }),
-    });
-    if (!gscRes.ok) {
-      const err = await gscRes.text().catch(() => "");
-      return NextResponse.json({ error: "GSC query failed", siteUrl, status: gscRes.status, detail: err?.slice(0, 300) });
+    for (const siteUrl of candidates) {
+      tried += ` ${siteUrl}`;
+      const gscRes = await fetch(`https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate, endDate, dimensions: ["query"], rowLimit: 25 }),
+      });
+      if (!gscRes.ok) {
+        tried += `=${gscRes.status}`;
+        continue;
+      }
+      result = await gscRes.json();
+      tried += `=OK`;
+      break;
     }
+    if (!result) return NextResponse.json({ error: "GSC: all candidates failed", tried }, { status: 404 });
 
-    const d = await gscRes.json();
-    const qs = (d.rows || []).map((r: any) => ({
+    const qs = (result.rows || []).map((r: any) => ({
       query: r.keys?.[0] || "", impressions: r.impressions || 0, clicks: r.clicks || 0, ctr: r.ctr || 0, position: Math.round((r.position || 0) * 10) / 10,
     }));
-
     return NextResponse.json({
-      siteUrl, allSites: sites,
       totalImpressions: qs.reduce((s: number, q: any) => s + q.impressions, 0),
       totalClicks: qs.reduce((s: number, q: any) => s + q.clicks, 0),
       queries: qs,
