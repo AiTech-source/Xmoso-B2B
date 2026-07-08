@@ -92,7 +92,9 @@ export default function AdminSeoPage() {
     setGscLoading(true); setGscError("");
     try {
       const res = await fetch(`/api/seo/gsc/query?days=${gscDays}&limit=30`);
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { setGscError("API returned non-JSON response. Check Vercel logs."); setGscLoading(false); return; }
       if (data.error) setGscError(data.error); else setGscData(data);
     } catch (e: any) { setGscError(e.message); }
     setGscLoading(false);
