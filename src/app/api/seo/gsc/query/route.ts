@@ -23,10 +23,12 @@ async function getAccessToken(): Promise<string> {
   if (!url || !key) throw new Error("DB env missing");
   const supabase = createClient(url, key);
 
-  // Try stored access token first
-  let { data: at } = await supabase.from("site_settings").select("value").eq("key", "gsc_access_token").single();
-  let { data: rt } = await supabase.from("site_settings").select("value").eq("key", "gsc_refresh_token").single();
-  let { data: exp } = await supabase.from("site_settings").select("value").eq("key", "gsc_token_expiry").single();
+  // Try stored tokens — use maybeSingle to avoid errors if keys don't exist
+  const [{ data: at }, { data: rt }, { data: exp }] = await Promise.all([
+    supabase.from("site_settings").select("value").eq("key", "gsc_access_token").maybeSingle(),
+    supabase.from("site_settings").select("value").eq("key", "gsc_refresh_token").maybeSingle(),
+    supabase.from("site_settings").select("value").eq("key", "gsc_token_expiry").maybeSingle(),
+  ]);
 
   // If access token still valid, use it
   if (at?.value && exp?.value && Date.now() < parseInt(exp.value)) {
@@ -34,7 +36,13 @@ async function getAccessToken(): Promise<string> {
   }
 
   // Need to refresh
-  if (!rt?.value) throw new Error("No refresh token. Visit /api/seo/gsc/auth to authorize.");
+  if (!rt?.value) {
+    // Check if token was stored at all by trying to read it
+    const { count } = await supabase.from("site_settings").select("key", { count: "exact", head: true }).eq("key", "gsc_refresh_token");
+    throw new Error(count && count > 0
+      ? "Refresh token expired. Re-authorize at /api/seo/gsc/auth"
+      : "No refresh token found. Visit /api/seo/gsc/auth to authorize.");
+  }
 
   const resp = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
