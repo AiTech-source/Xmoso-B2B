@@ -25,7 +25,8 @@ export async function GET() {
 
     const now = new Date().toISOString().split("T")[0];
     const past = new Date(Date.now() - 28 * 86400000).toISOString().split("T")[0];
-    const gscRes = await fetch("https://searchconsole.googleapis.com/v1/sites/sc_domain%3Axmoso.com/searchAnalytics/query", {
+    const siteUrl = "https://xmoso.com";
+const gscRes = await fetch(`https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
       method: "POST",
       headers: { Authorization: `Bearer ${oaBody.access_token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ startDate: past, endDate: now, dimensions: ["query"], rowLimit: 25 }),
