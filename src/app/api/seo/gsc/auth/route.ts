@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   authUrl.searchParams.set("client_id", cid);
   authUrl.searchParams.set("redirect_uri", "https://xmoso.com/api/seo/gsc/callback");
   authUrl.searchParams.set("response_type", "code");
-  authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/webmasters.readonly https://www.googleapis.com/auth/userinfo.email");
+  authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/webmasters https://www.googleapis.com/auth/userinfo.email");
   authUrl.searchParams.set("access_type", "offline");
   authUrl.searchParams.set("prompt", "consent");
   authUrl.searchParams.set("include_granted_scopes", "true");

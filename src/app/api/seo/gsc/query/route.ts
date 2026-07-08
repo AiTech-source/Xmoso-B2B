@@ -42,28 +42,47 @@ export async function GET() {
     const info = await infoResp.json();
     diag.ga_email = info.email || "unknown";
 
-    // 5. Try listing GSC sites
-    const listResp = await fetch("https://searchconsole.googleapis.com/v1/sites", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    diag.list_status = listResp.status;
-    const listBody = await listResp.json().catch(() => ({}));
-    diag.list_sites = (listBody.siteEntry || []).map((s: any) => s.siteUrl);
+    // 5. Try listing GSC sites via both API versions
+    const apiBases = ["https://searchconsole.googleapis.com/v1", "https://www.googleapis.com/webmasters/v3"];
+    diag.api_tests = [];
 
-    // 6. Try both URL formats with full response info
-    const candidates = ["sc_domain:xmoso.com", "https://xmoso.com/"];
-    const endDate = new Date().toISOString().split("T")[0];
-    const startDate = new Date(Date.now() - 28 * 86400000).toISOString().split("T")[0];
-
-    diag.tries = [];
-    for (const siteUrl of candidates) {
-      const r = await fetch(`https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ startDate, endDate, dimensions: ["query"], rowLimit: 5 }),
+    for (const base of apiBases) {
+      const r = await fetch(`${base}/sites`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       const body = await r.text().catch(() => "");
-      diag.tries.push({ siteUrl, status: r.status, body_snippet: body.slice(0, 200) });
+      diag.api_tests.push({ base, status: r.status, snippet: body.slice(0, 200) });
+
+      if (r.ok) {
+        const listBody = JSON.parse(body);
+        const sites = (listBody.siteEntry || []).map((s: any) => s.siteUrl);
+        diag.found_sites = sites;
+
+        // Query analytics for the first valid site
+        const endDate = new Date().toISOString().split("T")[0];
+        const startDate = new Date(Date.now() - 28 * 86400000).toISOString().split("T")[0];
+
+        // Try both known URLs
+        const candidates = sites.length > 0 ? sites : ["sc_domain:xmoso.com", "https://xmoso.com/"];
+        for (const siteUrl of candidates) {
+          const qr = await fetch(`${base}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ startDate, endDate, dimensions: ["query"], rowLimit: 25 }),
+          });
+          if (!qr.ok) continue;
+          const d = await qr.json();
+          const qs = (d.rows || []).map((r: any) => ({
+            query: r.keys?.[0] || "", impressions: r.impressions || 0, clicks: r.clicks || 0, ctr: r.ctr || 0, position: Math.round((r.position || 0) * 10) / 10,
+          }));
+          return NextResponse.json({
+            siteUrl, totalImpressions: qs.reduce((s: number, q: any) => s + q.impressions, 0),
+            totalClicks: qs.reduce((s: number, q: any) => s + q.clicks, 0),
+            queries: qs, opportunities: qs.filter((q: any) => q.position >= 8 && q.position <= 20 && q.impressions >= 50)
+              .sort((a: any, b: any) => (b.impressions / b.position) - (a.impressions / a.position)).slice(0, 10),
+          });
+        }
+      }
     }
 
     diag._elapsed = Date.now() - diag._time;
