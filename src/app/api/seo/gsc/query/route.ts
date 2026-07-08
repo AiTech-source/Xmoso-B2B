@@ -55,8 +55,10 @@ export async function GET() {
 
       if (r.ok) {
         const listBody = JSON.parse(body);
-        const sites = (listBody.siteEntry || []).map((s: any) => s.siteUrl);
-        diag.found_sites = sites;
+        const allSites = (listBody.siteEntry || []).map((s: any) => s.siteUrl);
+        const sites = allSites.filter((s: string) => s.includes("xmoso"));
+        if (sites.length === 0) sites.push(...allSites);
+        diag.found_sites = allSites;
 
         // Query analytics for the first valid site
         const endDate = new Date().toISOString().split("T")[0];
