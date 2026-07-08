@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>OG Preview</title>
+<style>
+  body { background: #333; display: flex; justify-content: center; padding: 40px; font-family: sans-serif; }
+  .card { background: #fff; border-radius: 12px; overflow: hidden; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .card-body { padding: 20px; }
+  .domain { color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  h2 { margin: 0 0 8px; font-size: 18px; color: #111; }
+  p { margin: 0; font-size: 14px; color: #555; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="card">
+  <img id="ogImage" src="" style="width:100%;display:block" alt="OG Image" />
+  <div class="card-body">
+    <div class="domain">deepcool.com</div>
+    <h2 id="ogTitle">Loading...</h2>
+    <p id="ogDesc">Preview of how your page looks when shared</p>
+  </div>
+</div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const title = params.get("title") || "XBIU90D Premium Wine Cooler | DeepCool";
+  const desc = params.get("desc") || "German-engineered wine cooling cabinet with precision dual-zone temperature control.";
+  const img = params.get("img") || "/api/og?title=XBIU90D Premium Wine Cooler&model=XBIU90D&brand=DeepCool";
+  document.getElementById("ogImage").src = img;
+  document.getElementById("ogTitle").textContent = title;
+  document.getElementById("ogDesc").textContent = desc;
+</script>
+</body>
+</html>

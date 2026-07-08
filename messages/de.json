@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "products": "Produkte",
+    "about": "Über Uns",
+    "contact": "Kontakt",
+    "blog": "Blog",
+    "sourcing": "Sourcing",
+    "sustainable": "Nachhaltig",
+    "faq": "FAQ"
+  },
+  "home": {
+    "hero_title": "Präzisionskühlung.",
+    "hero_subtitle": "Natürlich Nachhaltig.",
+    "precision": "Deutsche Präzision",
+    "eco": "Öko-Innovation",
+    "global": "Weltweit",
+    "inquiry": "Anfrage Senden"
+  },
+  "product": {
+    "energy_rating": "Energieeffizienzklasse",
+    "certifications": "Zertifizierungen",
+    "co2_saved": "CO₂ Eingespart",
+    "specifications": "Technische Daten",
+    "faq": "FAQ",
+    "inquiry_form": "Anfrage Stellen"
+  },
+  "about": {
+    "title": "Über Uns",
+    "eco_commitment": "Unser Öko-Engagement"
+  },
+  "contact": {
+    "title": "Kontakt",
+    "name": "Name",
+    "email": "E-Mail",
+    "company": "Firma",
+    "phone": "Telefon",
+    "message": "Nachricht",
+    "submit": "Senden",
+    "thanks": "Vielen Dank! Wir werden uns in Kürze bei Ihnen melden."
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "products": "Produkte",
+    "translations": "Übersetzungen",
+    "inquiries": "Anfragen",
+    "analytics": "Analysen",
+    "settings": "Einstellungen"
+  }
+}

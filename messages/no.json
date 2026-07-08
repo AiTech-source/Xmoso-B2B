@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "home": "Hjem",
+    "products": "Produkter",
+    "about": "Om Oss",
+    "contact": "Kontakt",
+    "blog": "Blogg",
+    "sourcing": "Innkjøp",
+    "sustainable": "Bærekraftig",
+    "faq": "FAQ"
+  },
+  "home": {
+    "hero_title": "Presisjonskjøling.",
+    "hero_subtitle": "Naturlig Bærekraftig.",
+    "precision": "Presisjon",
+    "eco": "Miljøinnovasjon",
+    "global": "Global Rekkevidde",
+    "inquiry": "Send Forespørsel"
+  },
+  "product": {
+    "energy_rating": "Energiklasse",
+    "certifications": "Sertifiseringer",
+    "co2_saved": "CO₂ Sparer",
+    "specifications": "Spesifikasjoner",
+    "faq": "FAQ",
+    "inquiry_form": "Send Forespørsel"
+  },
+  "about": {
+    "title": "Om Oss",
+    "eco_commitment": "Vårt Miljøengasjement"
+  },
+  "contact": {
+    "title": "Kontakt Oss",
+    "name": "Navn",
+    "email": "E-post",
+    "company": "Firma",
+    "phone": "Telefon",
+    "message": "Melding",
+    "submit": "Send",
+    "thanks": "Takk! Vi tar kontakt snart."
+  },
+  "admin": {
+    "dashboard": "Dashbord",
+    "products": "Produkter",
+    "translations": "Oversettelser",
+    "inquiries": "Forespørsler",
+    "analytics": "Analyse",
+    "settings": "Innstillinger"
+  }
+}

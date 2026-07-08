@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "home": "Hem",
+    "products": "Produkter",
+    "about": "Om Oss",
+    "contact": "Kontakt",
+    "blog": "Blogg",
+    "sourcing": "Inköp",
+    "sustainable": "Hållbar",
+    "faq": "FAQ"
+  },
+  "home": {
+    "hero_title": "Precisionskylning.",
+    "hero_subtitle": "Naturligt Hållbart.",
+    "precision": "Precision",
+    "eco": "Miljöinnovation",
+    "global": "Global Räckvidd",
+    "inquiry": "Skicka Förfrågan"
+  },
+  "product": {
+    "energy_rating": "Energiklass",
+    "certifications": "Certifieringar",
+    "co2_saved": "CO₂ Sparas",
+    "specifications": "Specifikationer",
+    "faq": "FAQ",
+    "inquiry_form": "Skicka Förfrågan"
+  },
+  "about": {
+    "title": "Om Oss",
+    "eco_commitment": "Vårt Miljöengagemang"
+  },
+  "contact": {
+    "title": "Kontakta Oss",
+    "name": "Namn",
+    "email": "E-post",
+    "company": "Företag",
+    "phone": "Telefon",
+    "message": "Meddelande",
+    "submit": "Skicka",
+    "thanks": "Tack! Vi återkommer inom kort."
+  },
+  "admin": {
+    "dashboard": "Instrumentpanel",
+    "products": "Produkter",
+    "translations": "Översättningar",
+    "inquiries": "Förfrågningar",
+    "analytics": "Analys",
+    "settings": "Inställningar"
+  }
+}

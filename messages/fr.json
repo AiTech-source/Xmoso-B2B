@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "products": "Produits",
+    "about": "À Propos",
+    "contact": "Contact",
+    "blog": "Blog",
+    "sourcing": "Sourcing",
+    "sustainable": "Durable",
+    "faq": "FAQ"
+  },
+  "home": {
+    "hero_title": "Refroidissement de Précision.",
+    "hero_subtitle": "Naturellement Durable.",
+    "precision": "Précision Allemande",
+    "eco": "Innovation Écologique",
+    "global": "Portée Mondiale",
+    "inquiry": "Contactez-nous"
+  },
+  "product": {
+    "energy_rating": "Classe Énergétique",
+    "certifications": "Certifications",
+    "co2_saved": "CO₂ Économisé",
+    "specifications": "Caractéristiques",
+    "faq": "FAQ",
+    "inquiry_form": "Envoyer une Demande"
+  },
+  "about": {
+    "title": "À Propos",
+    "eco_commitment": "Notre Engagement Écologique"
+  },
+  "contact": {
+    "title": "Contactez-nous",
+    "name": "Nom",
+    "email": "Email",
+    "company": "Société",
+    "phone": "Téléphone",
+    "message": "Message",
+    "submit": "Envoyer",
+    "thanks": "Merci ! Nous vous répondrons dans les plus brefs délais."
+  },
+  "admin": {
+    "dashboard": "Tableau de Bord",
+    "products": "Produits",
+    "translations": "Traductions",
+    "inquiries": "Demandes",
+    "analytics": "Analyses",
+    "settings": "Paramètres"
+  }
+}

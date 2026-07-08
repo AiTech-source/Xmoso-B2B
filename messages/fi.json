@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "home": "Koti",
+    "products": "Tuotteet",
+    "about": "Meistä",
+    "contact": "Yhteys",
+    "blog": "Blogi",
+    "sourcing": "Hankinta",
+    "sustainable": "Kestävä",
+    "faq": "UKK"
+  },
+  "home": {
+    "hero_title": "Tarkkuusjäähdytys.",
+    "hero_subtitle": "Luonnollisesti Kestävää.",
+    "precision": "Tarkkuus",
+    "eco": "Ekoinnovaatio",
+    "global": "Maailmanlaajuinen",
+    "inquiry": "Lähetä Kysely"
+  },
+  "product": {
+    "energy_rating": "Energialuokka",
+    "certifications": "Sertifikaatit",
+    "co2_saved": "CO₂ Säästö",
+    "specifications": "Tekniset Tiedot",
+    "faq": "UKK",
+    "inquiry_form": "Lähetä Kysely"
+  },
+  "about": {
+    "title": "Meistä",
+    "eco_commitment": "Sitoutumisemme Ympäristöön"
+  },
+  "contact": {
+    "title": "Ota Yhteyttä",
+    "name": "Nimi",
+    "email": "Sähköposti",
+    "company": "Yritys",
+    "phone": "Puhelin",
+    "message": "Viesti",
+    "submit": "Lähetä",
+    "thanks": "Kiitos! Otamme yhteyttä pian."
+  },
+  "admin": {
+    "dashboard": "Hallintapaneeli",
+    "products": "Tuotteet",
+    "translations": "Käännökset",
+    "inquiries": "Kyselyt",
+    "analytics": "Analytiikka",
+    "settings": "Asetukset"
+  }
+}
