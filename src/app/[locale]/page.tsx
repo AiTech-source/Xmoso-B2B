@@ -60,6 +60,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   let subtitleSize = 24;
   let aboutBlocks: any = null;
   let initialBanner: { id: string; image_url: string; alt_text?: string } | null = null;
+  let capabilitiesData: { title: string; content: string }[] = [];
 
   if (supabase) {
     const { data: pg } = await supabase.from("page_contents")
@@ -71,6 +72,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       if (pg.subtitle) sloganLine2 = pg.subtitle;
       sloganSize = pg.slogan_font_size || 30;
       subtitleSize = pg.subtitle_font_size || 24;
+      if (pg.content?.capabilities?.length) {
+        capabilitiesData = pg.content.capabilities;
+      }
     }
 
     const { data: aboutPg } = await supabase.from("page_contents")
@@ -162,19 +166,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[
+              {(capabilitiesData.length > 0 ? capabilitiesData : [
                 { title: isZh ? "🏭 生产基地" : "🏭 Production Base", content: isZh ? "20,000㎡ 现代化工厂，年产能 30 万台，8 条自动化生产线，支持 OEM/ODM 定制生产。" : "20,000㎡ modern facility, 300K unit annual capacity, 8 automated production lines supporting OEM/ODM manufacturing." },
                 { title: isZh ? "🔬 研发测试" : "🔬 R&D & Testing", content: isZh ? "30+ 工程师团队，20 个内部实验室，涵盖性能测试、可靠性测试、EMC 测试和能效标定。" : "30+ engineers, 20 in-house labs covering performance testing, reliability validation, EMC compliance, and energy efficiency calibration." },
                 { title: isZh ? "✅ 质量认证" : "✅ Quality Certifications", content: isZh ? "ISO 9001:2015 质量管理体系，CE/UL/ETL/RoHS/REACH 产品认证，100% 出厂检验。" : "ISO 9001:2015 certified QMS, CE/UL/ETL/RoHS/REACH product certifications, 100% factory inspection before shipment." },
                 { title: isZh ? "🌍 全球物流" : "🌍 Global Logistics", content: isZh ? "与多家国际货运代理合作，提供 FOB/CIF/DDP 贸易条款，海运至欧洲 25 天、北美 20 天。" : "Partnership with major freight forwarders, FOB/CIF/DDP trade terms available. Sea freight: 25 days to Europe, 20 days to North America." },
                 { title: isZh ? "📦 灵活 MOQ" : "📦 Flexible MOQ", content: isZh ? "标准产品 100 台起订，定制产品 500 台起订。支持混装订单和分批交货。" : "100 units for standard products, 500 for custom designs. Mixed pallet orders and split shipments supported." },
                 { title: isZh ? "🛠️ 售后服务" : "🛠️ After-Sales Support", content: isZh ? "12 个月质量保证，48 小时技术响应，全球备件供应体系，提供 OEM 品牌专属售后方案。" : "12-month warranty, 48-hour technical response, global spare parts supply, dedicated after-sales programs for OEM brands." },
-              ].map((item, i) => (
-                <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 hover:border-forest/30 transition-colors">
-                  <h3 className="text-white text-sm font-medium mb-3">{item.title}</h3>
-                  <p className="text-silver/60 text-sm leading-relaxed">{item.content}</p>
-                </div>
-              ))}
+              ]).map((item, i) => {
+              }).map((item: any, i: number) => {
+                const itemTitle = item.icon ? item.icon + " " + item.title : item.title;
+                const itemContent = item.content || item.desc || "";
+                return (
+                  <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 hover:border-forest/30 transition-colors">
+                    <h3 className="text-white text-sm font-medium mb-3">{itemTitle}</h3>
+                    <p className="text-silver/60 text-sm leading-relaxed">{itemContent}</p>
+                  </div>
+                );})}
             </div>
 
             <div className="text-center mt-10">

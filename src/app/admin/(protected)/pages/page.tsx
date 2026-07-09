@@ -237,7 +237,7 @@ export default function AdminPagesPage() {
       subtitle_font_size: subtitleSize,
       content: ((pk, blk, cap, pl, wc, sj) => {
         const c: any = { blocks: blk };
-        if (pk === "sourcing") { c.capabilities = cap; c.productLines = pl; c.whyChoose = wc; }
+        if (pk === "sourcing" || pk === "home") { c.capabilities = cap; c.productLines = pl; c.whyChoose = wc; }
         if (pk === "sustainable") { try { c.sustainableData = JSON.parse(sj); setSustainableJsonError(""); } catch(e) { setSustainableJsonError("Invalid JSON: " + (e as Error).message); } }
         return c;
       })(pageKey, blocks, capabilities, productLines, whyChoose, sustainableJson),
@@ -410,7 +410,7 @@ export default function AdminPagesPage() {
             </div>
 
             {/* Capabilities Editor (only for Sourcing page) */}
-            {pageKey === "sourcing" && (
+            {(pageKey === "sourcing" || pageKey === "home") && (
               <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
                 <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">🏭 Capability Cards</p>
                 <p className="text-[10px] text-silver/40 mb-4">Edit the 6 capability cards displayed on the Sourcing page.</p>
@@ -436,7 +436,7 @@ export default function AdminPagesPage() {
             )}
 
             {/* Product Lines Editor (only for Sourcing page) */}
-            {pageKey === "sourcing" && (
+            {(pageKey === "sourcing" || pageKey === "home") && (
               <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
                 <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">📦 Product Lines</p>
                 <p className="text-[10px] text-silver/40 mb-4">Each line has a title and bullet points. The first line title will be prefixed with 🍷, second 🚬, third 🥤, fourth 🍸.</p>
@@ -471,7 +471,7 @@ export default function AdminPagesPage() {
             )}
 
             {/* Why Choose XMOSO Editor (only for Sourcing page) */}
-            {pageKey === "sourcing" && (
+            {(pageKey === "sourcing" || pageKey === "home") && (
               <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
                 <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">💡 Why Choose XMOSO</p>
                 <p className="text-[10px] text-silver/40 mb-4">Edit the Q&A pairs in the "Why Choose XMOSO?" section.</p>
