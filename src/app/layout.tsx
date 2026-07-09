@@ -113,7 +113,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {/* Responsive: allow dynamic theme-color for light mode */}
         <meta name="theme-color" content={defaultTheme === "light" ? "#F2F0EB" : "#0A0A0F"} />
         {/* Light theme CSS — external file, loaded for all themes (overrides triggered by JS data-theme attribute) */}
-        <link rel="stylesheet" href="/light-theme.css" />
+        <link rel="preload" as="style" href="/light-theme.css" id="lt-preload" />
+        <noscript><link rel="stylesheet" href="/light-theme.css" /></noscript>
+        <script dangerouslySetInnerHTML={{
+            __html: "var e=document.getElementById('lt-preload');e.onload=function(){e.onload=null;e.rel='stylesheet'}"
+          }} />
         {gaId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
