@@ -173,8 +173,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 { title: isZh ? "🌍 全球物流" : "🌍 Global Logistics", content: isZh ? "与多家国际货运代理合作，提供 FOB/CIF/DDP 贸易条款，海运至欧洲 25 天、北美 20 天。" : "Partnership with major freight forwarders, FOB/CIF/DDP trade terms available. Sea freight: 25 days to Europe, 20 days to North America." },
                 { title: isZh ? "📦 灵活 MOQ" : "📦 Flexible MOQ", content: isZh ? "标准产品 100 台起订，定制产品 500 台起订。支持混装订单和分批交货。" : "100 units for standard products, 500 for custom designs. Mixed pallet orders and split shipments supported." },
                 { title: isZh ? "🛠️ 售后服务" : "🛠️ After-Sales Support", content: isZh ? "12 个月质量保证，48 小时技术响应，全球备件供应体系，提供 OEM 品牌专属售后方案。" : "12-month warranty, 48-hour technical response, global spare parts supply, dedicated after-sales programs for OEM brands." },
-              ]).map((item, i) => {
-              }).map((item: any, i: number) => {
+              ]).map((item: any, i: number) => {
                 const itemTitle = item.icon ? item.icon + " " + item.title : item.title;
                 const itemContent = item.content || item.desc || "";
                 return (
