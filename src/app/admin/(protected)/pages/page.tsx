@@ -138,6 +138,7 @@ export default function AdminPagesPage() {
         }
         setProductLines(data.content?.productLines || []);
         setWhyChoose(data.content?.whyChoose || []);
+        setWhyChooseParagraphs(data.content?.whyChooseParagraphs || []);
         const sd = data.content?.sustainableData;
         setSustainableJson(sd ? JSON.stringify(sd, null, 2) : "{}");
         setDirty(false);
