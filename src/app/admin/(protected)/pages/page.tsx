@@ -72,6 +72,7 @@ export default function AdminPagesPage() {
   ]);
   const [productLines, setProductLines] = useState<{ title: string; items: string[] }[]>([]);
   const [whyChoose, setWhyChoose] = useState<{ q: string; a: string }[]>([]);
+  const [whyChooseParagraphs, setWhyChooseParagraphs] = useState<string[]>([]);
   const [sustainableJson, setSustainableJson] = useState("{}");
   const [sustainableJsonError, setSustainableJsonError] = useState("");
 
@@ -237,7 +238,7 @@ export default function AdminPagesPage() {
       subtitle_font_size: subtitleSize,
       content: ((pk, blk, cap, pl, wc, sj) => {
         const c: any = { blocks: blk };
-        if (pk === "sourcing" || pk === "home") { c.capabilities = cap; c.productLines = pl; c.whyChoose = wc; }
+        if (pk === "sourcing" || pk === "home") { c.capabilities = cap; c.productLines = pl; c.whyChoose = wc; if (pk === "home") c.whyChooseParagraphs = whyChooseParagraphs; }
         if (pk === "sustainable") { try { c.sustainableData = JSON.parse(sj); setSustainableJsonError(""); } catch(e) { setSustainableJsonError("Invalid JSON: " + (e as Error).message); } }
         return c;
       })(pageKey, blocks, capabilities, productLines, whyChoose, sustainableJson),
@@ -470,25 +471,37 @@ export default function AdminPagesPage() {
               </div>
             )}
 
-            {/* Why Choose XMOSO Editor (only for Sourcing page) */}
+            {/* Why Choose XMOSO Editor */}
             {(pageKey === "sourcing" || pageKey === "home") && (
               <div className="p-4 bg-deep-dark/40 border border-silver/10 rounded-lg">
                 <p className="text-[10px] text-silver/40 uppercase tracking-wider mb-3">💡 Why Choose XMOSO</p>
-                <p className="text-[10px] text-silver/40 mb-4">Edit the Q&A pairs in the "Why Choose XMOSO?" section.</p>
-                <div className="space-y-4">
-                  {whyChoose.map((item, i) => (
-                    <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-lg p-4">
-                      <input value={item.q} onChange={(e) => {
-                        const s = [...whyChoose]; s[i] = { ...s[i], q: e.target.value }; setWhyChoose(s); markDirty();
-                      }} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white mb-2" placeholder="Question / heading..." />
-                      <textarea value={item.a} onChange={(e) => {
-                        const s = [...whyChoose]; s[i] = { ...s[i], a: e.target.value }; setWhyChoose(s); markDirty();
-                      }} rows={2} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white resize-y" placeholder="Answer..." />
+                {pageKey === "home" ? (
+                  <>
+                    <p className="text-[10px] text-silver/40 mb-4">Edit the long-form paragraphs for the Home page Why Choose section.</p>
+                    <div className="space-y-4">
+                      {whyChooseParagraphs.map((p, i) => (
+                        <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-lg p-4">
+                          <textarea value={p} onChange={(e) => { const s = [...whyChooseParagraphs]; s[i] = e.target.value; setWhyChooseParagraphs(s); markDirty(); }} rows={4} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white resize-y" placeholder="Paragraph content..." />
+                          <button onClick={() => { setWhyChooseParagraphs(whyChooseParagraphs.filter((_, idx) => idx !== i)); markDirty(); }} className="text-xs text-red-400/60 hover:text-red-400 mt-1">Remove</button>
+                        </div>
+                      ))}
+                      <button onClick={() => { setWhyChooseParagraphs([...whyChooseParagraphs, ""]); markDirty(); }} className="text-xs text-ice/60 hover:text-ice">+ Add Paragraph</button>
                     </div>
-                  ))}
-                  <button onClick={() => { setWhyChoose([...whyChoose, { q: "", a: "" }]); markDirty(); }}
-                    className="text-xs text-ice/60 hover:text-ice">+ Item</button>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[10px] text-silver/40 mb-4">Edit the Q&A pairs in the "Why Choose XMOSO?" section.</p>
+                    <div className="space-y-4">
+                      {whyChoose.map((item, i) => (
+                        <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-lg p-4">
+                          <input value={item.q} onChange={(e) => { const s = [...whyChoose]; s[i] = { ...s[i], q: e.target.value }; setWhyChoose(s); markDirty(); }} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white mb-2" placeholder="Question..." />
+                          <textarea value={item.a} onChange={(e) => { const s = [...whyChoose]; s[i] = { ...s[i], a: e.target.value }; setWhyChoose(s); markDirty(); }} rows={2} className="w-full bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white resize-y" placeholder="Answer..." />
+                        </div>
+                      ))}
+                      <button onClick={() => { setWhyChoose([...whyChoose, { q: "", a: "" }]); markDirty(); }} className="text-xs text-ice/60 hover:text-ice">+ Item</button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

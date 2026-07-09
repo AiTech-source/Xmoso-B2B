@@ -61,6 +61,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   let aboutBlocks: any = null;
   let initialBanner: { id: string; image_url: string; alt_text?: string } | null = null;
   let capabilitiesData: { title: string; content: string }[] = [];
+  let whyChooseParagraphs: string[] = [];
 
   if (supabase) {
     const { data: pg } = await supabase.from("page_contents")
@@ -74,6 +75,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       subtitleSize = pg.subtitle_font_size || 24;
       if (pg.content?.capabilities?.length) {
         capabilitiesData = pg.content.capabilities;
+      }
+      if (pg.content?.whyChooseParagraphs?.length) {
+        whyChooseParagraphs = pg.content.whyChooseParagraphs;
       }
     }
 
@@ -128,29 +132,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {isZh ? "为什么选择 Xmoso 作为您的酒柜 OEM 合作伙伴" : "Why Choose Xmoso as Your Wine Cooler OEM Partner"}
             </h2>
 
-            <div className="space-y-8 text-silver/70 text-[15px] leading-relaxed">
-              {isZh ? (
-                <>
-                  <p>Xmoso 是中国领先的高端酒柜、雪茄柜、饮料柜 OEM/ODM 制造商，总部位于广东中山——中国南部家电制造核心区域。公司拥有超过 20,000 平方米的现代化生产基地，年产能超过 30 万台，服务全球超过 50 个国家和地区的品牌客户。</p>
-
-                  <p>我们的研发团队由 30 余名工程师组成，涵盖制冷系统、结构设计、电气控制和 CFD 风道仿真等专业领域。每款产品在量产前均经过严格的 EN 60335-2-24 安全测试和 ISO 23953 性能测试，确保符合 CE、UL、ETL、RoHS 等国际认证标准。</p>
-
-                  <p>作为一家技术驱动型制造商，Xmoso 在以下领域拥有核心竞争力：变频压缩机控制技术（实现 ±0.3°C 温控精度）、生物基材料应用（毛竹复合材料减少碳足迹）、CFD 优化风道设计（温度均匀性提升 40%）以及智能物联网温控平台。这些技术积累使我们能够为全球品牌客户提供差异化的产品解决方案。</p>
-
-                  <p>我们提供完整的 OEM/ODM 服务流程：需求分析 → 概念设计 → 3D 建模与结构仿真 → 手板打样 → 认证测试 → 批量生产 → 质量检验 → 全球物流。最小起订量灵活，标准产品 100 台起订，定制产品 500 台起订。交货期通常为 30-45 天，视产品复杂度而定。</p>
-
-                  <p>Xmoso 已与多家欧洲、北美和澳洲知名品牌建立长期合作关系。我们理解 B2B 客户最关心的三个核心指标：产品质量一致性、交货准时率和售后响应速度——在这三个方面我们均保持行业领先水平。</p>
-                </>
-              ) : (
+                        <div className="space-y-8 text-silver/70 text-[15px] leading-relaxed">
+              {whyChooseParagraphs.length > 0 ? whyChooseParagraphs.map((text, i) => (
+                <p key={i}>{text}</p>
+              )) : (
                 <>
                   <p>Xmoso is a leading OEM/ODM manufacturer of premium wine coolers, cigar humidors, and beverage cabinets, headquartered in Zhongshan, Guangdong — the heart of China&apos;s home appliance manufacturing hub. Our factory spans 20,000+ square meters with an annual production capacity exceeding 300,000 units, serving branded clients across 50+ countries worldwide.</p>
-
                   <p>Our R&D team comprises 30+ engineers specializing in refrigeration systems, structural design, electrical controls, and CFD airflow simulation. Every product undergoes rigorous EN 60335-2-24 safety testing and ISO 23953 performance validation before mass production, ensuring compliance with CE, UL, ETL, RoHS, and other international certification standards.</p>
-
                   <p>As a technology-driven manufacturer, Xmoso maintains core competencies in variable-speed compressor control (achieving ±0.3°C temperature stability), bio-based material application (Moso bamboo composites for reduced carbon footprint), CFD-optimized airflow design (40% improvement in temperature uniformity), and IoT-enabled smart temperature monitoring platforms. These technological differentiators enable us to deliver unique product solutions for global brand partners.</p>
-
                   <p>Our full OEM/ODM service workflow covers: requirements analysis → concept design → 3D modeling and structural simulation → prototype development → certification testing → mass production → quality inspection → global logistics. Minimum order quantities are flexible: 100 units for standard products and 500 units for customized designs. Typical lead time is 30-45 days depending on product complexity.</p>
-
                   <p>Xmoso has established long-term partnerships with recognized brands across Europe, North America, and Australia. We understand that B2B clients prioritize three core metrics: product quality consistency, on-time delivery rate, and after-sales response speed — and we maintain industry-leading performance across all three dimensions.</p>
                 </>
               )}
