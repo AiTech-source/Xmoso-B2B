@@ -8,6 +8,28 @@ interface MediaItem {
   label: string;
 }
 
+/** Convert YouTube URLs to embeddable format */
+function embedUrl(url: string): string {
+  if (!url) return url;
+
+  // youtube.com/shorts/VIDEO_ID
+  const shortsMatch = url.match(/(?:youtube\.com|youtu\.be)\/shorts\/([a-zA-Z0-9_-]+)/);
+  if (shortsMatch) return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+
+  // youtube.com/watch?v=VIDEO_ID
+  const watchMatch = url.match(/(?:youtube\.com|youtu\.be)\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+
+  // youtu.be/VIDEO_ID
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+
+  // Already an embed URL
+  if (url.includes("youtube.com/embed/")) return url;
+
+  return url;
+}
+
 export default function InstallationMedia({ media }: { media: MediaItem[] }) {
   const [active, setActive] = useState(0);
   if (!media || media.length === 0) return null;
@@ -44,7 +66,8 @@ export default function InstallationMedia({ media }: { media: MediaItem[] }) {
         )}
         {current.type === "video" && (
           <div className="aspect-video">
-            <iframe src={current.url} className="w-full h-full" allowFullScreen />
+            <iframe src={embedUrl(current.url)} className="w-full h-full" allowFullScreen
+              title={current.label} loading="lazy" />
           </div>
         )}
       </div>
