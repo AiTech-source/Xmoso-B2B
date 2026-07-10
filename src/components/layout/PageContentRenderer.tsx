@@ -1,5 +1,25 @@
 "use client";
 
+
+
+function fixYouTubeEmbeds(html: string): string {
+  // Replace YouTube embed URLs to add playsinline=1 for mobile
+  return html.replace(
+    /<iframe([^>]*)src="https:\/\/www.youtube.com\/embed\/([a-zA-Z0-9_-]+)([^"]*)"([^>]*)><\/iframe>/g,
+    (_m: string, before: string, id: string, qs: string, after: string) => {
+      var p = qs || "";
+      if (p.indexOf("playsinline") < 0) {
+        var sep = p.indexOf("?") >= 0 ? "&" : "?";
+        p = sep + "playsinline=1&rel=0" + (p ? p.substr(p.indexOf("?") === 0 ? 1 : 0) : "");
+      }
+      var style = 'style="max-width:100%;width:100%;aspect-ratio:16/9;height:auto;border-radius:12px"';
+      var cleaned = after.replace(/style="[^"]*"/g, "");
+      return "<iframe" + before + 'src="https://www.youtube.com/embed/' + id + p + '"' + cleaned + " " + style + " allowFullScreen></iframe>";
+    }
+  );
+}
+
+
 interface Block {
   type: string;
   data: any;
@@ -86,7 +106,7 @@ export default function PageContentRenderer({ content }: { content: { blocks?: B
                   fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
                   textAlign: (s.textAlign as any) || undefined,
                 }}
-                dangerouslySetInnerHTML={{ __html: block.data.html }}
+                dangerouslySetInnerHTML={{ __html: fixYouTubeEmbeds(block.data.html) }}
               />
             );
 

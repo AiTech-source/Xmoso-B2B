@@ -10,6 +10,24 @@ interface RichContentProps {
   content: { blocks?: Block[] } | null;
 }
 
+/**
+ * Auto-fix YouTube embed iframes in raw HTML:
+ * - Add playsinline=1 for mobile playback
+ * - Force responsive sizing via inline style
+ */
+function fixYouTubeEmbeds(html: string): string {
+  return html.replace(
+    /<iframe([^>]*)src="https:\/\/www\.youtube\.com\/embed\/([a-zA-Z0-9_-]+)([^"]*)"([^>]*)><\/iframe>/g,
+    (_m: string, before: string, id: string, qs: string, after: string) => {
+      const params = new URLSearchParams((qs || "").replace(/^\?/, ""));
+      params.set("playsinline", "1");
+      params.set("rel", "0");
+      const style = 'style="max-width:100%;width:100%;aspect-ratio:16/9;height:auto;border-radius:12px"';
+      return `<iframe${before}src="https://www.youtube.com/embed/${id}?${params.toString()}"${after.replace(/style="[^"]*"/g, "")} ${style} allowFullScreen></iframe>`;
+    }
+  );
+}
+
 export default function RichContent({ content }: RichContentProps) {
   if (!content?.blocks?.length) return null;
 
@@ -88,7 +106,7 @@ export default function RichContent({ content }: RichContentProps) {
                   fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
                   textAlign: (s.textAlign as any) || undefined,
                 }}
-                dangerouslySetInnerHTML={{ __html: block.data.html }}
+                dangerouslySetInnerHTML={{ __html: fixYouTubeEmbeds(block.data.html) }}
               />
             );
 
@@ -101,7 +119,7 @@ export default function RichContent({ content }: RichContentProps) {
                   fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
                   textAlign: (s.textAlign as any) || undefined,
                 }}
-                dangerouslySetInnerHTML={{ __html: block.data.html }}
+                dangerouslySetInnerHTML={{ __html: fixYouTubeEmbeds(block.data.html) }}
               />
             );
 
@@ -138,12 +156,14 @@ export default function RichContent({ content }: RichContentProps) {
                     {item.image_url && <img src={item.image_url} alt="" className="w-full h-32 object-cover rounded-lg mb-4" />}
                     {item.icon && <div className="text-4xl mb-4" style={{ color: item.style?.color || undefined }}>{item.icon}</div>}
                     {item.title && (
-                      <h3 className="text-lg text-white font-light tracking-wide mb-3" style={{ color: item.style?.color || undefined }}>
+                      <h3 className="text-lg text-white font-light tracking-wide mb-3"
+                        style={{ color: item.style?.color || undefined }}>
                         {item.title}
                       </h3>
                     )}
                     {item.text && (
-                      <p className="text-sm text-silver/60 leading-relaxed" style={{ color: item.style?.color || undefined }}>
+                      <p className="text-sm text-silver/60 leading-relaxed"
+                        style={{ color: item.style?.color || undefined }}>
                         {item.text}
                       </p>
                     )}
