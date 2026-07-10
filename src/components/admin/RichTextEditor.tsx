@@ -28,14 +28,12 @@ export default function RichTextEditor({ content, onSave }: { content: any; onSa
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [saving, setSaving] = useState(false);
   const [previews, setPreviews] = useState<Set<number>>(new Set());
+  const blocksRef = useRef<Block[]>(undefined as any);
   const imgInputRef = useRef<HTMLInputElement>(null);
-  const synced = useRef(false);
-
-  // Sync blocks when content loads from parent (only once per content identity)
+  // Sync blocks when content loads from parent
   useEffect(() => {
-    if (content?.blocks && !synced.current) {
+    if (content?.blocks) {
       setBlocks(content.blocks);
-      synced.current = true;
     }
   }, [content]);
 
@@ -61,22 +59,27 @@ export default function RichTextEditor({ content, onSave }: { content: any; onSa
         newBlock = { type, data: type === "divider" ? "" : "", style: {} };
     }
     setBlocks([...blocks, newBlock]);
+    blocksRef.current = [...blocks, newBlock];
   }
 
   function updateBlock(i: number, data: any) {
     const updated = [...blocks];
     updated[i] = { ...updated[i], data };
     setBlocks(updated);
+    blocksRef.current = updated;
   }
 
   function updateStyle(i: number, key: string, value: string) {
     const updated = [...blocks];
     updated[i] = { ...updated[i], style: { ...(updated[i].style || {}), [key]: value } };
     setBlocks(updated);
+    blocksRef.current = updated;
   }
 
   function removeBlock(i: number) {
-    setBlocks(blocks.filter((_, idx) => idx !== i));
+    const updated = blocks.filter((_, idx) => idx !== i);
+    setBlocks(updated);
+    blocksRef.current = updated;
   }
 
   function moveBlock(i: number, dir: -1 | 1) {
@@ -120,7 +123,7 @@ export default function RichTextEditor({ content, onSave }: { content: any; onSa
 
   async function handleSave() {
     setSaving(true);
-    await onSave({ blocks });
+    await onSave({ blocks: blocksRef.current || blocks });
     setSaving(false);
   }
 
