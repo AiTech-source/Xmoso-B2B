@@ -95,7 +95,7 @@ export default function RichContent({ content }: RichContentProps) {
           case "raw-html":
             if (!block.data?.html) return null;
             return (
-              <div key={i} className="my-6"
+              <div key={i} className="my-6 raw-html-content"
                 style={{
                   color: s.color || undefined,
                   fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
