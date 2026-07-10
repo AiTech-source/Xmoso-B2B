@@ -8,26 +8,37 @@ interface MediaItem {
   label: string;
 }
 
-/** Convert YouTube URLs to embeddable format */
+/** Convert YouTube URLs to embeddable format with mobile playback support */
 function embedUrl(url: string): string {
   if (!url) return url;
 
+  let videoId = "";
+
   // youtube.com/shorts/VIDEO_ID
   const shortsMatch = url.match(/(?:youtube\.com|youtu\.be)\/shorts\/([a-zA-Z0-9_-]+)/);
-  if (shortsMatch) return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+  if (shortsMatch) videoId = shortsMatch[1];
 
   // youtube.com/watch?v=VIDEO_ID
-  const watchMatch = url.match(/(?:youtube\.com|youtu\.be)\/watch\?v=([a-zA-Z0-9_-]+)/);
-  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  if (!videoId) {
+    const watchMatch = url.match(/(?:youtube\.com|youtu\.be)\/watch\?v=([a-zA-Z0-9_-]+)/);
+    if (watchMatch) videoId = watchMatch[1];
+  }
 
   // youtu.be/VIDEO_ID
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  if (!videoId) {
+    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+    if (shortMatch) videoId = shortMatch[1];
+  }
 
   // Already an embed URL
-  if (url.includes("youtube.com/embed/")) return url;
+  if (!videoId) {
+    const embedMatch = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+    if (embedMatch) videoId = embedMatch[1];
+  }
 
-  return url;
+  if (!videoId) return url;
+
+  return `https://www.youtube.com/embed/${videoId}?{/*playsinline*/} as any=1&rel=0`;
 }
 
 export default function InstallationMedia({ media }: { media: MediaItem[] }) {
@@ -39,7 +50,6 @@ export default function InstallationMedia({ media }: { media: MediaItem[] }) {
   return (
     <div className="mb-16">
       <h3 className="text-xl text-white tracking-wide mb-6">📐 Installation</h3>
-      {/* Tabs */}
       <div className="flex gap-1 mb-4 flex-wrap">
         {media.map((item, i) => (
           <button key={i} onClick={() => setActive(i)}
@@ -50,7 +60,6 @@ export default function InstallationMedia({ media }: { media: MediaItem[] }) {
           </button>
         ))}
       </div>
-      {/* Content */}
       <div className="bg-deep-blue/20 border border-silver/10 rounded-xl overflow-hidden">
         {current.type === "image" && (
           <img src={cdnUrl(current.url)} alt={current.label} width={800} height={400} className="w-full object-contain max-h-[300px]" />
@@ -66,8 +75,14 @@ export default function InstallationMedia({ media }: { media: MediaItem[] }) {
         )}
         {current.type === "video" && (
           <div className="aspect-video">
-            <iframe src={embedUrl(current.url)} className="w-full h-full" allowFullScreen
-              title={current.label} loading="lazy" />
+            <iframe
+              src={embedUrl(current.url)}
+              className="w-full h-full"
+              allowFullScreen
+
+              title={current.label}
+              loading="lazy"
+            />
           </div>
         )}
       </div>
