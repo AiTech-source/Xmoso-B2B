@@ -64,6 +64,10 @@
 .insights-content hr { border: none; border-top: 1px solid rgba(192,192,192,0.08); margin: 40px 0; }
 .insights-content img { border-radius: 8px; max-width: 100%; height: auto; margin: 24px auto; display: block; }
 
+/* Responsive iframe for raw-html embeds (YouTube etc.) */
+.raw-html-content { max-width: 100%; overflow: hidden; width: 100%; }
+.raw-html-content iframe { max-width: 100% !important; width: 100% !important; aspect-ratio: 16/9; height: auto !important; border-radius: 12px; }
+
 /* Hero fade-in */
 .animate-fade-in { animation: fadeInUp 0.8s ease-out both; }
 .animate-fade-in h1 { animation: fadeInUp 0.8s ease-out 0.05s both; }
