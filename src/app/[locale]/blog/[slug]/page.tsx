@@ -8,6 +8,7 @@ import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { ogImageUrl } from "@/lib/seo/og";
 import { renderJsonLd } from "@/lib/seo/json-ld";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
@@ -91,7 +92,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ loc
       <Header />
       <main style={{ paddingTop: "64px" }}>
         <Breadcrumbs items={[
-          { label: t("Blog", "新闻"), href: `/${locale}/blog` },
+          { label: t("Blog", "新闻"), href: localePath(locale, "/blog") },
           { label: post.title },
         ]} />
 
@@ -114,7 +115,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ loc
           )}
 
           <div className="mb-6">
-            <ShareButton url={`/${locale}/blog/${slug}`} title={post.title} />
+            <ShareButton url={localePath(locale, `/blog/${slug}`)} title={post.title} />
           </div>
 
           <div className="border-t border-silver/10 pt-8">

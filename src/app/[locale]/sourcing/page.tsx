@@ -13,6 +13,7 @@ import { cdnUrl } from "@/lib/cdn";
 import { organizationSchema, faqPageSchema, breadcrumbListSchema, renderJsonLd } from "@/lib/seo/json-ld";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -77,7 +78,7 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
       <main style={{ paddingTop: "64px" }}>
         <PageBannerCarousel pageKey="sourcing" vignette initialBanner={initialBanner} />
 
-        <Breadcrumbs items={[{ label: isZh ? "采购" : "Sourcing", href: `/${locale}/sourcing` }]} />
+        <Breadcrumbs items={[{ label: isZh ? "采购" : "Sourcing", href: localePath(locale, "/sourcing") }]} />
 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("XMOSO", "https://xmoso.com")) }} />
         {faqData?.length && (
@@ -163,7 +164,7 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
               })}
             </div>
             <div className="text-center mt-10">
-              <a href={`/${locale}/products`}
+              <a href={localePath(locale, "/products")}
                 className="inline-block px-8 py-3 rounded-xl bg-forest/20 text-forest border border-forest/30 hover:bg-forest/30 transition-colors text-sm">
                 {isZh ? "浏览全部产品 →" : "View All Products →"}
               </a>

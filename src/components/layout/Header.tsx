@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { usePathname } from "next/navigation";
+import { localePath } from "@/lib/locale-path";
 
 const MobileMenu = dynamic(() => import("./MobileMenu"), { ssr: false });
 
@@ -71,7 +72,7 @@ export default function Header() {
       `}</style>
       <header className="fixed top-0 left-0 right-0 z-50 bg-deep-dark/80 backdrop-blur-md border-b border-silver/10" style={{ height: "64px" }}>
         <nav className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-          <Link href={`/${locale}`} style={{ textDecoration: "none", display: "flex", alignItems: "center" }} className="text-xl font-bold tracking-widest text-white">
+          <Link href={localePath(locale)} style={{ textDecoration: "none", display: "flex", alignItems: "center" }} className="text-xl font-bold tracking-widest text-white">
             {/* suppressHydrationWarning: logoUrl is hydrated from localStorage (set by root layout inline script).
                 Server renders empty div; client immediately gets logo from localStorage before hydration. */}
             <div style={{ height: "32px", width: "160px", display: "flex", alignItems: "center" }} suppressHydrationWarning>

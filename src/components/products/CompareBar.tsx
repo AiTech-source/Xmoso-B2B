@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { localePath } from "@/lib/locale-path";
 
 const STORAGE_KEY = "compare_slugs";
 
@@ -38,7 +39,7 @@ export default function CompareBar() {
   function goCompare() {
     if (slugs.length < 2) return;
     const qs = slugs.map((s) => encodeURIComponent(s)).join(",");
-    router.push(`/${locale}/products/compare?slugs=${qs}`);
+    router.push(`${localePath(locale, "/products/compare")}?slugs=${qs}`);
   }
 
   if (slugs.length < 2) return null;

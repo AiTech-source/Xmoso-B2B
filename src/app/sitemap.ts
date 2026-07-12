@@ -1,14 +1,14 @@
 import { createServerStaticClient } from "@/lib/supabase/server-static";
+import { absoluteLocaleUrl } from "@/lib/locale-path";
 
 export default async function sitemap() {
-  const baseUrl = "https://xmoso.com";
   const supabase = await createServerStaticClient();
 
   const locales = ["en", "zh", "fr", "de", "no", "fi", "sv"];
   const staticPages = ["", "products", "about", "contact", "faq", "sourcing", "sustainable", "for-us-market", "for-eu-market", "insights"];
   const staticEntries = locales.flatMap((locale) =>
     staticPages.map((page) => ({
-      url: `${baseUrl}/${locale}${page ? `/${page}` : ""}`,
+      url: absoluteLocaleUrl(locale, page ? `/${page}` : "/"),
       lastModified: new Date(),
       changeFrequency: (page === "" ? "weekly" : "monthly") as "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never",
       priority: page === "" ? 1.0 : 0.8,
@@ -27,21 +27,21 @@ export default async function sitemap() {
     ]);
 
     blogEntries = (blogPosts || []).map((p: any) => ({
-      url: `${baseUrl}/${p.locale}/blog/${p.slug}`,
+      url: absoluteLocaleUrl(p.locale, `/blog/${p.slug}`),
       lastModified: new Date(p.updated_at || new Date()),
       changeFrequency: "monthly" as const,
       priority: 0.7,
     }));
 
     insightsEntries = (insightsPosts || []).map((p: any) => ({
-      url: `${baseUrl}/en/insights/${p.slug}`,
+      url: absoluteLocaleUrl("en", `/insights/${p.slug}`),
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.6,
     }));
 
     productEntries = (translations || []).map((t: any) => ({
-      url: `${baseUrl}/${t.locale}/products/${t.slug}`,
+      url: absoluteLocaleUrl(t.locale, `/products/${t.slug}`),
       lastModified: new Date(t.product?.updated_at || new Date()),
       changeFrequency: "weekly" as const,
       priority: 0.9,

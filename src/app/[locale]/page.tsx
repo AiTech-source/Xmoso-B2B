@@ -11,6 +11,7 @@ import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { organizationSchema, renderJsonLd } from "@/lib/seo/json-ld";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 // Below-fold components — lazy load to reduce initial JS
@@ -117,7 +118,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <AnimateSection className="max-w-4xl mx-auto px-4 py-16">
             <PageContentRenderer content={aboutBlocks} />
             <div className="text-center mt-10">
-              <Link href={`/${locale}/about#about-content`}
+              <Link href={`${localePath(locale, "/about")}#about-content`}
                 className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
                 {isZh ? "了解更多 →" : "Learn More About Us →"}
               </Link>
@@ -175,7 +176,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </div>
 
             <div className="text-center mt-10">
-              <Link href={`/${locale}/sourcing`}
+              <Link href={localePath(locale, "/sourcing")}
                 className="inline-block px-10 py-4 bg-forest/80 text-white rounded-full text-sm tracking-wider hover:bg-forest transition-all">
                 {isZh ? "了解更多制造能力 →" : "Learn More About Our Manufacturing →"}
               </Link>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import ProductCard from "@/components/products/ProductCard";
 import CompareBar from "@/components/products/CompareBar";
 import { typeAnchor } from "@/lib/products-by-type";
+import { localePath } from "@/lib/locale-path";
 
 interface Product {
   slug: string; name: string; model_number: string; image: string; highlights: string[]; product_style: string;
@@ -108,7 +109,7 @@ export default function HomeProducts({ locale }: { locale: string }) {
           </div>
 
           <div className="text-center mt-8">
-            <Link href={`/${locale}/products#${typeAnchor(group.name)}`}
+            <Link href={`${localePath(locale, "/products")}#${typeAnchor(group.name)}`}
               className="inline-block px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
               {t("View All", "查看全部")} {group.name} →
             </Link>
@@ -120,7 +121,7 @@ export default function HomeProducts({ locale }: { locale: string }) {
 
       {typeGroups.length > 0 && (
         <div className="text-center mt-8">
-          <Link href={`/${locale}/products`}
+          <Link href={localePath(locale, "/products")}
             className="inline-block px-10 py-4 bg-forest/80 text-white rounded-full text-sm tracking-wider hover:bg-forest transition-all">
             {t("Browse All Products", "浏览所有产品")} →
           </Link>

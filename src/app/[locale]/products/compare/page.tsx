@@ -6,6 +6,7 @@ import { cdnUrl } from "@/lib/cdn";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
+import { localePath } from "@/lib/locale-path";
 
 interface Spec { label: string; value: string; sort_order: number; bgColor?: string; fontSize?: string; color?: string; }
 interface CompareProduct {
@@ -70,7 +71,7 @@ export default function ComparePage() {
 
   function clearCompare() {
     try { localStorage.removeItem("compare_slugs"); window.dispatchEvent(new CustomEvent("compare-update")); } catch {}
-    router.push(`/${locale}/products`);
+    router.push(localePath(locale, "/products"));
   }
 
   const showSticky = stickyTop < 80;
@@ -79,7 +80,7 @@ export default function ComparePage() {
   if (!slugs.length || products.length < 2) return (
     <><Header /><main style={{ paddingTop: "64px" }}><div className="max-w-7xl mx-auto px-4 py-20 text-center">
       <p className="text-silver/40 text-sm mb-4">{t("Select 2+ products.", "请选择2款以上产品进行对比。")}</p>
-      <Link href={`/${locale}/products`} className="text-forest underline text-sm">{t("Browse", "浏览产品")}</Link>
+      <Link href={localePath(locale, "/products")} className="text-forest underline text-sm">{t("Browse", "浏览产品")}</Link>
     </div></main><Footer /></>
   );
 
@@ -87,7 +88,7 @@ export default function ComparePage() {
     <>
       <Header />
       <main style={{ paddingTop: "64px" }} className="min-h-screen">
-        <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: `/${locale}/products` }, { label: t("Compare", "对比") }]} />
+        <Breadcrumbs items={[{ label: t("Products", "产品中心"), href: localePath(locale, "/products") }, { label: t("Compare", "对比") }]} />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-light tracking-wider text-white">{t("Compare Products", "产品对比")}</h1>
@@ -99,7 +100,7 @@ export default function ComparePage() {
             <div className="w-32 shrink-0" />
             {products.map((p) => (
               <div key={p.id} className="flex-1 min-w-0 text-center">
-                <Link href={`/${locale}/products/${p.slug}`}>
+                <Link href={localePath(locale, `/products/${p.slug}`)}>
                   <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden border border-silver/10 flex items-center justify-center">
                     <img src={cdnUrl(p.image)} alt={p.name} loading="lazy" width={400} height={300} className="w-full h-full object-contain p-4" />
                   </div>
@@ -113,7 +114,7 @@ export default function ComparePage() {
             <div ref={carouselRef} className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth" style={{ scrollbarWidth: "none" }}>
               {products.map((p) => (
                 <div key={p.id} className="snap-center shrink-0 w-[85vw]">
-                  <Link href={`/${locale}/products/${p.slug}`}>
+                  <Link href={localePath(locale, `/products/${p.slug}`)}>
                     <div className="aspect-[4/3] bg-[#f5f0e8] rounded-xl overflow-hidden flex items-center justify-center border border-silver/10">
                       <img src={cdnUrl(p.image)} alt={p.name} loading="lazy" width={400} height={300} className="w-full h-full object-contain p-4" />
                     </div>
@@ -180,7 +181,7 @@ export default function ComparePage() {
           </div>
 
           <div className="text-center mt-10 mb-8 flex flex-wrap items-center justify-center gap-4">
-            <Link href={`/${locale}/products`} className="px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
+            <Link href={localePath(locale, "/products")} className="px-8 py-3 border border-forest/40 text-forest rounded-full text-sm tracking-wider hover:bg-forest/10 transition-all">
               ← {t("Back", "返回")}
             </Link>
             <button onClick={clearCompare} className="px-8 py-3 border border-red-400/30 text-red-400/60 rounded-full text-sm tracking-wider hover:bg-red-400/5 hover:text-red-400 transition-all">

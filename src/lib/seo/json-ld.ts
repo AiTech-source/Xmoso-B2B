@@ -4,6 +4,7 @@ interface ProductData {
   image?: string;
   brand?: string;
   sku?: string;
+  url?: string;
 }
 
 export function productSchema(data: ProductData) {
@@ -15,13 +16,7 @@ export function productSchema(data: ProductData) {
     image: data.image || undefined,
     brand: data.brand ? { "@type": "Brand", name: data.brand } : undefined,
     sku: data.sku || undefined,
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-      url: `https://xmoso.com/products?q=${encodeURIComponent(data.sku || data.name)}`,
-    },
+    url: data.url || undefined,
   };
 }
 

@@ -6,6 +6,7 @@ import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -85,7 +86,7 @@ export default async function ForUSMarketPage({ params }: { params: Promise<{ lo
                 ? "告诉我们您的需求，我们的北美市场专案团队将在 24 小时内回复。"
                 : "Tell us your requirements — our North America project team will respond within 24 hours."}
             </p>
-            <a href={`/${locale}/contact`}
+            <a href={localePath(locale, "/contact")}
               className="inline-block px-8 py-3 bg-forest/80 text-white rounded-full text-sm tracking-wider hover:bg-forest transition-all">
               {isZh ? "联系北美市场团队 →" : "Contact North America Team →"}
             </a>

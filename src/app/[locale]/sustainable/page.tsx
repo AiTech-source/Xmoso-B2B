@@ -13,6 +13,7 @@ import { cdnUrl } from "@/lib/cdn";
 import { organizationSchema, faqPageSchema, breadcrumbListSchema, renderJsonLd } from "@/lib/seo/json-ld";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { absoluteLocaleUrl, localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -69,9 +70,9 @@ export default async function SustainablePage({ params }: { params: Promise<{ lo
       <Header />
       <main style={{ paddingTop: "64px" }}>
         <PageBannerCarousel pageKey="sustainable" vignette initialBanner={initialBanner} />
-        <Breadcrumbs items={[{ label: isZh ? "可持续发展" : "Sustainability", href: `/${locale}/sustainable` }]} />
+        <Breadcrumbs items={[{ label: isZh ? "可持续发展" : "Sustainability", href: localePath(locale, "/sustainable") }]} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("XMOSO", "https://xmoso.com")) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(breadcrumbListSchema([{ name: isZh ? "可持续发展" : "Sustainability", url: `https://xmoso.com${isZh ? "/zh" : ""}/sustainable` }])) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(breadcrumbListSchema([{ name: isZh ? "可持续发展" : "Sustainability", url: absoluteLocaleUrl(locale, "/sustainable") }])) }} />
 
         <div className="max-w-7xl mx-auto px-4">
 

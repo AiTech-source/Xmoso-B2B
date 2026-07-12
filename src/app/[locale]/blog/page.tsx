@@ -5,13 +5,27 @@ import Link from "next/link";
 import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const ogSet = await getOgSettings(undefined as any);
   const title = locale === "zh" ? "新闻" : "Blog";
-  return { title, alternates: generateAlternates("/blog", locale) };
+  const description = locale === "zh"
+    ? "阅读 Xmoso 关于嵌入式酒柜、餐边柜制冷、可持续材料和 B2B 采购决策的文章。"
+    : "Read Xmoso articles on built-in wine coolers, bar cabinet cooler concepts, sustainable materials, and B2B sourcing decisions.";
+  return {
+    title,
+    description,
+    alternates: generateAlternates("/blog", locale),
+    openGraph: {
+      type: "website",
+      title: `${ogSet.brand} — ${title}`,
+      description,
+      images: [{ url: ogImageUrl({ title, type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],
+    },
+  };
 }
 
 export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -47,7 +61,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
           <div className="space-y-8">
             {posts.map((post) => (
               <article key={post.id} className="bg-deep-blue/20 border border-silver/10 rounded-xl overflow-hidden hover:border-forest/30 transition-colors group">
-                <Link href={`/${locale}/blog/${post.slug}`} className="block md:flex">
+                <Link href={localePath(locale, `/blog/${post.slug}`)} className="block md:flex">
                   {post.cover_image && (
                     <div className="md:w-72 shrink-0 bg-[#f5f0e8] overflow-hidden">
                       <img src={post.cover_image} loading="lazy" alt={post.title} className="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-700" />

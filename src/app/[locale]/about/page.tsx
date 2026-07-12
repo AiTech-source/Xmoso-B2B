@@ -17,7 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const supabase = await createServerStaticClient();
   let title = locale === "zh" ? "关于我们" : "About Us";
-  let desc = locale === "zh" ? "了解DeepCool的品牌故事与使命。" : "Learn about DeepCool's story and mission.";
+  let desc = locale === "zh"
+    ? "了解 Xmoso 的产品理念、线下客户经验与差异化恒温酒柜、餐边柜制冷解决方案。"
+    : "Learn about Xmoso's product-led approach to differentiated wine coolers, bar cabinet coolers, and small-batch B2B cooling projects.";
 
   if (supabase) {
     const { data } = await supabase.from("page_contents")

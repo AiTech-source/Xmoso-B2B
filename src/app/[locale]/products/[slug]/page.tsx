@@ -20,6 +20,7 @@ import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { productSchema, breadcrumbListSchema, faqPageSchema, renderJsonLd } from "@/lib/seo/json-ld";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { absoluteLocaleUrl, localePath } from "@/lib/locale-path";
 import type { Metadata } from "next";
 
 async function getTranslation(supabase: any, locale: string, slug: string) {
@@ -199,11 +200,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         {showBanner && <PageBannerCarousel pageKey="product-detail" vignette={vignetteEnabled} initialBanner={initialBanner} />}
 
         <Breadcrumbs items={[
-          { label: locale === "zh" ? "产品中心" : "Products", href: `/${locale}/products` },
+          { label: locale === "zh" ? "产品中心" : "Products", href: localePath(locale, "/products") },
           ...(category?.product_type && category.product_type !== category?.name
-            ? [{ label: category.product_type, href: `/${locale}/products?type=${encodeURIComponent(category.product_type)}` }]
+            ? [{ label: category.product_type, href: `${localePath(locale, "/products")}?type=${encodeURIComponent(category.product_type)}` }]
             : []),
-          ...(category?.name ? [{ label: category.name, href: `/${locale}/products?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
+          ...(category?.name ? [{ label: category.name, href: `${localePath(locale, "/products")}?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
           { label: product.model_number },
         ]} />
 
@@ -217,6 +218,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               image: images?.[0]?.url || undefined,
               brand: ogSettings.brand,
               sku: product.model_number,
+              url: absoluteLocaleUrl(locale, `/products/${slug}`),
             }))
           }}
         />
@@ -224,9 +226,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: renderJsonLd(breadcrumbListSchema([
-              { name: locale === "zh" ? "产品中心" : "Products", url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products` },
-              ...(category?.name ? [{ name: category.name, url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
-              { name: product.model_number, url: `https://xmoso.com${locale === "en" ? "" : `/${locale}`}/products/${slug}` },
+              { name: locale === "zh" ? "产品中心" : "Products", url: absoluteLocaleUrl(locale, "/products") },
+              ...(category?.name ? [{ name: category.name, url: `${absoluteLocaleUrl(locale, "/products")}?type=${encodeURIComponent(category.product_type || "")}&cat=${product.category_id}` }] : []),
+              { name: product.model_number, url: absoluteLocaleUrl(locale, `/products/${slug}`) },
             ]))
           }}
         />
@@ -247,7 +249,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
           {/* Floating share — left side (desktop only) */}
           <div className="hidden md:block fixed left-0 top-1/2 -translate-y-1/2 z-40" style={{ marginTop: "32px" }}>
-            <ShareButton url={`/${locale}/products/${slug}`} title={translation.name} floating />
+            <ShareButton url={localePath(locale, `/products/${slug}`)} title={translation.name} floating />
           </div>
 
           {/* Image + Info + SPEC */}
@@ -256,7 +258,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div>
               <h1 className="text-3xl md:text-4xl font-light tracking-wider text-white">{translation.name}</h1>
               <div className="mt-3">
-                <ShareButton url={`/${locale}/products/${slug}`} title={translation.name} />
+                <ShareButton url={localePath(locale, `/products/${slug}`)} title={translation.name} />
               </div>
               <div className="flex items-center gap-3 mt-3">
                 <p className="text-silver/50 text-sm">{product.model_number}</p>
@@ -326,7 +328,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <h3 className="text-xl text-white tracking-wide mb-6">{locale === "zh" ? "🔗 相关产品" : "🔗 Related Products"}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {related.map((p: any) => (
-                    <a key={p.id} href={`/${locale}/products/${p.slug}`}
+                    <a key={p.id} href={localePath(locale, `/products/${p.slug}`)}
                       className="group block bg-deep-blue/20 border border-silver/10 rounded-xl p-4 hover:border-forest/30 hover:bg-deep-blue/40 transition-all">
                       <div className="aspect-square bg-deep-dark/40 rounded-lg overflow-hidden mb-3 flex items-center justify-center">
                         {p.image ? (

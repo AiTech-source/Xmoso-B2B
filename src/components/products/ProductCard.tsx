@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { cdnUrl } from "@/lib/cdn";
+import { localePath } from "@/lib/locale-path";
 
 interface ProductCardProps {
   slug: string; name: string; image: string; locale: string;
@@ -39,7 +40,7 @@ export default function ProductCard({ slug, name, image, locale, highlights, pro
     try {
       const link = document.createElement("link");
       link.rel = "prefetch";
-      link.href = `/${locale}/products/${slug}`;
+      link.href = localePath(locale, `/products/${slug}`);
       document.head.appendChild(link);
       setTimeout(() => link.remove(), 10000);
     } catch {}
@@ -71,7 +72,7 @@ export default function ProductCard({ slug, name, image, locale, highlights, pro
   }
 
   return (
-    <Link href={`/${locale}/products/${slug}`}
+    <Link href={localePath(locale, `/products/${slug}`)}
       onMouseEnter={handlePreload} onTouchStart={handlePreload}
       className={`group block relative ${selectable && selected ? "ring-2 ring-forest/50 rounded-lg" : ""}`}>
       <div className="relative">

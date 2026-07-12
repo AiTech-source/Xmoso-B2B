@@ -164,7 +164,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                     "@type": "SearchAction",
                     target: {
                       "@type": "EntryPoint",
-                      urlTemplate: "https://xmoso.com/en/products?q={search_term_string}",
+                      urlTemplate: "https://xmoso.com/products?q={search_term_string}",
                     },
                     "query-input": "required name=search_term_string",
                   },

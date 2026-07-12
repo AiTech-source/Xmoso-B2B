@@ -17,6 +17,55 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/sitemap.xml",
+        destination: "/sitemap-index.xml",
+        permanent: true,
+      },
+      {
+        source: "/en",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/en/:path*",
+        destination: "/:path*",
+        permanent: true,
+      },
+      {
+        source: "/products/xbi70d",
+        destination: "/products/xbi70d-wine-cooler",
+        permanent: true,
+      },
+      {
+        source: "/zh/products/xbi70d",
+        destination: "/zh/products/xbi70d-wine-cooler-cn",
+        permanent: true,
+      },
+      {
+        source: "/products/xbi70db",
+        destination: "/products/xbi70db-wine-cooler",
+        permanent: true,
+      },
+      {
+        source: "/products/xbiu90d",
+        destination: "/products/xbiu90d-wine-cooler",
+        permanent: true,
+      },
+      {
+        source: "/products/xbiu90db",
+        destination: "/products/xbiu90db-wine-cooler",
+        permanent: true,
+      },
+      {
+        source: "/products/xbc90db",
+        destination: "/products/xbc90db-wine-cooler",
+        permanent: true,
+      },
+    ];
+  },
   // Prevent Cloudflare from caching HTML/RSC pages — stale cache causes
   // "0:{"f":..." rendering errors when deployment build IDs change
   async headers() {

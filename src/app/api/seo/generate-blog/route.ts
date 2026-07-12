@@ -8,6 +8,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { localePath } from "@/lib/locale-path";
 
 const API_KEY = process.env.GEMINI_API_KEY || process.env.Deepseek_B2B_SEO;
 
@@ -122,7 +123,7 @@ Use HTML format with <h2> sections and <p> paragraphs.
         id: blogId,
         slug: blogSlug,
         title,
-        url: `/${locale}/blog/${blogSlug}`,
+        url: localePath(locale, `/blog/${blogSlug}`),
         wordCount: content.replace(/<[^>]+>/g, "").split(/\s+/).length,
       },
     });

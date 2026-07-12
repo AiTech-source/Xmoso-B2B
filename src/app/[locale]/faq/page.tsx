@@ -15,12 +15,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const supabase = await createServerStaticClient();
   const ogSet = await getOgSettings(supabase);
   const title = locale === "zh" ? "常见问题" : "FAQ";
+  const description = locale === "zh"
+    ? "查看 Xmoso 恒温酒柜和餐边柜制冷项目的 B2B 常见问题，包括样品、小批量订单、安装、认证和 OEM/ODM 合作。"
+    : "B2B FAQs for Xmoso wine cooler and bar cabinet cooler projects, including samples, pilot orders, installation, certifications, and OEM/ODM cooperation.";
   return {
     title,
+    description,
     alternates: generateAlternates("/faq", locale),
     openGraph: {
       type: "website",
       title: `${ogSet.brand} — ${title}`,
+      description,
       images: [{ url: ogImageUrl({ title, type: "faq", brand: ogSet.brand }), width: 1200, height: 630 }],
     },
   };

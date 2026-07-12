@@ -19,12 +19,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const supabase = await createServerStaticClient();
   const ogSet = await getOgSettings(supabase);
   const title = locale === "zh" ? "联系我们" : "Contact Us";
+  const description = locale === "zh"
+    ? "联系 Xmoso 获取恒温酒柜、嵌入式酒柜和餐边柜制冷项目的小批量样品、OEM/ODM 合作与报价。"
+    : "Contact Xmoso for pilot orders, samples, OEM/ODM cooperation, and quotes for wine coolers, built-in cooling, and bar cabinet cooler projects.";
   return {
     title,
+    description,
     alternates: generateAlternates("/contact", locale),
     openGraph: {
       type: "website",
       title: `${ogSet.brand} — ${title}`,
+      description,
       images: [{ url: ogImageUrl({ title, type: "page", brand: ogSet.brand }), width: 1200, height: 630 }],
     },
   };
