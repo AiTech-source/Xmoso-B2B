@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const supabase = await createServerStaticClient();
   const ogSettings = await getOgSettings(supabase);
-  let title = locale === "zh" ? "红酒柜、雪茄柜、饮料柜制造商 | 厂家直供 OEM/ODM" : "Wine Cooler Manufacturer & OEM Supplier | XMOSO Factory Direct";
-  let desc = locale === "zh" ? "XMOSO 是专业红酒柜、雪茄柜、饮料柜、吧台柜制造商。CE/UL/ETL认证，OEM/ODM定制。" : "XMOSO is a professional manufacturer of wine coolers, cigar cabinets, beverage coolers & bar cabinets. CE/UL/ETL certified, OEM/ODM available.";
+  let title = locale === "zh" ? "恒温酒柜小批量试单与 ODM 联合开发 | Xmoso" : "Pilot Orders & ODM Wine Cooler Development | Xmoso";
+  let desc = locale === "zh" ? "Xmoso 支持嵌入式恒温酒柜、Moso Type 材料、餐边柜制冷一体化产品的小批量试单、样品评估和 OEM/ODM 合作。" : "Work with Xmoso on differentiated built-in wine coolers, Moso Type materials, and bar cabinet cooler pilot orders. Samples, small batches, OEM/ODM support.";
 
   if (supabase) {
     const { data } = await supabase.from("page_contents")
@@ -91,12 +91,12 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
           {/* ====== HERO ====== */}
           <section className="py-16 md:py-24 text-center border-b border-silver/10">
             <h1 className="text-3xl md:text-5xl font-light tracking-wider text-white leading-tight">
-              {pageData?.title || (isZh ? "专业酒柜、雪茄柜、饮料柜制造商" : "Premium Wine Cooler & Bar Cabinet Manufacturer")}
+              {pageData?.title || (isZh ? "差异化恒温制冷产品的小批量试单与 ODM 联合开发" : "Pilot Orders & ODM Development for Differentiated Wine Cooling Products")}
             </h1>
             <p className="text-silver/50 text-sm md:text-base mt-4 max-w-2xl mx-auto leading-relaxed">
               {pageData?.subtitle || (isZh
-                ? "XMOSO 是一家专业的高端酒柜、雪茄柜、饮料柜和吧台柜制造商。我们为全球酒店、餐厅、零售商和品牌商提供 OEM/ODM 服务。"
-                : "XMOSO is a professional manufacturer of high-end wine coolers, cigar cabinets, beverage coolers, and bar cabinets. We serve hotels, restaurants, retailers, and brands worldwide with OEM/ODM solutions.")}
+                ? "Xmoso 面向品牌商、柜体厂和项目采购商，围绕嵌入式恒温酒柜、Moso Type 生物基材料、餐边柜制冷一体化概念，提供样品、小批量试单和务实工程支持。"
+                : "Xmoso helps brands, cabinet makers, and project buyers validate built-in wine coolers, Moso Type materials, and integrated bar cabinet cooler concepts through samples, small-batch orders, and practical engineering support.")}
             </p>
             <div className="flex flex-wrap justify-center gap-3 mt-8">
               {["CE", "RoHS", "ERP", "ETL/UL", "ISO9001"].map((cert) => (
@@ -121,12 +121,12 @@ export default async function SourcingPage({ params }: { params: Promise<{ local
               {(pageData?.content?.capabilities?.length
                 ? pageData.content.capabilities
                 : [
-                    { icon: "🏭", title: "Factory Strength", desc: "" },
-                    { icon: "🔧", title: "OEM/ODM Customization", desc: "" },
-                    { icon: "✅", title: "Quality Certifications", desc: "" },
-                    { icon: "📦", title: "Flexible MOQ", desc: "" },
-                    { icon: "🌍", title: "Global Export", desc: "" },
-                    { icon: "🛡️", title: "After-Sales Support", desc: "" },
+                    { icon: "🧭", title: isZh ? "产品驱动开发" : "Product-Led Development", desc: isZh ? "在大批量采购前，先帮助客户验证嵌入式酒柜、Moso Type 和餐边柜制冷概念的真实市场价值。" : "Early-stage product validation for built-in wine cooler, Moso Type, and bar cabinet cooler concepts before large purchasing commitments." },
+                    { icon: "📦", title: isZh ? "样品与小批量试单" : "Samples & Pilot Batches", desc: isZh ? "支持 1-5 台样品评估和小批量试单，用于验证需求、安装适配和终端客户反馈。" : "Sample orders of 1-5 units and small pilot batches for buyers testing demand, installation fit, and customer response." },
+                    { icon: "🧩", title: isZh ? "嵌入式融合细节" : "Integration Details", desc: isZh ? "围绕前端底部通风、左右换门、触摸开门、侧向固定、可做门板等细节降低项目风险。" : "Front-bottom ventilation, reversible doors, touch-open interaction, side fixing, and panel-ready options to reduce project risk." },
+                    { icon: "🎋", title: isZh ? "材料与新品类故事" : "Material & Category Stories", desc: isZh ? "Moso Type 生物基材料和餐边柜制冷概念，帮助合作伙伴讲出不同于普通家电参数的产品故事。" : "Moso Type bio-based materials and bar cabinet cooler concepts help partners present products beyond standard appliance specifications." },
+                    { icon: "✅", title: isZh ? "认证路径规划" : "Certification Planning", desc: isZh ? "CE/RoHS/ERP、ETL/UL 等目标市场要求可以在样品阶段提前讨论，让法规需求参与产品决策。" : "CE/RoHS/ERP and ETL/UL requirements can be discussed at the sample stage so market rules shape product decisions early." },
+                    { icon: "🛠️", title: isZh ? "上市准备支持" : "Launch Support", desc: isZh ? "支持包装、标签、说明书、备件规划、FAQ 和买家可用的产品视觉证据。" : "Practical support for packaging, labels, manuals, spare parts planning, FAQs, and buyer-facing product evidence." },
                   ]
               ).map((item: any, i: number) => (
                 <div key={i} className="bg-deep-blue/20 border border-silver/10 rounded-xl p-6 text-center hover:border-forest/30 transition-colors">

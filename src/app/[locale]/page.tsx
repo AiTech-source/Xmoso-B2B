@@ -24,10 +24,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const supabase = await createServerStaticClient();
   const ogSet = await getOgSettings(supabase);
   const isZh = locale === "zh";
-  const title = isZh ? "红酒柜制造商 — 定制酒柜 OEM/ODM 工厂 | Xmoso" : "Wine Cooler OEM Manufacturer China — Custom Wine Fridge Factory | Xmoso";
+  const title = isZh ? "差异化恒温酒柜与餐边柜制冷方案 | Xmoso" : "Differentiated Wine Cooler & Bar Cabinet Cooler Development | Xmoso";
   let desc = isZh
-    ? "Xmoso 是专业红酒柜、雪茄柜、饮料柜制造商。提供 OEM/ODM 定制服务，CE/UL/ETL 认证，25 年制冷经验。中国酒柜工厂直供。"
-    : "Xmoso is a professional wine cooler OEM manufacturer in China. Custom wine fridge OEM/ODM, CE/UL/ETL certified, 25+ years of refrigeration expertise. Factory-direct wine cabinet supplier.";
+    ? "Xmoso 面向品牌商、柜体厂、项目采购商开发差异化恒温酒柜、Moso Type 生物基材料和餐边柜制冷方案，支持样品、小批量试单和 ODM 联合开发。"
+    : "Xmoso develops differentiated wine cooler and bar cabinet cooler concepts for brands, cabinet makers, and project buyers through samples, pilot orders, and ODM collaboration.";
 
   if (supabase) {
     const { data } = await supabase.from("page_contents")
@@ -55,8 +55,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   let showBanner = true;
   let vignetteEnabled = true;
-  let sloganLine1 = isZh ? "红酒柜 OEM 制造商" : "Wine Cooler OEM Manufacturer China";
-  let sloganLine2 = isZh ? "专业定制 · 工厂直供" : "Custom Wine Fridge Factory — Direct from China";
+  let sloganLine1 = isZh ? "差异化恒温制冷方案" : "Differentiated Cooling Concepts";
+  let sloganLine2 = isZh ? "样品验证 · 小批量试单 · ODM 联合开发" : "Samples, Pilot Orders & ODM Development";
   let sloganSize = 30;
   let subtitleSize = 24;
   let aboutBlocks: any = null;
@@ -138,11 +138,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <p key={i}>{text}</p>
               )) : (
                 <>
-                  <p>Xmoso is a leading OEM/ODM manufacturer of premium wine coolers, cigar humidors, and beverage cabinets, headquartered in Zhongshan, Guangdong — the heart of China&apos;s home appliance manufacturing hub. Our factory spans 20,000+ square meters with an annual production capacity exceeding 300,000 units, serving branded clients across 50+ countries worldwide.</p>
-                  <p>Our R&D team comprises 30+ engineers specializing in refrigeration systems, structural design, electrical controls, and CFD airflow simulation. Every product undergoes rigorous EN 60335-2-24 safety testing and ISO 23953 performance validation before mass production, ensuring compliance with CE, UL, ETL, RoHS, and other international certification standards.</p>
-                  <p>As a technology-driven manufacturer, Xmoso maintains core competencies in variable-speed compressor control (achieving ±0.3°C temperature stability), bio-based material application (Moso bamboo composites for reduced carbon footprint), CFD-optimized airflow design (40% improvement in temperature uniformity), and IoT-enabled smart temperature monitoring platforms. These technological differentiators enable us to deliver unique product solutions for global brand partners.</p>
-                  <p>Our full OEM/ODM service workflow covers: requirements analysis → concept design → 3D modeling and structural simulation → prototype development → certification testing → mass production → quality inspection → global logistics. Minimum order quantities are flexible: 100 units for standard products and 500 units for customized designs. Typical lead time is 30-45 days depending on product complexity.</p>
-                  <p>Xmoso has established long-term partnerships with recognized brands across Europe, North America, and Australia. We understand that B2B clients prioritize three core metrics: product quality consistency, on-time delivery rate, and after-sales response speed — and we maintain industry-leading performance across all three dimensions.</p>
+                  <p>Xmoso is a product-led cooling solutions company founded in 2025, focused on differentiated wine coolers, Moso Type bio-based materials, and integrated bar cabinet cooler concepts for brands, cabinet makers, distributors, and project buyers.</p>
+                  <p>Our current stage is best suited to sample evaluation, small-batch pilot orders, and ODM collaboration. Instead of asking buyers to commit to oversized launch quantities early, we help validate product-market fit, installation details, and customer experience first.</p>
+                  <p>The product work is built on 10 years of offline customer feedback and category experience, including recurring issues around built-in ventilation, door-opening experience, bottle access, and cabinet integration.</p>
+                  <p>Key advantages include patented front-bottom self-ventilation, compact no-top-box built-in appearance, touch-open glass door interaction, reversible door planning, and side fixing details that make installation more forgiving.</p>
+                  <p>For commercial buyers, we position specifications as proof behind a clear product story: cleaner integration for cabinetry, easier buyer education, sample-ready development, and a practical path from pilot batch to repeat order.</p>
                 </>
               )}
             </div>
@@ -158,12 +158,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {(capabilitiesData.length > 0 ? capabilitiesData : [
-                { title: isZh ? "🏭 生产基地" : "🏭 Production Base", content: isZh ? "20,000㎡ 现代化工厂，年产能 30 万台，8 条自动化生产线，支持 OEM/ODM 定制生产。" : "20,000㎡ modern facility, 300K unit annual capacity, 8 automated production lines supporting OEM/ODM manufacturing." },
-                { title: isZh ? "🔬 研发测试" : "🔬 R&D & Testing", content: isZh ? "30+ 工程师团队，20 个内部实验室，涵盖性能测试、可靠性测试、EMC 测试和能效标定。" : "30+ engineers, 20 in-house labs covering performance testing, reliability validation, EMC compliance, and energy efficiency calibration." },
-                { title: isZh ? "✅ 质量认证" : "✅ Quality Certifications", content: isZh ? "ISO 9001:2015 质量管理体系，CE/UL/ETL/RoHS/REACH 产品认证，100% 出厂检验。" : "ISO 9001:2015 certified QMS, CE/UL/ETL/RoHS/REACH product certifications, 100% factory inspection before shipment." },
-                { title: isZh ? "🌍 全球物流" : "🌍 Global Logistics", content: isZh ? "与多家国际货运代理合作，提供 FOB/CIF/DDP 贸易条款，海运至欧洲 25 天、北美 20 天。" : "Partnership with major freight forwarders, FOB/CIF/DDP trade terms available. Sea freight: 25 days to Europe, 20 days to North America." },
-                { title: isZh ? "📦 灵活 MOQ" : "📦 Flexible MOQ", content: isZh ? "标准产品 100 台起订，定制产品 500 台起订。支持混装订单和分批交货。" : "100 units for standard products, 500 for custom designs. Mixed pallet orders and split shipments supported." },
-                { title: isZh ? "🛠️ 售后服务" : "🛠️ After-Sales Support", content: isZh ? "12 个月质量保证，48 小时技术响应，全球备件供应体系，提供 OEM 品牌专属售后方案。" : "12-month warranty, 48-hour technical response, global spare parts supply, dedicated after-sales programs for OEM brands." },
+                { title: isZh ? "产品概念开发" : "Product Concept Development", content: isZh ? "支持 XBI/XBIU 嵌入式酒柜、Moso Type 材料故事、餐边柜制冷一体化等差异化概念开发。" : "Support for differentiated cooling concepts such as XBI/XBIU built-in wine coolers, Moso Type material stories, and integrated bar cabinet cooler formats." },
+                { title: isZh ? "样品与小批量试单" : "Samples and Pilot Batches", content: isZh ? "适合样品评估、小批量试单和项目验证，帮助客户在扩大采购前先判断市场反馈。" : "Suitable for sample evaluation, small-batch trial orders, and project validation before larger purchasing commitments." },
+                { title: isZh ? "嵌入式安装细节" : "Built-In Integration Details", content: isZh ? "重点关注前端底部通风、左右换门、触摸开门、侧向固定、可做门板等影响安装体验的细节。" : "Focus on front-bottom ventilation, reversible door planning, touch-open interaction, side fixing, and panel-ready installation details." },
+                { title: isZh ? "材料差异化" : "Material Differentiation", content: isZh ? "Moso Type 生物基材料帮助品牌讲出更自然、更家居化的产品故事，而不只是普通金属家电外观。" : "Moso Type bio-based materials help brands tell a more natural, furniture-integrated product story beyond standard metal appliance styling." },
+                { title: isZh ? "买家可用证据" : "Buyer-Facing Evidence", content: isZh ? "通过视觉细节、安装说明、FAQ 和规格证据，帮助经销商、柜体合作方和项目采购团队降低沟通成本。" : "Visual details, installation notes, FAQs, and specification proof can support distributors, cabinet partners, and project decision makers." },
+                { title: isZh ? "务实 OEM/ODM 支持" : "Practical OEM/ODM Support", content: isZh ? "支持 Logo、表面、包装、标签、说明书和配置讨论，不强迫客户过早承担过大的首单数量。" : "Logo, finish, packaging, labels, manuals, and configuration discussions are available without forcing oversized launch quantities too early." },
               ]).map((item: any, i: number) => {
                 const itemTitle = item.icon ? item.icon + " " + item.title : item.title;
                 const itemContent = item.content || item.desc || "";
