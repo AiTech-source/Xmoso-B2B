@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { headers } from "next/headers";
-import { cdnUrl } from "@/lib/cdn";
 import { generateAlternates } from "@/lib/seo/hreflang";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -41,11 +40,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   let faviconUrl = "/favicon.svg";
   let logoUrl = "";
   let footerLogo = "", footerCompany = "", footerAddress = "", footerEmail = "";
-  let headerPreload: ReactNode = null;
   try {
     const supabase = await createServerStaticClient();
     if (supabase) {
-      const [themeRes, faviconRes, logoRes, ftLogoRes, ftCompanyRes, ftAddrRes, ftEmailRes, bannerRes] = await Promise.all([
+      const [themeRes, faviconRes, logoRes, ftLogoRes, ftCompanyRes, ftAddrRes, ftEmailRes] = await Promise.all([
         supabase.from("site_settings").select("value").eq("key", "default_theme").single(),
         supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
         supabase.from("site_settings").select("value").eq("key", "logo_url").single(),
@@ -53,13 +51,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         supabase.from("site_settings").select("value").eq("key", "footer_company").single(),
         supabase.from("site_settings").select("value").eq("key", "footer_address").single(),
         supabase.from("site_settings").select("value").eq("key", "footer_email").single(),
-        // Preload first home banner in <head> for LCP
-        supabase.from("page_banners")
-          .select("image_url")
-          .eq("page_key", "home")
-          .order("sort_order", { ascending: true })
-          .limit(1)
-          .maybeSingle(),
       ]);
       if (themeRes.data?.value === "light") defaultTheme = "light";
       if (faviconRes.data?.value) faviconUrl = faviconRes.data.value;
@@ -68,9 +59,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       if (ftCompanyRes.data?.value) footerCompany = ftCompanyRes.data.value;
       if (ftAddrRes.data?.value) footerAddress = ftAddrRes.data.value;
       if (ftEmailRes.data?.value) footerEmail = ftEmailRes.data.value;
-      if (bannerRes.data?.image_url) {
-        headerPreload = <link rel="preload" as="image" href={cdnUrl(bannerRes.data.image_url)} fetchPriority="high" />;
-      }
     }
   } catch (_) {}
 
@@ -103,7 +91,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         {faviconUrl && <link rel="icon" href={faviconUrl} sizes="any" />}
         {logoUrl && <link rel="preload" as="image" href={logoUrl} fetchPriority="high" />}
-        {headerPreload}
         <link rel="preconnect" href="https://khauqgzdxkpejdoijzqf.supabase.co" />
         <link rel="dns-prefetch" href="https://khauqgzdxkpejdoijzqf.supabase.co" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

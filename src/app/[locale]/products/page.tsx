@@ -12,6 +12,7 @@ import { cdnUrl } from "@/lib/cdn";
 import { getProductsByType, typeAnchor } from "@/lib/products-by-type";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
+import { getBannerPreloadMedia, getInitialPageBanners, getResponsiveBannerPreloads, type PageBannerData } from "@/lib/page-banners";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -49,28 +50,21 @@ export default async function ProductsPage({
   // Fetch page banner toggle + initial banner for SSR
   let showBanner = true;
   let vignetteEnabled = true;
-  let initialBanner: { id: string; image_url: string; alt_text?: string } | null = null;
+  let initialBanners: PageBannerData[] = [];
   if (supabase) {
-    const [{ data: pg }, { data: banners }] = await Promise.all([
+    const [{ data: pg }, banners] = await Promise.all([
       supabase.from("page_contents")
         .select("show_banner, vignette_enabled")
         .eq("page_key", "products")
         .eq("locale", locale)
         .maybeSingle(),
-      supabase.from("page_banners")
-        .select("id, image_url, alt_text, orientation")
-        .eq("page_key", "products")
-        .order("sort_order", { ascending: true })
-        .limit(1)
-        .maybeSingle(),
+      getInitialPageBanners(supabase, "products"),
     ]);
     if (pg) {
       showBanner = pg.show_banner !== false;
       vignetteEnabled = pg.vignette_enabled !== false;
     }
-    if (banners?.image_url) {
-      initialBanner = banners;
-    }
+    initialBanners = banners;
   }
 
   // Track total product count for the sidebar summary
@@ -80,12 +74,12 @@ export default async function ProductsPage({
 
   return (
     <>
-      {initialBanner?.image_url && (
-        <link rel="preload" as="image" href={cdnUrl(initialBanner.image_url + "?w=1200&q=65")} fetchPriority="high" />
-      )}
+      {getResponsiveBannerPreloads(initialBanners).map((banner) => (
+        <link key={banner.id} rel="preload" as="image" href={cdnUrl(banner.image_url + "?w=1200&q=65")} fetchPriority="high" media={getBannerPreloadMedia(banner)} />
+      ))}
       <Header />
       <main style={{ paddingTop: "64px" }}>
-        {showBanner && <PageBannerCarousel pageKey="products" vignette={vignetteEnabled} initialBanner={initialBanner} />}
+        {showBanner && <PageBannerCarousel pageKey="products" vignette={vignetteEnabled} initialBanners={initialBanners} />}
 
         <Breadcrumbs items={[{ label: locale === "zh" ? "产品中心" : "Products" }]} />
 

@@ -5,20 +5,25 @@ import { cdnUrl } from "@/lib/cdn";
 interface BannerData {
   id: string;
   image_url: string;
-  alt_text?: string;
-  orientation?: string;
+  alt_text?: string | null;
+  orientation?: string | null;
 }
 
 interface PageBannerCarouselProps {
   pageKey: string;
   vignette?: boolean;
   initialBanner?: BannerData | null;
+  initialBanners?: BannerData[] | null;
 }
 
-export default function PageBannerCarousel({ pageKey, vignette = true, initialBanner }: PageBannerCarouselProps) {
-  const [banners, setBanners] = useState<BannerData[]>(initialBanner ? [initialBanner] : []);
+export default function PageBannerCarousel({ pageKey, vignette = true, initialBanner, initialBanners }: PageBannerCarouselProps) {
+  const [banners, setBanners] = useState<BannerData[]>(() => {
+    if (initialBanners?.length) return initialBanners;
+    return initialBanner ? [initialBanner] : [];
+  });
   const [activeIdx, setActiveIdx] = useState(0);
   const [imgRendered, setImgRendered] = useState(false);
+  const [hasFetchedAll, setHasFetchedAll] = useState(Boolean(initialBanners?.length));
   const paused = useRef(false);
   const fetched = useRef(false);
 
@@ -27,16 +32,19 @@ export default function PageBannerCarousel({ pageKey, vignette = true, initialBa
     fetched.current = true;
     fetch(`/api/banners?page=${pageKey}`)
       .then((r) => r.json())
-      .then((data) => setBanners(data.banners || []))
-      .catch(() => {});
+      .then((data) => {
+        setBanners(data.banners || []);
+        setHasFetchedAll(true);
+      })
+      .catch(() => setHasFetchedAll(true));
   }, [pageKey]);
 
   const landscapes = banners.filter((b) => b.orientation === "landscape" || !b.orientation);
   const portraits = banners.filter((b) => b.orientation === "portrait");
   const total = Math.max(landscapes.length || 1, portraits.length || 1);
 
-  const currLandscape = landscapes[activeIdx % landscapes.length] || landscapes[0] || banners[0];
-  const currPortrait = portraits[activeIdx % portraits.length] || portraits[0] || banners[0];
+  const currLandscape = landscapes[activeIdx % landscapes.length] || landscapes[0] || (hasFetchedAll ? banners[0] : undefined);
+  const currPortrait = portraits[activeIdx % portraits.length] || portraits[0] || (hasFetchedAll ? banners[0] : undefined);
   const firstLoad = !imgRendered;
 
   const next = useCallback(() => setActiveIdx((a) => (a + 1) % total), [total]);

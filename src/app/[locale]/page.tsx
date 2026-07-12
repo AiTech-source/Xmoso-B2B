@@ -8,10 +8,12 @@ import PageBannerCarousel from "@/components/layout/PageBannerCarousel";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import HeroSection from "@/components/home/HeroSection";
 import { createServerStaticClient } from "@/lib/supabase/server-static";
+import { cdnUrl } from "@/lib/cdn";
 import { organizationSchema, renderJsonLd } from "@/lib/seo/json-ld";
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
 import { localePath } from "@/lib/locale-path";
+import { getBannerPreloadMedia, getInitialPageBanners, getResponsiveBannerPreloads, type PageBannerData } from "@/lib/page-banners";
 import type { Metadata } from "next";
 
 // Below-fold components — lazy load to reduce initial JS
@@ -60,7 +62,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   let sloganSize = 30;
   let subtitleSize = 24;
   let aboutBlocks: any = null;
-  let initialBanner: { id: string; image_url: string; alt_text?: string } | null = null;
+  let initialBanners: PageBannerData[] = [];
   let capabilitiesData: { title: string; content: string }[] = [];
   let whyChooseParagraphs: string[] = [];
 
@@ -89,23 +91,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     }
 
     if (locale === "en") {
-      const { data: banners } = await supabase
-        .from("page_banners")
-        .select("id, image_url, alt_text, orientation")
-        .eq("page_key", "home")
-        .order("sort_order", { ascending: true })
-        .limit(1);
-      if (banners?.length && banners[0].image_url) {
-        initialBanner = banners[0];
-      }
+      initialBanners = await getInitialPageBanners(supabase, "home");
     }
   }
 
   return (
     <>
+      {getResponsiveBannerPreloads(initialBanners).map((banner) => (
+        <link key={banner.id} rel="preload" as="image" href={cdnUrl(banner.image_url + "?w=1200&q=65")} fetchPriority="high" media={getBannerPreloadMedia(banner)} />
+      ))}
       <Header />
       <main style={{ paddingTop: "64px", minHeight: "80vh" }}>
-        {showBanner && <PageBannerCarousel pageKey="home" vignette={vignetteEnabled} initialBanner={initialBanner} />}
+        {showBanner && <PageBannerCarousel pageKey="home" vignette={vignetteEnabled} initialBanners={initialBanners} />}
         <Breadcrumbs items={[{ label: isZh ? "首页" : "Home" }]} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("Xmoso", `https://xmoso.com${locale === "en" ? "" : `/${locale}`}`)) }} />
         <HeroSection line1={sloganLine1} line2={sloganLine2} line1Size={sloganSize} line2Size={subtitleSize} />

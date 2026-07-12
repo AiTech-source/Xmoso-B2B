@@ -14,6 +14,7 @@ import { organizationSchema, faqPageSchema, breadcrumbListSchema, renderJsonLd }
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
 import { absoluteLocaleUrl, localePath } from "@/lib/locale-path";
+import { getBannerPreloadMedia, getInitialPageBanners, getResponsiveBannerPreloads, type PageBannerData } from "@/lib/page-banners";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -37,15 +38,14 @@ export default async function SustainablePage({ params }: { params: Promise<{ lo
   const isZh = locale === "zh";
 
   let pageData: any = null;
-  let initialBanner: any = null;
+  let initialBanners: PageBannerData[] = [];
   if (supabase) {
-    const [{ data }, { data: banner }] = await Promise.all([
+    const [{ data }, banners] = await Promise.all([
       supabase.from("page_contents").select("*").eq("page_key", "sustainable").eq("locale", locale).maybeSingle(),
-      supabase.from("page_banners").select("id, image_url, alt_text, orientation")
-        .eq("page_key", "sustainable").order("sort_order", { ascending: true }).limit(1).maybeSingle(),
+      getInitialPageBanners(supabase, "sustainable"),
     ]);
     pageData = data;
-    if (banner?.image_url) initialBanner = banner;
+    initialBanners = banners;
   }
   const sd = pageData?.content?.sustainableData || {};
 
@@ -64,12 +64,12 @@ export default async function SustainablePage({ params }: { params: Promise<{ lo
 
   return (
     <>
-      {initialBanner?.image_url && (
-        <link rel="preload" as="image" href={cdnUrl(initialBanner.image_url + "?w=1200&q=65")} fetchPriority="high" />
-      )}
+      {getResponsiveBannerPreloads(initialBanners).map((banner) => (
+        <link key={banner.id} rel="preload" as="image" href={cdnUrl(banner.image_url + "?w=1200&q=65")} fetchPriority="high" media={getBannerPreloadMedia(banner)} />
+      ))}
       <Header />
       <main style={{ paddingTop: "64px" }}>
-        <PageBannerCarousel pageKey="sustainable" vignette initialBanner={initialBanner} />
+        <PageBannerCarousel pageKey="sustainable" vignette initialBanners={initialBanners} />
         <Breadcrumbs items={[{ label: isZh ? "可持续发展" : "Sustainability", href: localePath(locale, "/sustainable") }]} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(organizationSchema("XMOSO", "https://xmoso.com")) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: renderJsonLd(breadcrumbListSchema([{ name: isZh ? "可持续发展" : "Sustainability", url: absoluteLocaleUrl(locale, "/sustainable") }])) }} />

@@ -21,6 +21,7 @@ import { productSchema, breadcrumbListSchema, faqPageSchema, renderJsonLd } from
 import { ogImageUrl, getOgSettings } from "@/lib/seo/og";
 import { generateAlternates } from "@/lib/seo/hreflang";
 import { absoluteLocaleUrl, localePath } from "@/lib/locale-path";
+import { getBannerPreloadMedia, getInitialPageBanners, getResponsiveBannerPreloads, type PageBannerData } from "@/lib/page-banners";
 import type { Metadata } from "next";
 
 async function getTranslation(supabase: any, locale: string, slug: string) {
@@ -132,7 +133,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   // Fetch page banner toggle (with locale fallback)
   let showBanner = true;
   let vignetteEnabled = true;
-  let initialBanner: any = null;
+  let initialBanners: PageBannerData[] = [];
   if (supabase) {
     let { data: pg } = await supabase.from("page_contents")
       .select("show_banner, vignette_enabled")
@@ -146,11 +147,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     }
     if (pg) { showBanner = pg.show_banner !== false; vignetteEnabled = pg.vignette_enabled !== false; }
 
-    const { data: banner } = await supabase.from("page_banners")
-      .select("id, image_url, alt_text, orientation")
-      .eq("page_key", "product-detail")
-      .order("sort_order", { ascending: true }).limit(1).maybeSingle();
-    if (banner?.image_url) initialBanner = banner;
+    initialBanners = await getInitialPageBanners(supabase, "product-detail");
   }
 
   // B2B FAQ title — component fetches data client-side via API
@@ -192,12 +189,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <>
-      {initialBanner?.image_url && (
-        <link rel="preload" as="image" href={cdnUrl(initialBanner.image_url + "?w=1200&q=65")} fetchPriority="high" />
-      )}
+      {getResponsiveBannerPreloads(initialBanners).map((banner) => (
+        <link key={banner.id} rel="preload" as="image" href={cdnUrl(banner.image_url + "?w=1200&q=65")} fetchPriority="high" media={getBannerPreloadMedia(banner)} />
+      ))}
       <Header />
       <main style={{ paddingTop: "64px" }}>
-        {showBanner && <PageBannerCarousel pageKey="product-detail" vignette={vignetteEnabled} initialBanner={initialBanner} />}
+        {showBanner && <PageBannerCarousel pageKey="product-detail" vignette={vignetteEnabled} initialBanners={initialBanners} />}
 
         <Breadcrumbs items={[
           { label: locale === "zh" ? "产品中心" : "Products", href: localePath(locale, "/products") },

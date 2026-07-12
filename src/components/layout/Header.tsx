@@ -18,8 +18,7 @@ export default function Header() {
   const locale = useLocale();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  // Start with empty logo — populated via useEffect to avoid hydration mismatch
-  const [logoUrl, setLogoUrl] = useState("");
+  const [logoUrl, setLogoUrl] = useState(getInitialLogo);
   // null = not yet determined (show nothing), then true/false after fetch
   const [showSustainable, setShowSustainable] = useState<boolean | null>(null);
   const isZh = locale === "zh";
