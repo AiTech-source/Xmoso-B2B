@@ -67,6 +67,24 @@
 /* Responsive iframe for raw-html embeds (YouTube etc.) */
 .raw-html-content { max-width: 100%; overflow: hidden; width: 100%; }
 .raw-html-content iframe { max-width: 100% !important; width: 100% !important; aspect-ratio: 16/9; height: auto !important; border-radius: 12px; }
+.raw-html-content .xbi70d-story .xbi70d-spec-grid {
+  grid-template-columns: 1fr !important;
+}
+.raw-html-content .xbi70d-story .xbi70d-split {
+  grid-template-columns: 1fr !important;
+  gap: 16px !important;
+}
+.raw-html-content .xbi70d-story .xbi70d-spec {
+  display: grid !important;
+  grid-template-columns: minmax(112px, 0.36fr) minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 16px !important;
+  min-height: 46px !important;
+  padding: 10px 16px !important;
+}
+.raw-html-content .xbi70d-story .xbi70d-spec strong {
+  text-align: right !important;
+}
 
 /* Hero fade-in */
 .animate-fade-in { animation: fadeInUp 0.8s ease-out both; }

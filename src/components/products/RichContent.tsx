@@ -30,9 +30,10 @@ function fixYouTubeEmbeds(html: string): string {
 
 export default function RichContent({ content }: RichContentProps) {
   if (!content?.blocks?.length) return null;
+  const hasRawHtml = content.blocks.some((block) => block.type === "raw-html");
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className={hasRawHtml ? "w-full space-y-6" : "max-w-4xl mx-auto space-y-6"}>
       {content.blocks.map((block: Block, i: number) => {
         const s = block.style || {};
 
