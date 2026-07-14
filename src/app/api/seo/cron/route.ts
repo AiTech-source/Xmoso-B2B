@@ -50,10 +50,21 @@ const SCHEDULE: Record<number, { label: string; requests: { path: string; body: 
   },
 };
 
+type CronResult =
+  | { path: string; status: number; data: unknown }
+  | { path: string; error: string };
+
 export async function GET(req: NextRequest) {
   // Auth check
-  const secret = req.nextUrl.searchParams.get("secret") || req.headers.get("x-cron-secret") || "";
-  if (secret !== process.env.CRON_SECRET) {
+  const cronSecret = process.env.CRON_SECRET;
+  const bearerToken = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
+  const secret =
+    bearerToken ||
+    req.nextUrl.searchParams.get("secret") ||
+    req.headers.get("x-cron-secret") ||
+    "";
+
+  if (!cronSecret || secret !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -64,7 +75,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: `No tasks scheduled for day ${day} (${today?.label || "weekend"})` });
   }
 
-  const results: any[] = [];
+  const results: CronResult[] = [];
 
   for (const req of today.requests) {
     try {
@@ -78,8 +89,8 @@ export async function GET(req: NextRequest) {
       });
       const data = await resp.json();
       results.push({ path: req.path, status: resp.status, data });
-    } catch (e: any) {
-      results.push({ path: req.path, error: e.message });
+    } catch (e: unknown) {
+      results.push({ path: req.path, error: e instanceof Error ? e.message : "Unknown error" });
     }
   }
 
