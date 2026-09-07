@@ -1,30 +1,43 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 
+interface AuthUserResult {
+  data: {
+    user: {
+      user_metadata?: {
+        role?: string;
+      };
+    } | null;
+  };
+}
+
 export default function AdminLoginPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const initialConfigError = supabase ? "" : "Admin login is not configured. Missing Supabase environment variables.";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialConfigError);
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(Boolean(supabase));
   const [alreadyLoggedIn, setAlreadyLoggedIn] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
+    if (!supabase) return;
+
     // Check if already logged in — if so, show a "goto dashboard" option
     // but still show the login form so user can re-auth or see the page
-    supabase?.auth.getUser().then((result: { data?: { user?: any } }) => {
+    supabase.auth.getUser().then((result: AuthUserResult) => {
       if (result.data?.user) {
         setAlreadyLoggedIn(true);
       }
       setChecking(false);
     }).catch(() => setChecking(false));
-  }, []);
+  }, [supabase]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -32,6 +45,12 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      if (!supabase) {
+        setError("Admin login is not configured. Missing Supabase environment variables.");
+        setLoading(false);
+        return;
+      }
+
       const { error: authError } = await supabase.auth.signInWithPassword({
         email, password,
       });
@@ -51,13 +70,14 @@ export default function AdminLoginPage() {
       }
 
       router.push("/admin/dashboard");
-    } catch (e: any) {
-      setError(e.message || "Login failed");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Login failed");
     }
     setLoading(false);
   }
 
   async function handleLogout() {
+    if (!supabase) return;
     await supabase.auth.signOut();
     setAlreadyLoggedIn(false);
     setEmail("");
