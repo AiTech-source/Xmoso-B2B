@@ -3,15 +3,24 @@ import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
+import { getAdminRole } from "@/lib/admin-roles";
+import type { User } from "@supabase/supabase-js";
 
 interface AuthUserResult {
   data: {
-    user: {
-      user_metadata?: {
-        role?: string;
-      };
-    } | null;
+    user: User | null;
   };
+}
+
+const AUTH_CHECK_TIMEOUT_MS = 5000;
+
+function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), AUTH_CHECK_TIMEOUT_MS);
+    }),
+  ]);
 }
 
 export default function AdminLoginPage() {
@@ -28,15 +37,44 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (!supabase) return;
+    let active = true;
 
-    // Check if already logged in — if so, show a "goto dashboard" option
-    // but still show the login form so user can re-auth or see the page
-    supabase.auth.getUser().then((result: AuthUserResult) => {
-      if (result.data?.user) {
-        setAlreadyLoggedIn(true);
+    void (async () => {
+      try {
+        const result = await withTimeout(
+          supabase.auth.getUser(),
+          "Session check timed out. Please sign in again.",
+        ) as AuthUserResult;
+        if (!active) return;
+
+        const user = result.data?.user;
+        if (user && getAdminRole(user)) {
+          setAlreadyLoggedIn(true);
+        } else if (user) {
+          await withTimeout(
+            supabase.auth.signOut(),
+            "Session cleanup timed out. Please refresh and try again.",
+          ).catch(() => undefined);
+          if (!active) return;
+          setError("This session is not an admin account. Please sign in with an admin account.");
+        }
+      } catch (e: unknown) {
+        if (!active) return;
+        await withTimeout(
+          supabase.auth.signOut(),
+          "Session cleanup timed out. Please refresh and try again.",
+        ).catch(() => undefined);
+        if (!active) return;
+        setAlreadyLoggedIn(false);
+        setError(e instanceof Error ? e.message : "Session check timed out. Please sign in again.");
+      } finally {
+        if (active) setChecking(false);
       }
-      setChecking(false);
-    }).catch(() => setChecking(false));
+    })();
+
+    return () => {
+      active = false;
+    };
   }, [supabase]);
 
   async function handleLogin(e: React.FormEvent) {
@@ -61,15 +99,14 @@ export default function AdminLoginPage() {
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      const role = user?.user_metadata?.role;
-      if (role !== "super_admin" && role !== "admin" && role !== "editor") {
+      if (!getAdminRole(user)) {
         await supabase.auth.signOut();
         setError("This account does not have admin access.");
         setLoading(false);
         return;
       }
 
-      router.push("/admin/dashboard");
+      router.replace("/admin/dashboard");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Login failed");
     }

@@ -20,8 +20,11 @@ assert.match(campaignSource, /View Product/);
 const authSource = readSource("src/lib/admin-auth.ts");
 assert.match(authSource, /export async function getAdminUser/);
 assert.match(authSource, /export function adminRequiredResponse/);
-assert.match(authSource, /super_admin/);
-assert.match(authSource, /editor/);
+assert.match(authSource, /getAdminRole/);
+
+const rolesSource = readSource("src/lib/admin-roles.ts");
+assert.match(rolesSource, /super_admin/);
+assert.match(rolesSource, /editor/);
 
 const previewRouteSource = readSource("src/app/api/email-campaign/preview/route.ts");
 assert.match(previewRouteSource, /getAdminUser/);

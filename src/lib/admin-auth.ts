@@ -1,12 +1,11 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAdminRole } from "@/lib/admin-roles";
 
 export const noCacheHeaders = {
   "Cache-Control": "no-store",
   "CDN-Cache-Control": "no-store",
 };
-
-const ADMIN_ROLES = new Set(["super_admin", "admin", "editor"]);
 
 export interface AdminAuthResult {
   supabase: SupabaseClient;
@@ -22,8 +21,8 @@ export async function getAdminUser(): Promise<AdminAuthResult | null> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const role = String(user?.user_metadata?.role || "");
-  if (!user || !ADMIN_ROLES.has(role)) return null;
+  const role = getAdminRole(user);
+  if (!user || !role) return null;
 
   return { supabase, user, role };
 }

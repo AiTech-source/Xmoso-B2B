@@ -1,4 +1,5 @@
 import createMiddleware from "next-intl/middleware";
+import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 
@@ -85,7 +86,33 @@ function addGeoHeaders(response: NextResponse, request: NextRequest) {
   return response;
 }
 
-export function proxy(request: NextRequest) {
+async function refreshSupabaseSession(request: NextRequest, response: NextResponse) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return response;
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet, headersToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+        });
+        Object.entries(headersToSet).forEach(([name, value]) => {
+          response.headers.set(name, value);
+        });
+      },
+    },
+  });
+
+  await supabase.auth.getUser();
+  return response;
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const firstSeg = pathname.split("/")[1] || "";
   const locale = VALID_LOCALES.includes(firstSeg) ? firstSeg : "en";
@@ -117,6 +144,7 @@ export function proxy(request: NextRequest) {
   } else {
     response = intlMiddleware(request);
   }
+  response = await refreshSupabaseSession(request, response);
   return addGeoHeaders(preventCdnCache(response), request);
 }
 

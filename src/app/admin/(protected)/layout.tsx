@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAdminRole } from "@/lib/admin-roles";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,8 +20,7 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
     return null;
   }
 
-  const role = user.user_metadata?.role;
-  if (role !== "super_admin" && role !== "admin" && role !== "editor") {
+  if (!getAdminRole(user)) {
     redirect("/admin/login");
     return null;
   }

@@ -88,6 +88,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const lsScript = lsItems.length > 0
     ? `(function(){try{${lsItems.join(";")}}catch(e){}})();`
     : "";
+  const themeScript = `(function(){
+  try{var t=localStorage.getItem("theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");if(t==="dark")document.documentElement.removeAttribute("data-theme")}catch(e){}
+})();`;
 
   // External light-theme CSS loaded as a plain file (not processed by Tailwind)
   // This removes the massive inline <style> block and eliminates render-blocking CSS
@@ -119,13 +122,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         )}
         {lsScript && <script dangerouslySetInnerHTML={{ __html: lsScript }} />}
         <script dangerouslySetInnerHTML={{ __html: `window.addEventListener('beforeinstallprompt',e=>e.preventDefault())` }} />
-        <script
+        {!isAdminRoute && themeScript && <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){
-  try{var t=localStorage.getItem("theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");if(t==="dark")document.documentElement.removeAttribute("data-theme")}catch(e){}
-})();`
+            __html: themeScript
           }}
-        />
+        />}
 
         {/* GEO / SEO structured data — Organization + WebSite */}
         <script
