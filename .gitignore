@@ -50,6 +50,7 @@ client_secret_*.json
 
 # local agent/tool artifacts
 .agents/
+.worktrees/
 canvas/
 outputs/
 skills-lock.json
