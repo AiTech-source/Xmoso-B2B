@@ -12,6 +12,7 @@ const links = [
   { href: "/admin/product-types", label: "📦 Product Types" },
   { href: "/admin/categories", label: "📁 Categories" },
   { href: "/admin/products", label: "📦 Products" },
+  { href: "/admin/campaigns", label: "✉ Email Campaigns" },
   { href: "/admin/translations", label: "🌐 Translations" },
   { href: "/admin/languages", label: "🌏 Languages" },
   { href: "/admin/knowledge", label: "📚 Knowledge Base" },
@@ -28,7 +29,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   async function handleLogout() {
-    try { const supabase = createClient(); if (supabase) await supabase.auth.signOut(); } catch (_) {}
+    try { const supabase = createClient(); if (supabase) await supabase.auth.signOut(); } catch {}
     router.push("/admin/login");
   }
   return (

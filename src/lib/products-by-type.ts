@@ -4,6 +4,7 @@ import { cdnUrl } from "./cdn";
 // ── Data types ──
 
 export interface ProductItem {
+  id: string;
   slug: string;
   name: string;
   model_number: string;
@@ -26,6 +27,34 @@ export interface TypeGroup {
   categories: CategoryGroup[];
 }
 
+interface ProductTypeRow {
+  name: string;
+  sort_order: number;
+}
+
+interface ProductCategoryRow {
+  id: string;
+  name: string;
+  product_type: string;
+  sort_order: number;
+}
+
+interface ProductRow {
+  id: string;
+  model_number: string;
+  category_id: string;
+  image_gallery?: Array<{ url?: string }> | null;
+  highlights?: string[] | null;
+  product_style?: string | null;
+  sort_order?: number | null;
+}
+
+interface ProductTranslationRow {
+  product_id: string;
+  slug: string | null;
+  name: string | null;
+}
+
 // ── URL-safe anchor for any language ──
 
 export function typeAnchor(name: string): string {
@@ -44,7 +73,7 @@ export function typeAnchor(name: string): string {
 // ── Fetch all products grouped by type → category ──
 
 export async function getProductsByType(
-  supabase: SupabaseClient | any,
+  supabase: SupabaseClient,
   locale: string,
 ): Promise<TypeGroup[]> {
   // 1. Product types (sorted)
@@ -53,7 +82,8 @@ export async function getProductsByType(
     .select("name, sort_order")
     .order("sort_order", { ascending: true });
 
-  if (!productTypes?.length) return [];
+  const typedProductTypes = (productTypes || []) as ProductTypeRow[];
+  if (!typedProductTypes.length) return [];
 
   // 2. Categories (sorted by parent type then sort_order)
   const { data: allCategories } = await supabase
@@ -62,11 +92,12 @@ export async function getProductsByType(
     .order("product_type")
     .order("sort_order", { ascending: true });
 
-  if (!allCategories?.length) return [];
+  const typedCategories = (allCategories || []) as ProductCategoryRow[];
+  if (!typedCategories.length) return [];
 
   // Group categories by product_type
-  const catMap = new Map<string, any[]>();
-  for (const c of allCategories) {
+  const catMap = new Map<string, ProductCategoryRow[]>();
+  for (const c of typedCategories) {
     if (!catMap.has(c.product_type)) catMap.set(c.product_type, []);
     catMap.get(c.product_type)!.push(c);
   }
@@ -78,33 +109,35 @@ export async function getProductsByType(
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
 
-  if (!allProducts?.length) return [];
+  const typedProducts = (allProducts || []) as ProductRow[];
+  if (!typedProducts.length) return [];
 
   // 4. Translations for current locale
   const { data: translations } = await supabase
     .from("product_translations")
     .select("slug, name, product_id")
     .eq("locale", locale)
-    .in("product_id", allProducts.map((p: any) => p.id));
+    .in("product_id", typedProducts.map((p) => p.id));
 
-  const transMap = new Map<string, any>();
-  for (const t of translations || []) transMap.set(t.product_id, t);
+  const transMap = new Map<string, ProductTranslationRow>();
+  for (const t of (translations || []) as ProductTranslationRow[]) transMap.set(t.product_id, t);
 
   // 5. Assemble result
   const result: TypeGroup[] = [];
 
-  for (const pt of productTypes) {
+  for (const pt of typedProductTypes) {
     const categories = catMap.get(pt.name);
     if (!categories?.length) continue;
 
     const catsWithProducts: CategoryGroup[] = [];
 
     for (const cat of categories) {
-      const products: ProductItem[] = allProducts
-        .filter((p: any) => p.category_id === cat.id)
-        .map((p: any) => {
+      const products: ProductItem[] = typedProducts
+        .filter((p) => p.category_id === cat.id)
+        .map((p) => {
           const t = transMap.get(p.id);
           return {
+            id: p.id,
             slug: t?.slug || "",
             name: t?.name || p.model_number,
             model_number: p.model_number,

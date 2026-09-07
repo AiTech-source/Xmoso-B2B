@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sendHtmlEmailWithSettings } from "@/lib/email/smtp";
 
 interface InquiryEmailData {
   name: string;
@@ -15,11 +15,10 @@ interface InquiryEmailData {
 }
 
 export async function sendInquiryEmail(
-  supabase: SupabaseClient<any>,
+  supabase: SupabaseClient,
   data: InquiryEmailData,
 ): Promise<{ success: boolean; error?: string }> {
-  // Read SMTP settings + notification email from site_settings
-  const keys = ["smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_secure", "notification_email"];
+  const keys = ["notification_email"];
   const { data: rows } = await supabase
     .from("site_settings")
     .select("key, value")
@@ -30,39 +29,14 @@ export async function sendInquiryEmail(
     settings[row.key] = row.value;
   }
 
-  const host = settings.smtp_host;
-  const port = settings.smtp_port;
-  const user = settings.smtp_user;
-  const pass = settings.smtp_pass;
   const to = settings.notification_email;
 
-  if (!host || !user || !pass || !to) {
-    return { success: false, error: "SMTP not configured" };
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host,
-      port: parseInt(port || "587"),
-      secure: settings.smtp_secure === "true",
-      auth: { user, pass },
-    });
-
-    const subject = `📩 New Inquiry from ${data.name}`;
-
-    const html = buildEmailHtml(data);
-
-    await transporter.sendMail({
-      from: `"Xmoso Inquiries" <${user}>`,
-      to,
-      subject,
-      html,
-    });
-
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.message };
-  }
+  return sendHtmlEmailWithSettings(supabase, {
+    to,
+    subject: `New Inquiry from ${data.name}`,
+    html: buildEmailHtml(data),
+    fromName: "Xmoso Inquiries",
+  });
 }
 
 function escapeHtml(text: string): string {
