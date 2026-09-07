@@ -1,27 +1,28 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { createServerStaticClient } from "@/lib/supabase/server-static";
 import { headers } from "next/headers";
 import { generateAlternates } from "@/lib/seo/hreflang";
 
-const inter = Inter({ subsets: ["latin"], display: "swap" });
-
 export async function generateMetadata() {
+  const headersList = await headers();
+  const isAdminRoute = headersList.get("x-xmoso-admin-route") === "1";
   let siteTitle = "Xmoso";
   let faviconUrl = "/favicon.svg";
-  try {
-    const supabase = await createServerStaticClient();
-    if (supabase) {
-      const [titleRes, favRes] = await Promise.all([
-        supabase.from("site_settings").select("value").eq("key", "site_title").single(),
-        supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
-      ]);
-      if (titleRes.data?.value) siteTitle = titleRes.data.value;
-      if (favRes.data?.value) faviconUrl = favRes.data.value;
-    }
-  } catch (_) {}
+  if (!isAdminRoute) {
+    try {
+      const supabase = await createServerStaticClient();
+      if (supabase) {
+        const [titleRes, favRes] = await Promise.all([
+          supabase.from("site_settings").select("value").eq("key", "site_title").single(),
+          supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
+        ]);
+        if (titleRes.data?.value) siteTitle = titleRes.data.value;
+        if (favRes.data?.value) faviconUrl = favRes.data.value;
+      }
+    } catch {}
+  }
   return {
     title: { template: `%s — ${siteTitle}`, default: siteTitle },
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://xmoso.com"),
@@ -34,42 +35,47 @@ export async function generateMetadata() {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Read locale from x-middleware-request-locale header (set by next-intl middleware)
   const headersList = await headers();
+  const isAdminRoute = headersList.get("x-xmoso-admin-route") === "1";
   const locale = headersList.get("x-next-intl-locale") || "en";
 
   let defaultTheme = "dark";
   let faviconUrl = "/favicon.svg";
   let logoUrl = "";
   let footerLogo = "", footerCompany = "", footerAddress = "", footerEmail = "";
-  try {
-    const supabase = await createServerStaticClient();
-    if (supabase) {
-      const [themeRes, faviconRes, logoRes, ftLogoRes, ftCompanyRes, ftAddrRes, ftEmailRes] = await Promise.all([
-        supabase.from("site_settings").select("value").eq("key", "default_theme").single(),
-        supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
-        supabase.from("site_settings").select("value").eq("key", "logo_url").single(),
-        supabase.from("site_settings").select("value").eq("key", "footer_logo_url").single(),
-        supabase.from("site_settings").select("value").eq("key", "footer_company").single(),
-        supabase.from("site_settings").select("value").eq("key", "footer_address").single(),
-        supabase.from("site_settings").select("value").eq("key", "footer_email").single(),
-      ]);
-      if (themeRes.data?.value === "light") defaultTheme = "light";
-      if (faviconRes.data?.value) faviconUrl = faviconRes.data.value;
-      if (logoRes.data?.value) logoUrl = logoRes.data.value;
-      if (ftLogoRes.data?.value) footerLogo = ftLogoRes.data.value;
-      if (ftCompanyRes.data?.value) footerCompany = ftCompanyRes.data.value;
-      if (ftAddrRes.data?.value) footerAddress = ftAddrRes.data.value;
-      if (ftEmailRes.data?.value) footerEmail = ftEmailRes.data.value;
-    }
-  } catch (_) {}
+  if (!isAdminRoute) {
+    try {
+      const supabase = await createServerStaticClient();
+      if (supabase) {
+        const [themeRes, faviconRes, logoRes, ftLogoRes, ftCompanyRes, ftAddrRes, ftEmailRes] = await Promise.all([
+          supabase.from("site_settings").select("value").eq("key", "default_theme").single(),
+          supabase.from("site_settings").select("value").eq("key", "favicon_url").single(),
+          supabase.from("site_settings").select("value").eq("key", "logo_url").single(),
+          supabase.from("site_settings").select("value").eq("key", "footer_logo_url").single(),
+          supabase.from("site_settings").select("value").eq("key", "footer_company").single(),
+          supabase.from("site_settings").select("value").eq("key", "footer_address").single(),
+          supabase.from("site_settings").select("value").eq("key", "footer_email").single(),
+        ]);
+        if (themeRes.data?.value === "light") defaultTheme = "light";
+        if (faviconRes.data?.value) faviconUrl = faviconRes.data.value;
+        if (logoRes.data?.value) logoUrl = logoRes.data.value;
+        if (ftLogoRes.data?.value) footerLogo = ftLogoRes.data.value;
+        if (ftCompanyRes.data?.value) footerCompany = ftCompanyRes.data.value;
+        if (ftAddrRes.data?.value) footerAddress = ftAddrRes.data.value;
+        if (ftEmailRes.data?.value) footerEmail = ftEmailRes.data.value;
+      }
+    } catch {}
+  }
 
   let gaId = "";
-  try {
-    const supabase = await createServerStaticClient();
-    if (supabase) {
-      const { data } = await supabase.from("site_settings").select("value").eq("key", "ga_id").single();
-      if (data?.value) gaId = data.value;
-    }
-  } catch (_) {}
+  if (!isAdminRoute) {
+    try {
+      const supabase = await createServerStaticClient();
+      if (supabase) {
+        const { data } = await supabase.from("site_settings").select("value").eq("key", "ga_id").single();
+        if (data?.value) gaId = data.value;
+      }
+    } catch {}
+  }
 
   const esc = (s: string) => s.replace(/"/g, '\\"').replace(/'/g, "\\'");
   const lsItems: string[] = [];
@@ -87,14 +93,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // This removes the massive inline <style> block and eliminates render-blocking CSS
 
   return (
-    <html lang={locale === "zh" ? "zh-Hans" : locale} className={inter.className} data-theme={defaultTheme === "light" ? "light" : undefined} suppressHydrationWarning>
+    <html lang={locale === "zh" ? "zh-Hans" : locale} data-theme={defaultTheme === "light" ? "light" : undefined} suppressHydrationWarning>
       <head>
         {faviconUrl && <link rel="icon" href={faviconUrl} sizes="any" />}
         {logoUrl && <link rel="preload" as="image" href={logoUrl} fetchPriority="high" />}
         <link rel="preconnect" href="https://khauqgzdxkpejdoijzqf.supabase.co" />
         <link rel="dns-prefetch" href="https://khauqgzdxkpejdoijzqf.supabase.co" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <meta name="msvalidate.01" content="A529385DB999D1C1111D38C42C6ED8FD" />
         <meta name="p:domain_verify" content="26f3ea34d7e6f9eaa43d929e5e06c693" />
         {/* Responsive: allow dynamic theme-color for light mode */}

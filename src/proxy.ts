@@ -56,7 +56,7 @@ function preventCdnCache(response: NextResponse) {
  * X-Robots-Tag — for bot pages we explicitly allow indexing;
  *   prevents AI crawlers from skipping non-English pages.
  */
-function addGeoHeaders(response: NextResponse, request: NextRequest, locale: string) {
+function addGeoHeaders(response: NextResponse, request: NextRequest) {
   // Note: Vercel's platform layer overwrites the Vary header after middleware
   // runs, so we cannot append Accept-Language here. The locale-specific
   // caching is handled via:
@@ -111,11 +111,13 @@ export function proxy(request: NextRequest) {
 
   let response: NextResponse;
   if (pathname.startsWith("/admin")) {
-    response = NextResponse.next();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-xmoso-admin-route", "1");
+    response = NextResponse.next({ request: { headers: requestHeaders } });
   } else {
     response = intlMiddleware(request);
   }
-  return addGeoHeaders(preventCdnCache(response), request, locale);
+  return addGeoHeaders(preventCdnCache(response), request);
 }
 
 export const config = {
