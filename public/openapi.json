@@ -1,0 +1,145 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Xmoso Public Discovery API",
+    "version": "1.0.0",
+    "description": "Read-only public endpoints useful for AI agents discovering Xmoso products, categories, comparisons, and FAQs."
+  },
+  "servers": [
+    {
+      "url": "https://xmoso.com"
+    }
+  ],
+  "paths": {
+    "/api/products-by-type": {
+      "get": {
+        "summary": "List public products grouped by product type and category",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "en",
+              "enum": ["en", "zh", "fr", "de", "no", "fi", "sv"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product groups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "types": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "required": ["types"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/product-compare": {
+      "get": {
+        "summary": "Compare up to four public products by slug",
+        "parameters": [
+          {
+            "name": "slugs",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Comma-separated product slugs, up to four."
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "en",
+              "enum": ["en", "zh", "fr", "de", "no", "fi", "sv"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products suitable for comparison",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  "required": ["products"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "summary": "List public product categories",
+        "responses": {
+          "200": {
+            "description": "Category list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/faqs": {
+      "get": {
+        "summary": "List public FAQ content",
+        "responses": {
+          "200": {
+            "description": "FAQ list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

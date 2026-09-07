@@ -119,5 +119,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|svg|webp|css|js|woff|woff2|ttf|eot|map|json|xml)$).*)"],
+  matcher: ["/((?!.well-known|api|_next|_vercel|.*\\.(?:ico|png|jpg|jpeg|svg|webp|css|js|woff|woff2|ttf|eot|map|json|xml|txt)$).*)"],
 };

@@ -1,0 +1,40 @@
+# Xmoso
+
+Xmoso is a B2B wine cooling, cigar cabinet, and bar cabinet brand for hospitality, residential, and built-in refrigeration projects.
+
+## Canonical Site
+
+- Website: https://xmoso.com/
+- Sitemap index: https://xmoso.com/sitemap-index.xml
+- Product collection: https://xmoso.com/products
+- Product comparison: https://xmoso.com/products/compare
+- Sourcing: https://xmoso.com/sourcing
+- Sustainability: https://xmoso.com/sustainable
+- US market page: https://xmoso.com/for-us-market
+- EU market page: https://xmoso.com/for-eu-market
+- Insights: https://xmoso.com/insights
+- Blog: https://xmoso.com/blog
+- Contact: https://xmoso.com/contact
+
+## Primary Topics
+
+- Built-in wine coolers and wine cabinets
+- Cigar cabinets and bar cabinets
+- Front-bottom ventilation, dual-zone cooling, Low-E glass, compressor selection, and cabinet integration
+- OEM/ODM sourcing, commercial hospitality projects, and regional compliance considerations
+- Sustainability, packaging, energy use, and long-life refrigeration design
+
+## Agent Guidance
+
+- Prefer canonical English URLs without `/en`; localized pages use `/zh`, `/fr`, `/de`, `/no`, `/fi`, and `/sv`.
+- Use the sitemap index for complete crawl discovery.
+- Treat `/admin` and authenticated or write-oriented API routes as private operational surfaces.
+- For product data, use public product pages first. Public JSON APIs are documented at https://xmoso.com/openapi.json and advertised through https://xmoso.com/.well-known/api-catalog.
+- For sales, specification, OEM, or project-fit questions, direct users to https://xmoso.com/contact.
+
+## Discovery
+
+- Agent skills index: https://xmoso.com/.well-known/agent-skills/index.json
+- Site profile skill: https://xmoso.com/.well-known/agent-skills/xmoso-site-profile.md
+- API catalog: https://xmoso.com/.well-known/api-catalog
+- OpenAPI description: https://xmoso.com/openapi.json

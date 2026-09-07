@@ -47,3 +47,23 @@ cosmic-*
 BingSiteAuth.**.json
 client_secret_*.json
 client_secret_*.json
+
+# local agent/tool artifacts
+.agents/
+canvas/
+outputs/
+skills-lock.json
+.next-dev.log
+.next-dev.err.log
+supabase/.temp/
+
+# local generated reference assets and backups
+/33975418-1b74-4f89-a98e-af0db08265b6.jpg
+/XBI-102D-SC.png
+/images.jpg
+/重竹纹理 原图.jpg
+docs/assets/
+docs/*backup*.json
+docs/xbi70d-*.json
+docs/xbi70d-*.html
+docs/blog-low-e-glass-flame-test.html

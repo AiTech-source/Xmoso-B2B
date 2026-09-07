@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agentskills.io/schemas/agent-skills-index-v0.2.json",
+  "skills": [
+    {
+      "name": "xmoso-site-profile",
+      "type": "documentation",
+      "description": "Guidance for AI agents reading Xmoso public product, sourcing, and refrigeration education content.",
+      "url": "https://xmoso.com/.well-known/agent-skills/xmoso-site-profile.md",
+      "sha256": "3ead652894c7b4b5d325cc120db4238d954d674343a0a2eca018ecbd4da14cad"
+    }
+  ]
+}
