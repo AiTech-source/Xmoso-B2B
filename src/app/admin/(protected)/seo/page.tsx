@@ -1,15 +1,31 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import Button from "@/components/ui/Button";
 
 interface Article { id: string; slug: string; title: string; keyword: string; status: string; created_at: string; }
+interface BacklogItem {
+  id?: string;
+  keyword?: string;
+  slug?: string | null;
+  locale: string;
+  content_type: string;
+  source?: string;
+  intent?: string;
+  priority: number;
+  status: string;
+  generated_path?: string;
+  last_error?: string;
+  created_at?: string;
+}
 
-type Tab = "articles" | "generate" | "faq" | "blog" | "gsc";
+type Tab = "articles" | "backlog" | "generate" | "faq" | "blog" | "gsc";
 
-const TABS: Tab[] = ["articles", "generate", "faq", "blog", "gsc"];
+const TABS: Tab[] = ["articles", "backlog", "generate", "faq", "blog", "gsc"];
 const TAB_LABELS: Record<Tab, string> = {
   articles: "📋 Articles",
+  backlog: "🧭 Keyword Backlog",
   generate: "🔬 Insight",
   faq: "❓ FAQ",
   blog: "📝 Blog",
@@ -40,6 +56,16 @@ export default function AdminSeoPage() {
   const [blogGenerating, setBlogGenerating] = useState(false);
   const [blogResult, setBlogResult] = useState<any>(null);
 
+  // Backlog
+  const [backlog, setBacklog] = useState<BacklogItem[]>([]);
+  const [backlogStatus, setBacklogStatus] = useState("new");
+  const [backlogType, setBacklogType] = useState("");
+  const [backlogKeyword, setBacklogKeyword] = useState("");
+  const [backlogContentType, setBacklogContentType] = useState("blog");
+  const [backlogPriority, setBacklogPriority] = useState(70);
+  const [backlogLoading, setBacklogLoading] = useState(false);
+  const [backlogResult, setBacklogResult] = useState<any>(null);
+
   // GSC
   const [gscData, setGscData] = useState<any>(null);
   const [gscLoading, setGscLoading] = useState(false);
@@ -51,9 +77,43 @@ export default function AdminSeoPage() {
     setArticles((await res.json()).articles || []);
     setLoading(false);
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadArticles(); }, []);
 
   function slugify(text: string) { return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|$/g, ""); }
+
+  async function loadBacklog() {
+    setBacklogLoading(true); setBacklogResult(null);
+    try {
+      const params = new URLSearchParams({ locale: "en" });
+      if (backlogStatus) params.set("status", backlogStatus);
+      if (backlogType) params.set("content_type", backlogType);
+      const res = await fetch(`/api/seo/keyword-backlog?${params.toString()}`, { headers: { "x-api-key": "xmoso-seo-2026" } });
+      const data = await res.json();
+      if (data.error) setBacklogResult({ error: data.error });
+      setBacklog(data.keywords || []);
+    } catch (e: any) { setBacklogResult({ error: e.message }); }
+    setBacklogLoading(false);
+  }
+
+  async function addBacklogKeyword() {
+    if (!backlogKeyword.trim()) return alert("Keyword required");
+    setBacklogLoading(true); setBacklogResult(null);
+    try {
+      const res = await fetch("/api/seo/keyword-backlog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": "xmoso-seo-2026" },
+        body: JSON.stringify({ keyword: backlogKeyword, content_type: backlogContentType, locale: "en", priority: backlogPriority }),
+      });
+      const data = await res.json();
+      setBacklogResult(data.error ? { error: data.error } : { message: "Keyword added to backlog." });
+      if (!data.error) {
+        setBacklogKeyword("");
+        await loadBacklog();
+      }
+    } catch (e: any) { setBacklogResult({ error: e.message }); }
+    setBacklogLoading(false);
+  }
 
   async function generateInsight() {
     if (!keyword.trim() || !slug.trim()) return alert("Keyword and slug required");
@@ -136,6 +196,73 @@ export default function AdminSeoPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* === KEYWORD BACKLOG === */}
+        {tab === "backlog" && (
+          <div className="space-y-6">
+            <div className="max-w-3xl bg-deep-blue/30 border border-silver/10 rounded-xl p-6">
+              <h2 className="text-white text-sm font-medium mb-2">🧭 Keyword Backlog</h2>
+              <p className="text-xs text-silver/50 mb-4">Cron pulls new blog and insight topics from this queue before generating content.</p>
+              <div className="grid md:grid-cols-[1fr_150px_110px_auto] gap-3">
+                <input value={backlogKeyword} onChange={(e) => setBacklogKeyword(e.target.value)}
+                  placeholder="New keyword / topic" className="bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                <select value={backlogContentType} onChange={(e) => setBacklogContentType(e.target.value)}
+                  className="bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white">
+                  <option value="blog">Blog</option><option value="insight">Insight</option>
+                </select>
+                <input value={backlogPriority} onChange={(e) => setBacklogPriority(Number(e.target.value))}
+                  type="number" min="1" max="100" className="bg-deep-dark border border-silver/10 rounded px-3 py-2 text-sm text-white" />
+                <Button onClick={addBacklogKeyword} disabled={backlogLoading}>{backlogLoading ? "Saving..." : "Add"}</Button>
+              </div>
+              {backlogResult && <p className={`text-xs mt-3 ${backlogResult.error ? "text-red-400" : "text-forest"}`}>{backlogResult.error || backlogResult.message}</p>}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <select value={backlogStatus} onChange={(e) => setBacklogStatus(e.target.value)}
+                className="bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white">
+                <option value="new">New</option><option value="selected">Selected</option><option value="published">Published</option><option value="error">Error</option><option value="">All</option>
+              </select>
+              <select value={backlogType} onChange={(e) => setBacklogType(e.target.value)}
+                className="bg-deep-dark border border-silver/10 rounded px-3 py-2 text-xs text-white">
+                <option value="">All types</option><option value="blog">Blog</option><option value="insight">Insight</option>
+              </select>
+              <Button size="sm" onClick={loadBacklog} disabled={backlogLoading}>{backlogLoading ? "Loading..." : "Refresh"}</Button>
+            </div>
+
+            <div className="overflow-x-auto border border-silver/10 rounded-xl">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-deep-blue/40">
+                    <th className="px-4 py-3 text-left text-xs text-silver/50 font-medium uppercase">Keyword</th>
+                    <th className="px-4 py-3 text-left text-xs text-silver/50 font-medium uppercase">Type</th>
+                    <th className="px-4 py-3 text-right text-xs text-silver/50 font-medium uppercase">Priority</th>
+                    <th className="px-4 py-3 text-left text-xs text-silver/50 font-medium uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs text-silver/50 font-medium uppercase">Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {backlog.map((item, i) => (
+                    <tr key={item.id || `${item.keyword}-${i}`} className="border-t border-silver/5">
+                      <td className="px-4 py-3 text-white text-xs max-w-[360px]">
+                        <p className="truncate">{item.keyword}</p>
+                        {item.last_error && <p className="text-red-400/80 mt-1 truncate">{item.last_error}</p>}
+                      </td>
+                      <td className="px-4 py-3 text-silver/70 text-xs">{item.content_type}</td>
+                      <td className="px-4 py-3 text-right text-silver/70 text-xs">{item.priority}</td>
+                      <td className="px-4 py-3 text-silver/70 text-xs">{item.status}</td>
+                      <td className="px-4 py-3 text-xs">
+                        {item.generated_path ? <a className="text-forest underline" href={item.generated_path} target="_blank">View</a> : <span className="text-silver/35">-</span>}
+                      </td>
+                    </tr>
+                  ))}
+                  {!backlogLoading && backlog.length === 0 && (
+                    <tr><td colSpan={5} className="px-4 py-8 text-center text-silver/40 text-xs">No backlog items for this filter.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -307,7 +434,7 @@ export default function AdminSeoPage() {
 
             {!gscData && !gscError && !gscLoading && (
               <div className="text-center py-16">
-                <p className="text-silver/40 text-sm mb-4">Click "Refresh" to load Google Search Console data.</p>
+                <p className="text-silver/40 text-sm mb-4">Click Refresh to load Google Search Console data.</p>
                 <Button onClick={loadGsc}>📊 Load Analytics</Button>
               </div>
             )}

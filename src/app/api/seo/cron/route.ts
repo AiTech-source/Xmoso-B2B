@@ -13,6 +13,7 @@
  * Secured by CRON_SECRET env var.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { createCronBacklogRequests } from "@/lib/seo/keyword-backlog";
 
 const API_KEY = process.env.ADMIN_API_KEY || "";
 const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://xmoso.com";
@@ -25,28 +26,20 @@ const SCHEDULE: Record<number, { label: string; requests: { path: string; body: 
     ],
   },
   2: {
-    label: "Tuesday - Blog x2",
-    requests: [
-      { path: "/api/seo/generate-blog", body: { keyword: "wine cooler OEM supplier quality control checklist", slug: "wine-cooler-oem-quality-control", locale: "en" } },
-      { path: "/api/seo/generate-blog", body: { keyword: "how to import wine coolers from China", slug: "import-wine-coolers-china-guide", locale: "en" } },
-    ],
+    label: "Tuesday - Blog backlog x2",
+    requests: createCronBacklogRequests(2, "en", 2),
   },
   3: {
-    label: "Wednesday - Insight",
-    requests: [
-      { path: "/api/seo/generate", body: { keyword: "wine cooler refrigeration system design engineer analysis", slug: "wine-cooler-refrigeration-system-design" } },
-    ],
+    label: "Wednesday - Insight backlog",
+    requests: createCronBacklogRequests(3, "en", 1),
   },
   4: {
     label: "Thursday - review day (skip auto)",
     requests: [],
   },
   5: {
-    label: "Friday - Blog x2",
-    requests: [
-      { path: "/api/seo/generate-blog", body: { keyword: "wine cooler energy efficiency standards CE ERP comparison", slug: "wine-cooler-energy-efficiency-standards", locale: "en" } },
-      { path: "/api/seo/generate-blog", body: { keyword: "bulk wine fridge wholesale purchasing tips", slug: "bulk-wine-fridge-wholesale-tips", locale: "en" } },
-    ],
+    label: "Friday - Blog backlog x2",
+    requests: createCronBacklogRequests(5, "en", 2),
   },
 };
 

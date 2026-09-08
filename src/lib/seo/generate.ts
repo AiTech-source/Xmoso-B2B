@@ -44,7 +44,7 @@ function getSupabase() {
 
 // ── DeepSeek API helpers ──
 
-async function deepseekPost(path: string, body: any) {
+async function deepseekPost(path: string, body: Record<string, unknown>) {
   const apiKey = getApiKey();
   const resp = await fetch(`${DEEPSEEK_BASE}${path}`, {
     method: "POST",
@@ -216,12 +216,16 @@ export async function generateArticleFlow(keyword: string, slug: string): Promis
 
 // ── Persist ──
 
-export async function persistArticle(article: GeneratedArticle): Promise<void> {
+export async function persistArticle(article: GeneratedArticle, options: { allowUpdate?: boolean } = {}): Promise<string> {
   const supabase = getSupabase();
-  const { error } = await supabase.from("seo_articles").upsert(
-    { ...article, updated_at: new Date().toISOString() },
-    { onConflict: "slug" },
-  );
+
+  const payload = { ...article, updated_at: new Date().toISOString() };
+  const query = options.allowUpdate
+    ? supabase.from("seo_articles").upsert(payload, { onConflict: "slug" }).select("id").single()
+    : supabase.from("seo_articles").insert(payload).select("id").single();
+
+  const { data, error } = await query;
   if (error) throw new Error(`Failed to persist: ${error.message}`);
   console.log(`[Pipeline] Persisted: /insights/${article.slug}`);
+  return data.id;
 }

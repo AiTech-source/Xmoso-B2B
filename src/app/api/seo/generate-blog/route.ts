@@ -9,10 +9,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { localePath } from "@/lib/locale-path";
+import {
+  buildUniqueSlug,
+  claimNextBacklogItem,
+  markBacklogError,
+  markBacklogPublished,
+  type SeoKeywordBacklogRow,
+} from "@/lib/seo/keyword-backlog";
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 const API_KEY = process.env.GEMINI_API_KEY || process.env.Deepseek_B2B_SEO;
 
-async function callDeepSeek(messages: any[]) {
+async function callDeepSeek(messages: { role: "system" | "user"; content: string }[]) {
   const resp = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
@@ -40,10 +51,42 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { keyword, slug, locale = "en" } = await req.json();
+  const body = await req.json();
+  let { keyword, slug } = body;
+  const locale = body.locale || "en";
+  const fromBacklog = body.fromBacklog === true || body.fromBacklog === "true";
+  const allowUpdate = body.allowUpdate === true || body.allowUpdate === "true";
+  let backlogItem: SeoKeywordBacklogRow | null = null;
+
+  const supabase = await createServerSupabaseClient();
+  if (!supabase) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
+
+  if (fromBacklog) {
+    try {
+      backlogItem = await claimNextBacklogItem(supabase, { contentType: "blog", locale });
+      if (!backlogItem) return NextResponse.json({ message: "No new blog keyword in backlog", skipped: true });
+      keyword = backlogItem.keyword || "";
+      slug = backlogItem.slug || keyword;
+    } catch (err: unknown) {
+      return NextResponse.json({ error: errorMessage(err) }, { status: 500 });
+    }
+  }
+
   if (!keyword || !slug) return NextResponse.json({ error: "keyword and slug required" }, { status: 400 });
 
-  const lang = locale === "zh" ? "Chinese" : "English";
+  const { data: slugRows } = await supabase.from("blog_posts").select("slug").eq("locale", locale);
+  const existingSlugs = new Set<string>(((slugRows || []) as { slug: string }[]).map((row) => row.slug));
+  const blogSlug = fromBacklog
+    ? buildUniqueSlug(slug, existingSlugs)
+    : String(slug).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  if (existingSlugs.has(blogSlug) && !allowUpdate) {
+    return NextResponse.json(
+      { error: "slug already exists; pass allowUpdate=true to overwrite intentionally", slug: blogSlug },
+      { status: 409 },
+    );
+  }
+
   const isZh = locale === "zh";
 
   const systemPrompt = isZh
@@ -78,25 +121,15 @@ Use HTML format with <h2> sections and <p> paragraphs.
     ]);
 
     if (!raw || raw.length < 200) {
-      return NextResponse.json({ error: "Generated content too short" }, { status: 500 });
+      throw new Error("Generated content too short");
     }
 
     const { title, content } = parseHtmlTitle(raw);
-    const metaDesc = content.replace(/<[^>]+>/g, "").slice(0, 155).trim();
-
-    // Generate a slug for blog_posts
-    const blogSlug = slug || keyword.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-    // Insert into blog_posts
-    const supabase = await createServerSupabaseClient();
-    if (!supabase) return NextResponse.json({ error: "DB unavailable" }, { status: 500 });
-
-    // Check if blog_posts has the columns we need
     const { data: existing } = await supabase.from("blog_posts").select("id").eq("slug", blogSlug).eq("locale", locale).maybeSingle();
 
     let blogId: string;
     const excerpt = content.replace(/<[^>]+>/g, "").slice(0, 155).trim();
-    const body = {
+    const postBody = {
       slug: blogSlug,
       title,
       excerpt,
@@ -107,15 +140,24 @@ Use HTML format with <h2> sections and <p> paragraphs.
       updated_at: new Date().toISOString(),
     };
 
-    if (existing) {
-      const { error } = await supabase.from("blog_posts").update({ ...body, updated_at: new Date().toISOString() }).eq("id", existing.id);
+    if (existing && allowUpdate) {
+      const { error } = await supabase.from("blog_posts").update({ ...postBody, updated_at: new Date().toISOString() }).eq("id", existing.id);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       blogId = existing.id;
-    } else {
-      const { data, error } = await supabase.from("blog_posts").insert(body).select("id").single();
+    } else if (!existing) {
+      const { data, error } = await supabase.from("blog_posts").insert(postBody).select("id").single();
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       blogId = data.id;
+    } else {
+      return NextResponse.json({ error: "slug already exists and update is not allowed", slug: blogSlug }, { status: 409 });
     }
+
+    await markBacklogPublished(supabase, backlogItem?.id, {
+      tableName: "blog_posts",
+      recordId: blogId,
+      path: localePath(locale, `/blog/${blogSlug}`),
+      slug: blogSlug,
+    });
 
     return NextResponse.json({
       success: true,
@@ -127,7 +169,8 @@ Use HTML format with <h2> sections and <p> paragraphs.
         wordCount: content.replace(/<[^>]+>/g, "").split(/\s+/).length,
       },
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    await markBacklogError(supabase, backlogItem?.id, errorMessage(err));
+    return NextResponse.json({ error: errorMessage(err) }, { status: 500 });
   }
 }
