@@ -14,6 +14,10 @@ assert.match(campaignSource, /utm_source=email/);
 assert.match(campaignSource, /utm_medium=campaign/);
 assert.match(campaignSource, /export function buildCampaignEmailHtml/);
 assert.match(campaignSource, /export function buildCampaignPlainText/);
+assert.match(campaignSource, /export function buildInstantlyLeadCsvTemplate/);
+for (const field of ["Email", "FirstName", "LastName", "CompanyName", "Website", "Region", "SalesOwner", "ProductModels", "ProductLinks", "CampaignSlug", "EmailSubject"]) {
+  assert.match(campaignSource, new RegExp(`"${field}"`));
+}
 assert.match(campaignSource, /<table/);
 assert.match(campaignSource, /View Product/);
 
@@ -56,6 +60,11 @@ assert.match(campaignPageSource, /\/api\/email-campaign\/preview/);
 assert.match(campaignPageSource, /\/api\/email-campaign\/test-send/);
 assert.match(campaignPageSource, /iframe/);
 assert.match(campaignPageSource, /navigator\.clipboard\.writeText/);
+assert.match(campaignPageSource, /Copy Subject/);
+assert.match(campaignPageSource, /Copy Plain Text/);
+assert.match(campaignPageSource, /Export for Instantly/);
+assert.match(campaignPageSource, /instantly-leads-template/);
+assert.doesNotMatch(campaignPageSource, /AbortController/);
 assert.match(campaignPageSource, /selectedProductIds/);
 
 const sidebarSource = readSource("src/components/admin/AdminSidebar.tsx");

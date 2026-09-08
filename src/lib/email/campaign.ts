@@ -18,6 +18,20 @@ export interface CampaignInput {
   products: CampaignProduct[];
 }
 
+const INSTANTLY_CSV_HEADERS = [
+  "Email",
+  "FirstName",
+  "LastName",
+  "CompanyName",
+  "Website",
+  "Region",
+  "SalesOwner",
+  "ProductModels",
+  "ProductLinks",
+  "CampaignSlug",
+  "EmailSubject",
+];
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -35,6 +49,11 @@ function absoluteUrl(value: string): string {
   if (!value) return `${SITE_ORIGIN}/placeholder.svg`;
   if (/^https?:\/\//i.test(value)) return value;
   return `${SITE_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+function escapeCsv(value: string): string {
+  if (!/[",\r\n]/.test(value)) return value;
+  return `"${value.replace(/"/g, '""')}"`;
 }
 
 export function buildCampaignProductUrl(
@@ -162,4 +181,32 @@ export function buildCampaignPlainText(input: CampaignInput): string {
 
   lines.push("Contact Xmoso: https://xmoso.com/contact");
   return lines.join("\n");
+}
+
+export function buildInstantlyLeadCsvTemplate(input: CampaignInput): string {
+  const productModels = input.products
+    .map((product) => product.model_number)
+    .filter(Boolean)
+    .join(" | ");
+  const productLinks = input.products
+    .map((product) => buildCampaignProductUrl(product, input.locale, input.campaignSlug))
+    .join(" | ");
+  const sampleRow = [
+    "buyer@example.com",
+    "First",
+    "Last",
+    "Company",
+    "https://example.com",
+    "EU",
+    "Sales Owner",
+    productModels,
+    productLinks,
+    input.campaignSlug || "xmoso-product-selection",
+    input.subject || "Selected Xmoso Products",
+  ];
+
+  return [
+    INSTANTLY_CSV_HEADERS.join(","),
+    sampleRow.map(escapeCsv).join(","),
+  ].join("\n");
 }

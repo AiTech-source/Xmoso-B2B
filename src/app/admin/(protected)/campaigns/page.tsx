@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import Button from "@/components/ui/Button";
+import { buildInstantlyLeadCsvTemplate } from "@/lib/email/campaign";
 
 interface ProductItem {
   id: string;
@@ -61,21 +62,26 @@ export default function AdminCampaignsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetch(`/api/products-by-type?locale=${locale}`, { signal: controller.signal })
+    let active = true;
+    fetch(`/api/products-by-type?locale=${locale}`)
       .then((response) => response.json())
       .then((data: { types?: TypeGroup[] }) => {
+        if (!active) return;
         setProducts(flattenProducts(data.types || []));
         setSelectedProductIds([]);
         setPreview(null);
       })
       .catch((reason: unknown) => {
-        if (reason instanceof Error && reason.name === "AbortError") return;
+        if (!active) return;
         setError(reason instanceof Error ? reason.message : "Unable to load products.");
       })
-      .finally(() => setLoadingProducts(false));
+      .finally(() => {
+        if (active) setLoadingProducts(false);
+      });
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, [locale]);
 
   const selectedProducts = useMemo(
@@ -132,6 +138,38 @@ export default function AdminCampaignsPage() {
     setMessage("HTML copied.");
   }
 
+  async function copySubject() {
+    await navigator.clipboard.writeText(preview?.subject || subject);
+    setMessage("Subject copied.");
+  }
+
+  async function copyPlainText() {
+    if (!preview?.text) return;
+    await navigator.clipboard.writeText(preview.text);
+    setMessage("Plain text copied.");
+  }
+
+  function downloadInstantlyCsvTemplate() {
+    const sourceProducts = preview?.products?.length ? preview.products : selectedProducts;
+    const csv = buildInstantlyLeadCsvTemplate({
+      subject: preview?.subject || subject,
+      intro,
+      locale,
+      campaignSlug,
+      products: sourceProducts,
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `instantly-leads-template-${campaignSlug || "xmoso-campaign"}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setMessage("Instantly CSV template downloaded.");
+  }
+
   async function sendTest() {
     setError("");
     setMessage("");
@@ -161,12 +199,21 @@ export default function AdminCampaignsPage() {
             <h1 className="text-2xl font-light tracking-wider text-white">Email Campaigns</h1>
             <p className="text-sm text-silver/45 mt-2">Build product promotion emails for sales follow-up and external campaign tools.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button size="sm" onClick={generatePreview} disabled={previewing || selectedProductIds.length === 0}>
               {previewing ? "Generating..." : "Preview"}
             </Button>
+            <Button size="sm" variant="outline" onClick={copySubject} disabled={!subject && !preview?.subject}>
+              Copy Subject
+            </Button>
             <Button size="sm" variant="outline" onClick={copyHtml} disabled={!preview?.html}>
               Copy HTML
+            </Button>
+            <Button size="sm" variant="outline" onClick={copyPlainText} disabled={!preview?.text}>
+              Copy Plain Text
+            </Button>
+            <Button size="sm" variant="outline" onClick={downloadInstantlyCsvTemplate} disabled={selectedProductIds.length === 0}>
+              Export for Instantly
             </Button>
           </div>
         </div>
@@ -278,6 +325,14 @@ export default function AdminCampaignsPage() {
               <div>
                 <h2 className="text-sm font-medium text-white">Email Preview</h2>
                 <p className="text-xs text-silver/45 mt-1">{selectedProducts.map((product) => product.model_number).join(", ") || "Select products and generate a preview."}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={copySubject} disabled={!subject && !preview?.subject}>
+                  Copy Subject
+                </Button>
+                <Button size="sm" variant="outline" onClick={copyPlainText} disabled={!preview?.text}>
+                  Copy Text
+                </Button>
               </div>
             </div>
             {preview?.html ? (
