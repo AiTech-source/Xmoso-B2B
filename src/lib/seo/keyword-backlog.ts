@@ -30,7 +30,7 @@ export interface CronRequest {
 
 const SETTINGS_BACKLOG_KEY = "seo_keyword_backlog";
 
-const DEFAULT_BACKLOG_SEED: SeoKeywordBacklogRow[] = [
+export const DEFAULT_BACKLOG_SEED: SeoKeywordBacklogRow[] = [
   { keyword: "front bottom ventilation built in wine cooler installation", slug: "front-bottom-ventilation-built-in-wine-cooler-installation", locale: "en", content_type: "blog", source: "product_feature", intent: "installation", priority: 95, status: "new", notes: "XBI patented front-bottom self ventilation." },
   { keyword: "touch open wine cooler glass door compared with push latch", slug: "touch-open-wine-cooler-glass-door-vs-push-latch", locale: "en", content_type: "blog", source: "product_feature", intent: "user_pain", priority: 92, status: "new", notes: "Touch-open interaction compared with push latch gap drift." },
   { keyword: "true dual zone wine cooler 5 to 20 celsius both compartments", slug: "true-dual-zone-wine-cooler-5-20c-both-compartments", locale: "en", content_type: "blog", source: "product_feature", intent: "user_pain", priority: 90, status: "new", notes: "Both upper and lower zones support red or white wine storage." },
@@ -105,6 +105,22 @@ async function writeSettingsBacklog(supabase: any, rows: SeoKeywordBacklogRow[])
   if (error) throw new Error(`Failed to write settings keyword backlog: ${error.message}`);
 }
 
+async function seedBacklogTable(supabase: any): Promise<SeoKeywordBacklogRow[]> {
+  const seeded = DEFAULT_BACKLOG_SEED.map(withDefaults);
+  const { error } = await supabase.from("seo_keyword_backlog").insert(seeded);
+  if (error) throw new Error(`Failed to seed keyword backlog: ${error.message}`);
+  return seeded;
+}
+
+async function backlogTableHasRows(supabase: any): Promise<boolean> {
+  const { count, error } = await supabase
+    .from("seo_keyword_backlog")
+    .select("id", { count: "exact", head: true });
+  if (error && tableMissing(error)) return false;
+  if (error) throw new Error(`Failed to count keyword backlog: ${error.message}`);
+  return (count || 0) > 0;
+}
+
 function filterBacklogRows(
   rows: SeoKeywordBacklogRow[],
   filters: { contentType?: string | null; locale?: string; status?: string | null },
@@ -177,6 +193,21 @@ export async function claimNextBacklogItem(
     return updatedRows.find((row) => row.id === next.id) || null;
   }
   if (error) throw new Error(`Failed to read keyword backlog: ${error.message}`);
+  if (!data && !(await backlogTableHasRows(supabase))) {
+    const seeded = await seedBacklogTable(supabase);
+    const next = filterBacklogRows(seeded, { contentType: options.contentType, locale: options.locale, status: "new" }).find(isBacklogCandidate);
+    if (!next?.id) return null;
+    const { data: updated, error: updateError } = await supabase
+      .from("seo_keyword_backlog")
+      .update({ status: "selected", picked_at: nowIso(), updated_at: nowIso() })
+      .eq("id", next.id)
+      .eq("status", "new")
+      .select("*")
+      .maybeSingle();
+
+    if (updateError) throw new Error(`Failed to claim seeded keyword backlog item: ${updateError.message}`);
+    return updated || { ...next, status: "selected", picked_at: nowIso(), updated_at: nowIso() };
+  }
   if (!data) return null;
 
   const { data: updated, error: updateError } = await supabase
@@ -210,6 +241,10 @@ export async function listBacklogItems(
     return filterBacklogRows(await readSettingsBacklog(supabase), filters);
   }
   if (error) throw new Error(error.message);
+  if ((data || []).length === 0 && (!filters.status || filters.status === "new") && !(await backlogTableHasRows(supabase))) {
+    const seeded = await seedBacklogTable(supabase);
+    return filterBacklogRows(seeded, filters);
+  }
   return data || [];
 }
 
